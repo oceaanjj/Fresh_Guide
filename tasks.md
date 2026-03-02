@@ -7,8 +7,7 @@
 
 ## Pending
 - [ ] Configure emulators for phone + tablet testing [high]
-- [ ] Scaffold bottom navigation (Home, Schedule, Settings, Profile) [high]
-- [ ] Build home screen layout matching design mockup [high]
+- [ ] Wire up Find a Room → room selection screen [high]
 - [ ] Add floor plan image to drawable-nodpi/ [high]
 - [ ] Phase 3: Exit route logic + directional arrows [medium]
 - [ ] Phase 4: Safety reminders + evacuation instructions [medium]
@@ -31,3 +30,4 @@
 - [x] .gitignore — build outputs, .gradle, .idea state, keystore, OS files — 2026-02-28
 - [x] README.md — logo, overview, team credits, phase tracker — 2026-02-28
 - [x] Initial commit pushed to GitHub (GABlane/Fresh_Guide) — 2026-02-28
+- [x] Dashboard screen — header, greeting, search, 2×2 action cards, recently viewed, bottom nav — 2026-02-28
