@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -24,11 +27,11 @@
             </intent-filter>
         </activity>
 
-        <!-- Login screen -->
+        <!-- Login screen — landscape layout in layout-land/, state via ViewModel -->
         <activity
             android:name=".LoginActivity"
             android:exported="false"
-            android:screenOrientation="portrait" />
+            android:configChanges="orientation|screenSize" />
 
         <!-- Onboarding — shown once after first login -->
         <activity
@@ -36,11 +39,20 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Main app screen -->
+        <!-- Main app screen — landscape layout in layout-land/, state via ViewModel -->
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:screenOrientation="portrait" />
+            android:configChanges="orientation|screenSize" />
+
+        <!-- Network connectivity broadcast receiver -->
+        <receiver
+            android:name=".receiver.NetworkChangeReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
 
     </application>
 

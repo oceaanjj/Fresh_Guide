@@ -1,0 +1,46 @@
+package com.example.freshguide.viewmodel;
+
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
+import com.example.freshguide.model.dto.RouteDto;
+import com.example.freshguide.repository.RoomRepository;
+
+public class DirectionsViewModel extends AndroidViewModel {
+
+    private final MutableLiveData<RouteDto> route = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> loading = new MutableLiveData<>(false);
+    private final MutableLiveData<String> error = new MutableLiveData<>();
+
+    private final RoomRepository repository;
+
+    public DirectionsViewModel(@NonNull Application application) {
+        super(application);
+        repository = new RoomRepository(application);
+    }
+
+    public LiveData<RouteDto> getRoute() { return route; }
+    public LiveData<Boolean> getLoading() { return loading; }
+    public LiveData<String> getError() { return error; }
+
+    public void loadRoute(int roomId, int originId) {
+        loading.setValue(true);
+        repository.getRoute(roomId, originId, new RoomRepository.RouteCallback() {
+            @Override
+            public void onLoaded(RouteDto r) {
+                route.setValue(r);
+                loading.setValue(false);
+            }
+
+            @Override
+            public void onError(String message) {
+                error.setValue(message);
+                loading.setValue(false);
+            }
+        });
+    }
+}

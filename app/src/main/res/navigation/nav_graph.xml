@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <!-- ── User Flow ──────────────────────────────────────────────────── -->
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.freshguide.ui.user.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_home_to_roomList"
+            app:destination="@id/roomListFragment" />
+        <action
+            android:id="@+id/action_home_to_profile"
+            app:destination="@id/profileFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/roomListFragment"
+        android:name="com.example.freshguide.ui.user.RoomListFragment"
+        android:label="Find a Room"
+        tools:layout="@layout/fragment_room_list">
+        <argument
+            android:name="buildingCode"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="buildingName"
+            app:argType="string"
+            android:defaultValue="" />
+        <action
+            android:id="@+id/action_roomList_to_roomDetail"
+            app:destination="@id/roomDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/roomDetailFragment"
+        android:name="com.example.freshguide.ui.user.RoomDetailFragment"
+        android:label="Room Detail"
+        tools:layout="@layout/fragment_room_detail">
+        <argument
+            android:name="roomId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+        <argument
+            android:name="roomName"
+            app:argType="string"
+            android:defaultValue="" />
+        <action
+            android:id="@+id/action_roomDetail_to_originPicker"
+            app:destination="@id/originPickerFragment" />
+        <action
+            android:id="@+id/action_roomDetail_to_directions"
+            app:destination="@id/directionsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/originPickerFragment"
+        android:name="com.example.freshguide.ui.user.OriginPickerFragment"
+        android:label="Select Starting Point"
+        tools:layout="@layout/fragment_origin_picker">
+        <argument
+            android:name="roomId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/directionsFragment"
+        android:name="com.example.freshguide.ui.user.DirectionsFragment"
+        android:label="Directions"
+        tools:layout="@layout/fragment_directions">
+        <argument
+            android:name="roomId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+        <argument
+            android:name="originId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.freshguide.ui.user.ProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile" />
+
+    <!-- ── Admin Flow ─────────────────────────────────────────────────── -->
+
+    <fragment
+        android:id="@+id/adminDashboardFragment"
+        android:name="com.example.freshguide.ui.admin.AdminDashboardFragment"
+        android:label="Admin Dashboard"
+        tools:layout="@layout/fragment_admin_dashboard">
+        <action
+            android:id="@+id/action_adminDashboard_to_adminBuildingList"
+            app:destination="@id/adminBuildingListFragment" />
+        <action
+            android:id="@+id/action_adminDashboard_to_adminFloorList"
+            app:destination="@id/adminFloorListFragment" />
+        <action
+            android:id="@+id/action_adminDashboard_to_adminRoomList"
+            app:destination="@id/adminRoomListFragment" />
+        <action
+            android:id="@+id/action_adminDashboard_to_adminFacilityList"
+            app:destination="@id/adminFacilityListFragment" />
+        <action
+            android:id="@+id/action_adminDashboard_to_adminOriginList"
+            app:destination="@id/adminOriginListFragment" />
+        <action
+            android:id="@+id/action_adminDashboard_to_adminRouteList"
+            app:destination="@id/adminRouteListFragment" />
+        <action
+            android:id="@+id/action_adminDashboard_to_adminPublish"
+            app:destination="@id/adminPublishFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminBuildingListFragment"
+        android:name="com.example.freshguide.ui.admin.AdminBuildingListFragment"
+        android:label="Buildings"
+        tools:layout="@layout/fragment_admin_list">
+        <action
+            android:id="@+id/action_adminBuildingList_to_adminBuildingForm"
+            app:destination="@id/adminBuildingFormFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminBuildingFormFragment"
+        android:name="com.example.freshguide.ui.admin.AdminBuildingFormFragment"
+        android:label="Building Form"
+        tools:layout="@layout/fragment_admin_form">
+        <argument
+            android:name="buildingId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminFloorListFragment"
+        android:name="com.example.freshguide.ui.admin.AdminFloorListFragment"
+        android:label="Floors"
+        tools:layout="@layout/fragment_admin_list">
+        <action
+            android:id="@+id/action_adminFloorList_to_adminFloorForm"
+            app:destination="@id/adminFloorFormFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminFloorFormFragment"
+        android:name="com.example.freshguide.ui.admin.AdminFloorFormFragment"
+        android:label="Floor Form"
+        tools:layout="@layout/fragment_admin_form">
+        <argument
+            android:name="floorId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminRoomListFragment"
+        android:name="com.example.freshguide.ui.admin.AdminRoomListFragment"
+        android:label="Rooms"
+        tools:layout="@layout/fragment_admin_list">
+        <action
+            android:id="@+id/action_adminRoomList_to_adminRoomForm"
+            app:destination="@id/adminRoomFormFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminRoomFormFragment"
+        android:name="com.example.freshguide.ui.admin.AdminRoomFormFragment"
+        android:label="Room Form"
+        tools:layout="@layout/fragment_admin_room_form">
+        <argument
+            android:name="roomId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminFacilityListFragment"
+        android:name="com.example.freshguide.ui.admin.AdminFacilityListFragment"
+        android:label="Facilities"
+        tools:layout="@layout/fragment_admin_list" />
+
+    <fragment
+        android:id="@+id/adminOriginListFragment"
+        android:name="com.example.freshguide.ui.admin.AdminOriginListFragment"
+        android:label="Origins"
+        tools:layout="@layout/fragment_admin_list" />
+
+    <fragment
+        android:id="@+id/adminRouteListFragment"
+        android:name="com.example.freshguide.ui.admin.AdminRouteListFragment"
+        android:label="Routes"
+        tools:layout="@layout/fragment_admin_list">
+        <action
+            android:id="@+id/action_adminRouteList_to_adminRouteForm"
+            app:destination="@id/adminRouteFormFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminRouteFormFragment"
+        android:name="com.example.freshguide.ui.admin.AdminRouteFormFragment"
+        android:label="Route Form"
+        tools:layout="@layout/fragment_admin_form">
+        <argument
+            android:name="routeId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminPublishFragment"
+        android:name="com.example.freshguide.ui.admin.AdminPublishFragment"
+        android:label="Publish"
+        tools:layout="@layout/fragment_admin_publish" />
+
+</navigation>

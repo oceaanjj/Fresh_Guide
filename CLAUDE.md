@@ -1,49 +1,51 @@
-# FreshGuide — Project Context
+# FreshGuide Android — Project Context
 
 ## What it is
-Emergency Exit Route Guide System — Android app displaying a single-floor building layout for UCC campus.
-
-## Core Features
-- Users manually select their classroom/location
-- App highlights nearest emergency exit
-- Shows directional arrows toward the exit
-- Displays safety reminders and evacuation instructions
-- No GPS, no real-time tracking, no sensor integration
+Dual-role campus navigation app for UCC students and admins.
+Students find rooms, get directions, and sync offline data.
+Admins manage buildings, floors, rooms, facilities, origins, routes, and publish data versions.
 
 ## Stack
 - Language: Java
 - Package: com.example.freshguide
-- Min SDK: 24 (Android 7.0)
-- Target SDK: 36
+- Min SDK: 24 (Android 7.0), Target SDK: 36
+- Architecture: MVVM + Retrofit + Room + NavComponent
 - UI: ConstraintLayout + Material3
 - Theme: Theme.Material3.DayNight.NoActionBar
+- Auth: Sanctum tokens stored in EncryptedSharedPreferences
 
-## Screen Layout (from design)
-- Top: FreshGuide logo
-- Search bar + filter icon
-- Horizontal chip row: Library, CL1, CL2, Registrar, Accounting...
-- Main area: Floor map (canvas/custom view) with labeled buildings
-- Bottom nav: Home, Schedule, Settings, Profile
-- FAB: Navigation/direction button (bottom right)
-- Orange accent bars on left side
+## Backend
+- Laravel 11 + Sanctum API
+- Path: `/home/john/projects/AndroidStudioProjects/Fresh_Guide_BackEnd/laravel/`
+- API base URL: set `api.base.url` in `local.properties` (ngrok required — ApiClient enforces HTTPS)
 
-## Building Locations on Map
-- Registrar
-- Court
-- Library
-- UCC South Main Building
-- Entrance
-- Exit
+## Auth Roles
+| Role | Login method |
+|------|-------------|
+| Student | Student ID only (no password) |
+| Admin | Email + password |
 
-## Phases
-- [ ] Phase 1: Multiple screen support (current)
-- [ ] Phase 2: Floor map rendering + building layout
-- [ ] Phase 3: Exit route logic + directional arrows
-- [ ] Phase 4: Safety reminders + evacuation instructions
-- [ ] Phase 5: Location selection UI
-- [ ] Phase 6: Polish + accessibility
+## Key Screens
+- LoginActivity — student ID / admin login, register dialog
+- MainActivity — NavController + BottomNav + options menu
+- HomeFragment — sync status, stats, quick actions
+- RoomListFragment — search + RecyclerView
+- RoomDetailFragment — facilities, Get Directions button
+- OriginPickerFragment — setFragmentResult return flow
+- DirectionsFragment — route steps RecyclerView
+- ProfileFragment — student info + sync version + logout
+- AdminDashboardFragment — counts + nav to CRUD screens
+- Admin CRUD: Buildings, Floors, Rooms, Facilities, Origins, Routes, Publish
+
+## Architecture Notes
+- All admin list screens use GenericListAdapter + AdminViewModel
+- All admin form screens use fragment_admin_form.xml (3 EditText fields + Save button)
+- Room list uses RoomAdapter (ListAdapter + DiffUtil)
+- Directions use RouteStepAdapter
+- Offline data lives in Room DB, synced via /api/sync/bootstrap
+- Admin actions are online-only (no offline admin)
 
 ## Risk Areas
-- Floor plan image scaling/distortion
-- Custom canvas drawing for arrows/overlays
-- Multi-density drawable management
+- API_BASE_URL must be set before build — app throws at startup if blank
+- ngrok URL changes every session — rebuild required after URL change
+- EncryptedSharedPreferences — key rotation issues on device wipe

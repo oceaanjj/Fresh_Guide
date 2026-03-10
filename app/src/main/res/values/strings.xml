@@ -6,6 +6,13 @@
     <string name="btn_create_account">CREATE NEW ACCOUNT</string>
     <string name="hint_username">Enter username</string>
     <string name="hint_password">Enter password</string>
+    <string name="register_dialog_title">Create Student Account</string>
+    <string name="register_dialog_message">Enter your Student ID to create or access your account.</string>
+    <string name="register_student_id_hint">Student ID (e.g. 20230054-S)</string>
+    <string name="action_register">Register</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="error_student_id_required">Student ID is required</string>
+    <string name="error_student_id_format">Use Student ID format: 20230054-S</string>
     <string name="logo_description">FreshGuide logo</string>
     <string name="logo_mark_description">FreshGuide icon</string>
 

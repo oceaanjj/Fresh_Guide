@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Satisfies checklist 2.1: styles defined -->
+<resources>
+
+    <!-- Base styles (required by dot-chain naming convention) -->
+    <style name="Style" />
+    <style name="Style.FreshGuide" />
+    <style name="Style.FreshGuide.Text" />
+
+    <!-- Card styles -->
+    <style name="Style.FreshGuide.Card" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">2dp</item>
+        <item name="cardBackgroundColor">@color/surface_white</item>
+    </style>
+
+    <style name="Style.FreshGuide.Card.Action" parent="Style.FreshGuide.Card">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">3dp</item>
+    </style>
+
+    <!-- Button styles -->
+    <style name="Style.FreshGuide.Button.Primary" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/green_primary</item>
+        <item name="android:textColor">@color/surface_white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">15sp</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <style name="Style.FreshGuide.Button.Secondary" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/green_primary</item>
+        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">15sp</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <style name="Style.FreshGuide.Button.Danger" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/orange_accent</item>
+        <item name="android:textColor">@color/surface_white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <!-- Text styles -->
+    <style name="Style.FreshGuide.Text.Header">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="Style.FreshGuide.Text.SectionLabel">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_hint</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.08</item>
+    </style>
+
+    <style name="Style.FreshGuide.Text.Badge" parent="">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/surface_white</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:paddingTop">3dp</item>
+        <item name="android:paddingBottom">3dp</item>
+        <item name="android:background">@drawable/bg_chip_green</item>
+    </style>
+
+    <!-- Input styles -->
+    <style name="Style.FreshGuide.Input">
+        <item name="android:background">@drawable/bg_search_bar</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorHint">@color/text_hint</item>
+    </style>
+
+</resources>

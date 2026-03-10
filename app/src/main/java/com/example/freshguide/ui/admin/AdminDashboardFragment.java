@@ -1,0 +1,60 @@
+package com.example.freshguide.ui.admin;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+
+import com.example.freshguide.R;
+import com.example.freshguide.viewmodel.AdminViewModel;
+
+public class AdminDashboardFragment extends Fragment {
+
+    private AdminViewModel viewModel;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_admin_dashboard, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        viewModel = new ViewModelProvider(this).get(AdminViewModel.class);
+
+        TextView tvRooms = view.findViewById(R.id.tv_room_count);
+        TextView tvBuildings = view.findViewById(R.id.tv_building_count);
+
+        viewModel.getRoomCount().observe(getViewLifecycleOwner(), c -> tvRooms.setText(String.valueOf(c)));
+        viewModel.getBuildingCount().observe(getViewLifecycleOwner(), c -> tvBuildings.setText(String.valueOf(c)));
+        viewModel.loadDashboardCounts();
+
+        NavController nav = Navigation.findNavController(view);
+
+        view.findViewById(R.id.btn_manage_buildings).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminBuildingList));
+        view.findViewById(R.id.btn_manage_floors).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminFloorList));
+        view.findViewById(R.id.btn_manage_rooms).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminRoomList));
+        view.findViewById(R.id.btn_manage_facilities).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminFacilityList));
+        view.findViewById(R.id.btn_manage_origins).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminOriginList));
+        view.findViewById(R.id.btn_manage_routes).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminRouteList));
+        view.findViewById(R.id.btn_publish).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminPublish));
+    }
+}

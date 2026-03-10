@@ -1,0 +1,407 @@
+package com.example.freshguide.viewmodel;
+
+import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
+import com.example.freshguide.database.AppDatabase;
+import com.example.freshguide.model.dto.ApiResponse;
+import com.example.freshguide.model.dto.BuildingDto;
+import com.example.freshguide.model.dto.FacilityDto;
+import com.example.freshguide.model.dto.FloorDto;
+import com.example.freshguide.model.dto.OriginDto;
+import com.example.freshguide.model.dto.RouteDto;
+import com.example.freshguide.network.ApiClient;
+import com.example.freshguide.network.ApiService;
+import com.example.freshguide.repository.BuildingRepository;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class AdminViewModel extends AndroidViewModel {
+
+    private final MutableLiveData<Integer> roomCount = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> buildingCount = new MutableLiveData<>(0);
+    private final MutableLiveData<List<BuildingDto>> buildings = new MutableLiveData<>();
+    private final MutableLiveData<List<FloorDto>> floors = new MutableLiveData<>();
+    private final MutableLiveData<List<FacilityDto>> facilities = new MutableLiveData<>();
+    private final MutableLiveData<List<OriginDto>> origins = new MutableLiveData<>();
+    private final MutableLiveData<List<RouteDto>> routes = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> loading = new MutableLiveData<>(false);
+    private final MutableLiveData<String> error = new MutableLiveData<>();
+    private final MutableLiveData<String> successMessage = new MutableLiveData<>();
+
+    private final AppDatabase db;
+    private final BuildingRepository buildingRepository;
+    private final ApiService apiService;
+    private final Executor executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    public AdminViewModel(@NonNull Application application) {
+        super(application);
+        db = AppDatabase.getInstance(application);
+        buildingRepository = new BuildingRepository(application);
+        apiService = ApiClient.getInstance(application).getApiService();
+    }
+
+    public LiveData<Integer> getRoomCount() { return roomCount; }
+    public LiveData<Integer> getBuildingCount() { return buildingCount; }
+    public LiveData<List<BuildingDto>> getBuildings() { return buildings; }
+    public LiveData<List<FloorDto>> getFloors() { return floors; }
+    public LiveData<List<FacilityDto>> getFacilities() { return facilities; }
+    public LiveData<List<OriginDto>> getOrigins() { return origins; }
+    public LiveData<List<RouteDto>> getRoutes() { return routes; }
+    public LiveData<Boolean> getLoading() { return loading; }
+    public LiveData<String> getError() { return error; }
+    public LiveData<String> getSuccessMessage() { return successMessage; }
+
+    // ── Dashboard ─────────────────────────────────────────────────────────────
+
+    public void loadDashboardCounts() {
+        executor.execute(() -> {
+            int rooms = db.roomDao().count();
+            int bldgs = db.buildingDao().count();
+            mainHandler.post(() -> {
+                roomCount.setValue(rooms);
+                buildingCount.setValue(bldgs);
+            });
+        });
+    }
+
+    // ── Buildings ─────────────────────────────────────────────────────────────
+
+    public void loadBuildings() {
+        loading.setValue(true);
+        buildingRepository.adminGetBuildings(new BuildingRepository.RepoCallback<List<BuildingDto>>() {
+            @Override
+            public void onSuccess(List<BuildingDto> result) {
+                buildings.setValue(result);
+                loading.setValue(false);
+            }
+
+            @Override
+            public void onError(String message) {
+                error.setValue(message);
+                loading.setValue(false);
+            }
+        });
+    }
+
+    public void createBuilding(String name, String code, String description) {
+        loading.setValue(true);
+        buildingRepository.adminCreateBuilding(name, code, description,
+                new BuildingRepository.RepoCallback<BuildingDto>() {
+                    @Override
+                    public void onSuccess(BuildingDto result) {
+                        successMessage.setValue("Building created");
+                        loading.setValue(false);
+                        loadBuildings();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        error.setValue(message);
+                        loading.setValue(false);
+                    }
+                });
+    }
+
+    public void updateBuilding(int id, String name, String code, String description) {
+        loading.setValue(true);
+        buildingRepository.adminUpdateBuilding(id, name, code, description,
+                new BuildingRepository.RepoCallback<BuildingDto>() {
+                    @Override
+                    public void onSuccess(BuildingDto result) {
+                        successMessage.setValue("Building updated");
+                        loading.setValue(false);
+                        loadBuildings();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        error.setValue(message);
+                        loading.setValue(false);
+                    }
+                });
+    }
+
+    public void deleteBuilding(int id) {
+        loading.setValue(true);
+        buildingRepository.adminDeleteBuilding(id, new BuildingRepository.RepoCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                successMessage.setValue("Building deleted");
+                loading.setValue(false);
+                loadBuildings();
+            }
+
+            @Override
+            public void onError(String message) {
+                error.setValue(message);
+                loading.setValue(false);
+            }
+        });
+    }
+
+    // ── Floors ────────────────────────────────────────────────────────────────
+
+    public void loadFloors() {
+        loading.setValue(true);
+        apiService.adminGetFloors().enqueue(new Callback<ApiResponse<List<FloorDto>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<FloorDto>>> call,
+                                   Response<ApiResponse<List<FloorDto>>> response) {
+                loading.setValue(false);
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    floors.setValue(response.body().getData());
+                } else {
+                    error.setValue("Failed to load floors");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<FloorDto>>> call, Throwable t) {
+                loading.setValue(false);
+                error.setValue("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    public void createFloor(int buildingId, int number, String name) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("building_id", buildingId);
+        body.put("number", number);
+        body.put("name", name);
+        apiService.adminCreateFloor(body).enqueue(new Callback<ApiResponse<FloorDto>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<FloorDto>> call,
+                                   Response<ApiResponse<FloorDto>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    successMessage.setValue("Floor created");
+                    loadFloors();
+                } else {
+                    error.setValue("Failed to save floor");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<FloorDto>> call, Throwable t) {
+                error.setValue("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    public void updateFloor(int id, int buildingId, int number, String name) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("building_id", buildingId);
+        body.put("number", number);
+        body.put("name", name);
+        apiService.adminUpdateFloor(id, body).enqueue(new Callback<ApiResponse<FloorDto>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<FloorDto>> call,
+                                   Response<ApiResponse<FloorDto>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    successMessage.setValue("Floor updated");
+                    loadFloors();
+                } else {
+                    error.setValue("Failed to update floor");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<FloorDto>> call, Throwable t) {
+                error.setValue("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    public void deleteFloor(int id) {
+        apiService.adminDeleteFloor(id).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call,
+                                   Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    successMessage.setValue("Floor deleted");
+                    loadFloors();
+                } else {
+                    error.setValue("Delete failed");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                error.setValue("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    // ── Facilities ────────────────────────────────────────────────────────────
+
+    public void loadFacilities() {
+        loading.setValue(true);
+        apiService.adminGetFacilities().enqueue(new Callback<ApiResponse<List<FacilityDto>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<FacilityDto>>> call,
+                                   Response<ApiResponse<List<FacilityDto>>> response) {
+                loading.setValue(false);
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    facilities.setValue(response.body().getData());
+                } else {
+                    error.setValue("Failed to load facilities");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<FacilityDto>>> call, Throwable t) {
+                loading.setValue(false);
+                error.setValue("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    public void deleteFacility(int id) {
+        apiService.adminDeleteFacility(id).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call,
+                                   Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    successMessage.setValue("Facility deleted");
+                    loadFacilities();
+                } else {
+                    error.setValue("Delete failed");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                error.setValue("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    // ── Origins ───────────────────────────────────────────────────────────────
+
+    public void loadOrigins() {
+        loading.setValue(true);
+        apiService.adminGetOrigins().enqueue(new Callback<ApiResponse<List<OriginDto>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<OriginDto>>> call,
+                                   Response<ApiResponse<List<OriginDto>>> response) {
+                loading.setValue(false);
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    origins.setValue(response.body().getData());
+                } else {
+                    error.setValue("Failed to load origins");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<OriginDto>>> call, Throwable t) {
+                loading.setValue(false);
+                error.setValue("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    public void deleteOrigin(int id) {
+        apiService.adminDeleteOrigin(id).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call,
+                                   Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    successMessage.setValue("Origin deleted");
+                    loadOrigins();
+                } else {
+                    error.setValue("Delete failed");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                error.setValue("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    // ── Routes ────────────────────────────────────────────────────────────────
+
+    public void loadRoutes() {
+        loading.setValue(true);
+        apiService.adminGetRoutes().enqueue(new Callback<ApiResponse<List<RouteDto>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<RouteDto>>> call,
+                                   Response<ApiResponse<List<RouteDto>>> response) {
+                loading.setValue(false);
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    routes.setValue(response.body().getData());
+                } else {
+                    error.setValue("Failed to load routes");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<RouteDto>>> call, Throwable t) {
+                loading.setValue(false);
+                error.setValue("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    public void deleteRoute(int id) {
+        apiService.adminDeleteRoute(id).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call,
+                                   Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    successMessage.setValue("Route deleted");
+                    loadRoutes();
+                } else {
+                    error.setValue("Delete failed");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                error.setValue("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    // ── Publish ───────────────────────────────────────────────────────────────
+
+    public void publish() {
+        loading.setValue(true);
+        apiService.publish().enqueue(new Callback<ApiResponse<Map<String, Integer>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Map<String, Integer>>> call,
+                                   Response<ApiResponse<Map<String, Integer>>> response) {
+                loading.setValue(false);
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    Map<String, Integer> data = response.body().getData();
+                    int version = data != null && data.containsKey("version") ? data.get("version") : 0;
+                    successMessage.setValue("Published! Version: " + version);
+                } else {
+                    error.setValue("Publish failed");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Map<String, Integer>>> call, Throwable t) {
+                loading.setValue(false);
+                error.setValue("Network error: " + t.getMessage());
+            }
+        });
+    }
+}

@@ -51,6 +51,16 @@
                 android:adjustViewBounds="true"
                 android:layout_marginBottom="40dp" />
 
+            <!-- Login mode hint -->
+            <TextView
+                android:id="@+id/tv_login_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Student ID login"
+                android:textSize="13sp"
+                android:textColor="@color/text_hint" />
+
             <!-- Username label -->
             <TextView
                 android:id="@+id/labelUsername"
@@ -118,6 +128,15 @@
                     android:contentDescription="Toggle password visibility" />
 
             </FrameLayout>
+
+            <!-- Loading indicator -->
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone" />
 
             <!-- Sign In button -->
             <Button
