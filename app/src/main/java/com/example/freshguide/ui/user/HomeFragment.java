@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.HorizontalScrollView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,12 +27,22 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 
 public class HomeFragment extends Fragment {
 
+    private static final long CHIP_ANIM_DURATION_MS = 300L;
+    private static final String CODE_MAIN = "MAIN";
+    private static final String CODE_REG = "REG";
+    private static final String CODE_LIB = "LIB";
+    private static final String CODE_COURT = "COURT";
+    private static final String CODE_ENT = "ENT";
+    private static final String CODE_EXIT = "EXIT";
+
     private HomeViewModel viewModel;
     private CampusMapView campusMap;
+    private HorizontalScrollView floorChipContainer;
+    private String selectedBuildingCode;
 
     @Nullable
     @Override
@@ -44,6 +56,7 @@ public class HomeFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         campusMap = view.findViewById(R.id.campus_map);
+        floorChipContainer = view.findViewById(R.id.floor_chip_container);
 
         NavController nav = Navigation.findNavController(view);
 
@@ -83,10 +96,12 @@ public class HomeFragment extends Fragment {
                 int floorNum = numbers.get(i);
                 Chip chip = makeFilterChip(floorLabel(floorNum));
                 
-                // Add click handler for navigation to floor
                 chip.setOnClickListener(v -> {
+                    if (!CODE_MAIN.equalsIgnoreCase(selectedBuildingCode)) {
+                        return;
+                    }
                     Bundle args = new Bundle();
-                    args.putString("buildingCode", "MAIN");
+                    args.putString("buildingCode", CODE_MAIN);
                     args.putString("buildingName", "Main Building");
                     args.putInt("selectedFloor", floorNum);
                     nav.navigate(R.id.action_home_to_floorLayout, args);
@@ -152,15 +167,84 @@ public class HomeFragment extends Fragment {
 
     private void setupCampusMap(NavController nav) {
         campusMap.setOnBuildingClickListener((code, name) -> {
+            selectedBuildingCode = code != null ? code.toUpperCase(Locale.ROOT) : null;
+
+            if (CODE_MAIN.equals(selectedBuildingCode)) {
+                showFloorChipsAnimated();
+                return;
+            }
+
+            hideFloorChipsAnimated();
+
             Bundle args = new Bundle();
             args.putString("buildingCode", code);
             args.putString("buildingName", name);
-            if ("MAIN".equalsIgnoreCase(code)) {
-                nav.navigate(R.id.action_home_to_floorLayout, args);
-            } else {
+
+            if (CODE_LIB.equals(selectedBuildingCode) || CODE_REG.equals(selectedBuildingCode)) {
                 nav.navigate(R.id.action_home_to_roomList, args);
+                return;
+            }
+
+            if (CODE_COURT.equals(selectedBuildingCode)
+                    || CODE_ENT.equals(selectedBuildingCode)
+                    || CODE_EXIT.equals(selectedBuildingCode)) {
+                navigateToCampusAreaRoom(nav, selectedBuildingCode, name);
             }
         });
+    }
+
+    private void navigateToCampusAreaRoom(NavController nav, String areaCode, String areaName) {
+        viewModel.findRoomIdByCode(areaCode, roomId -> {
+            if (!isAdded()) {
+                return;
+            }
+
+            if (roomId == null || roomId <= 0) {
+                Toast.makeText(requireContext(), "Campus area not available yet", Toast.LENGTH_SHORT).show();
+                nav.navigate(R.id.homeFragment);
+                return;
+            }
+
+            Bundle args = new Bundle();
+            args.putInt("roomId", roomId);
+            args.putString("roomName", areaName != null ? areaName : areaCode);
+            args.putBoolean("isCampusArea", true);
+            nav.navigate(R.id.action_home_to_roomDetail, args);
+        });
+    }
+
+    private void showFloorChipsAnimated() {
+        if (floorChipContainer == null) return;
+        if (floorChipContainer.getVisibility() == View.VISIBLE) return;
+
+        floorChipContainer.setVisibility(View.VISIBLE);
+        floorChipContainer.setAlpha(0f);
+        floorChipContainer.setTranslationY(-dpToPx(14));
+        floorChipContainer.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(CHIP_ANIM_DURATION_MS)
+                .start();
+    }
+
+    private void hideFloorChipsAnimated() {
+        if (floorChipContainer == null) return;
+        if (floorChipContainer.getVisibility() != View.VISIBLE) return;
+
+        floorChipContainer.animate()
+                .alpha(0f)
+                .translationY(-dpToPx(14))
+                .setDuration(CHIP_ANIM_DURATION_MS)
+                .withEndAction(() -> {
+                    floorChipContainer.setVisibility(View.GONE);
+                    floorChipContainer.setAlpha(1f);
+                    floorChipContainer.setTranslationY(0f);
+                })
+                .start();
+    }
+
+    private float dpToPx(int dp) {
+        return dp * getResources().getDisplayMetrics().density;
     }
 
     /** Re-centres the map to its default zoom/pan. */

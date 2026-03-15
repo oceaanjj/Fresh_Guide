@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:padding="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <EditText
+                    android:id="@+id/et_area_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Area Name"
+                    android:inputType="textCapWords" />
+
+                <TextView
+                    android:id="@+id/tv_area_code"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:padding="12dp"
+                    android:background="#EEEEEE"
+                    android:text="Code"
+                    android:textColor="@color/text_hint"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/et_area_floor_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Floor ID"
+                    android:inputType="number" />
+
+                <EditText
+                    android:id="@+id/et_area_facilities"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Facilities information"
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:minLines="2"
+                    android:gravity="start|top" />
+
+                <EditText
+                    android:id="@+id/et_area_hours"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Operating hours"
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:minLines="2"
+                    android:gravity="start|top" />
+
+                <EditText
+                    android:id="@+id/et_area_booking"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Booking information"
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:minLines="2"
+                    android:gravity="start|top" />
+
+                <EditText
+                    android:id="@+id/et_area_directory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Directory information"
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:minLines="2"
+                    android:gravity="start|top" />
+
+                <EditText
+                    android:id="@+id/et_area_emergency"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Emergency information"
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:minLines="2"
+                    android:gravity="start|top" />
+
+                <EditText
+                    android:id="@+id/et_area_campus_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Campus information"
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:minLines="2"
+                    android:gravity="start|top" />
+
+                <EditText
+                    android:id="@+id/et_area_notes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Additional notes"
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:minLines="3"
+                    android:gravity="start|top" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <Button
+            android:id="@+id/btn_save_campus_area"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Update Campus Area"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/green_primary" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

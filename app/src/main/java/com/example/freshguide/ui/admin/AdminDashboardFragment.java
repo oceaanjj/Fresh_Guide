@@ -48,6 +48,8 @@ public class AdminDashboardFragment extends Fragment {
                 nav.navigate(R.id.action_adminDashboard_to_adminFloorList));
         view.findViewById(R.id.btn_manage_rooms).setOnClickListener(v ->
                 nav.navigate(R.id.action_adminDashboard_to_adminRoomList));
+        view.findViewById(R.id.btn_manage_campus_areas).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminCampusAreaList));
         view.findViewById(R.id.btn_manage_facilities).setOnClickListener(v ->
                 nav.navigate(R.id.action_adminDashboard_to_adminFacilityList));
         view.findViewById(R.id.btn_manage_origins).setOnClickListener(v ->

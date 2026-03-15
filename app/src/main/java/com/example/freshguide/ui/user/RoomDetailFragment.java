@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,6 +36,7 @@ public class RoomDetailFragment extends Fragment {
 
     private RoomDetailViewModel viewModel;
     private int roomId;
+    private boolean isCampusArea;
     private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
     private String latestImageUrl;
 
@@ -51,6 +53,7 @@ public class RoomDetailFragment extends Fragment {
 
         // Checklist 5.2: receive data from args
         roomId = requireArguments().getInt(ARG_ROOM_ID, -1);
+        isCampusArea = requireArguments().getBoolean("isCampusArea", false);
         viewModel = new ViewModelProvider(this).get(RoomDetailViewModel.class);
 
         TextView tvName = view.findViewById(R.id.tv_room_name);
@@ -60,6 +63,7 @@ public class RoomDetailFragment extends Fragment {
         TextView tvFacilities = view.findViewById(R.id.tv_facilities);
         ImageView ivRoomImage = view.findViewById(R.id.iv_room_image);
         Button btnDirections = view.findViewById(R.id.btn_get_directions);
+        NavController nav = Navigation.findNavController(view);
 
         viewModel.getRoom().observe(getViewLifecycleOwner(), room -> {
             if (room == null) return;
@@ -91,10 +95,16 @@ public class RoomDetailFragment extends Fragment {
         });
 
         viewModel.getError().observe(getViewLifecycleOwner(), err -> {
-            if (err != null) Snackbar.make(view, err, Snackbar.LENGTH_LONG).show();
-        });
+            if (err == null) return;
 
-        NavController nav = Navigation.findNavController(view);
+            if (isCampusArea) {
+                Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show();
+                nav.navigate(R.id.homeFragment);
+                return;
+            }
+
+            Snackbar.make(view, err, Snackbar.LENGTH_LONG).show();
+        });
 
         // Checklist 5.3: navigate to origin picker, receive result back
         btnDirections.setOnClickListener(v -> {

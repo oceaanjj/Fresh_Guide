@@ -126,6 +126,10 @@
             android:layout_width="match_parent" android:layout_height="52dp"
             android:layout_marginBottom="10dp" android:text="Manage Rooms"
             android:backgroundTint="#2A2929" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/btn_manage_campus_areas"
+            android:layout_width="match_parent" android:layout_height="52dp"
+            android:layout_marginBottom="10dp" android:text="Manage Campus Areas"
+            android:backgroundTint="#2A2929" android:textColor="#FFFFFF" />
         <Button android:id="@+id/btn_manage_facilities"
             android:layout_width="match_parent" android:layout_height="52dp"
             android:layout_marginBottom="10dp" android:text="Manage Facilities"

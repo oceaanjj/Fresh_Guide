@@ -25,6 +25,9 @@ public interface RoomDao {
     @Query("SELECT * FROM rooms WHERE id = :id")
     RoomEntity getByIdSync(int id);
 
+    @Query("SELECT * FROM rooms WHERE UPPER(code) = UPPER(:code) LIMIT 1")
+    RoomEntity getByCodeSync(String code);
+
     @Query("SELECT * FROM rooms WHERE floor_id = :floorId ORDER BY name ASC")
     List<RoomEntity> getByFloorSync(int floorId);
 

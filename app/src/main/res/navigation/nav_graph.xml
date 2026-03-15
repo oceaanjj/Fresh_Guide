@@ -21,6 +21,9 @@
         <action
             android:id="@+id/action_home_to_profile"
             app:destination="@id/profileFragment" />
+        <action
+            android:id="@+id/action_home_to_roomDetail"
+            app:destination="@id/roomDetailFragment" />
     </fragment>
 
     <fragment
@@ -76,6 +79,10 @@
             android:name="roomName"
             app:argType="string"
             android:defaultValue="" />
+        <argument
+            android:name="isCampusArea"
+            app:argType="boolean"
+            android:defaultValue="false" />
         <action
             android:id="@+id/action_roomDetail_to_originPicker"
             app:destination="@id/originPickerFragment" />
@@ -144,6 +151,9 @@
         <action
             android:id="@+id/action_adminDashboard_to_adminPublish"
             app:destination="@id/adminPublishFragment" />
+        <action
+            android:id="@+id/action_adminDashboard_to_adminCampusAreaList"
+            app:destination="@id/adminCampusAreaListFragment" />
     </fragment>
 
     <fragment
@@ -247,5 +257,26 @@
         android:name="com.example.freshguide.ui.admin.AdminPublishFragment"
         android:label="Publish"
         tools:layout="@layout/fragment_admin_publish" />
+
+    <fragment
+        android:id="@+id/adminCampusAreaListFragment"
+        android:name="com.example.freshguide.ui.admin.AdminCampusAreaListFragment"
+        android:label="Campus Areas"
+        tools:layout="@layout/fragment_admin_list">
+        <action
+            android:id="@+id/action_adminCampusAreaList_to_adminCampusAreaForm"
+            app:destination="@id/adminCampusAreaFormFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/adminCampusAreaFormFragment"
+        android:name="com.example.freshguide.ui.admin.AdminCampusAreaFormFragment"
+        android:label="Campus Area Form"
+        tools:layout="@layout/fragment_admin_campus_area_form">
+        <argument
+            android:name="roomId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
 
 </navigation>

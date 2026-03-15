@@ -10,7 +10,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.freshguide.database.AppDatabase;
+import com.example.freshguide.model.entity.BuildingEntity;
 import com.example.freshguide.model.entity.FloorEntity;
+import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.repository.SyncRepository;
 
 import java.util.ArrayList;
@@ -35,6 +37,10 @@ public class HomeViewModel extends AndroidViewModel {
     private final AppDatabase db;
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    public interface RoomLookupCallback {
+        void onResult(@NonNull Integer roomId);
+    }
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
@@ -77,8 +83,10 @@ public class HomeViewModel extends AndroidViewModel {
             int rooms = db.roomDao().count();
             int buildings = db.buildingDao().count();
 
-            // Collect distinct floor numbers in ascending order
-            List<FloorEntity> floors = db.floorDao().getAllSync();
+            BuildingEntity mainBuilding = db.buildingDao().getByCodeSync("MAIN");
+            List<FloorEntity> floors = mainBuilding == null
+                    ? new ArrayList<>()
+                    : db.floorDao().getByBuildingSync(mainBuilding.id);
             Map<Integer, String> distinctFloors = new LinkedHashMap<>();
             for (FloorEntity f : floors) {
                 if (!distinctFloors.containsKey(f.number)) {
@@ -91,6 +99,14 @@ public class HomeViewModel extends AndroidViewModel {
                 buildingCount.setValue(buildings);
                 floorNumbers.setValue(distinctFloors);
             });
+        });
+    }
+
+    public void findRoomIdByCode(@NonNull String code, @NonNull RoomLookupCallback callback) {
+        executor.execute(() -> {
+            RoomEntity room = db.roomDao().getByCodeSync(code);
+            int roomId = room != null ? room.id : -1;
+            mainHandler.post(() -> callback.onResult(roomId));
         });
     }
 }
