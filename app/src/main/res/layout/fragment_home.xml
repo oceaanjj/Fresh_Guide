@@ -13,8 +13,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@android:color/white"
-        android:paddingTop="15dp"
-        android:paddingBottom="6dp">
+        android:paddingTop="5dp">
 
         <!-- Full FreshGuide brand logo -->
         <ImageView
@@ -74,8 +73,6 @@
                     android:id="@+id/chip_group_floors"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-
-                    app:chipSpacingHorizontal="5dp"
                     app:selectionRequired="false"
                     app:singleLine="true"
                     app:singleSelection="true">
@@ -404,14 +401,10 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <ImageView
-            android:id="@+id/img_floor_map"
+        <FrameLayout
+            android:id="@+id/floor_map_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:contentDescription="Floor Map"
-            android:scaleType="fitCenter"
             android:visibility="gone" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton

@@ -7,7 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,17 +20,20 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import com.example.freshguide.R;
+import com.example.freshguide.database.AppDatabase;
+import com.example.freshguide.model.entity.BuildingEntity;
+import com.example.freshguide.model.entity.FloorEntity;
+import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.ui.view.CampusMapView;
 import com.example.freshguide.viewmodel.HomeViewModel;
 import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class HomeFragment extends Fragment {
 
@@ -39,14 +44,20 @@ public class HomeFragment extends Fragment {
     private static final String CODE_COURT = "COURT";
     private static final String CODE_ENT = "ENT";
     private static final String CODE_EXIT = "EXIT";
-    private Integer selectedFloor = null;
 
+    private final Executor ioExecutor = Executors.newSingleThreadExecutor();
+
+    private Integer selectedFloor = null;
 
     private HomeViewModel viewModel;
     private CampusMapView campusMap;
+
     private HorizontalScrollView floorChipContainer;
+    private FrameLayout floorMapContainer;
     private View leftFade;
     private View rightFade;
+    private View overallMapContainer;
+
     private String selectedBuildingCode;
 
     @Nullable
@@ -64,8 +75,10 @@ public class HomeFragment extends Fragment {
         // campusMap = view.findViewById(R.id.campus_map);
 
         floorChipContainer = view.findViewById(R.id.floor_chip_container);
+        floorMapContainer = view.findViewById(R.id.floor_map_container);
         leftFade = view.findViewById(R.id.leftFade);
         rightFade = view.findViewById(R.id.rightFade);
+        overallMapContainer = view.findViewById(R.id.overall_map_container);
 
         NavController nav = Navigation.findNavController(view);
 
@@ -80,8 +93,8 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupSearch(View view, NavController nav) {
-        view.findViewById(R.id.layout_search).setOnClickListener(
-                v -> nav.navigate(R.id.action_home_to_roomList));
+        view.findViewById(R.id.layout_search)
+                .setOnClickListener(v -> nav.navigate(R.id.action_home_to_roomList));
     }
 
     private void setupFloorChips(View view) {
@@ -123,7 +136,6 @@ public class HomeFragment extends Fragment {
             chip.setChipBackgroundColor(bgColors);
             chip.setTextColor(textColors);
             chip.setChipStrokeColor(ColorStateList.valueOf(green));
-//            chip.setChipStrokeWidth(dpToPx(1.5f));
         }
 
         chip1.setOnClickListener(v -> handleFloorChipClick(chip1, 1, chips));
@@ -154,89 +166,155 @@ public class HomeFragment extends Fragment {
     }
 
     private void showOverallMap() {
-        // default campus map here
+        if (overallMapContainer != null) {
+            overallMapContainer.setVisibility(View.VISIBLE);
+        }
+
+        if (floorMapContainer != null) {
+            floorMapContainer.setVisibility(View.GONE);
+            floorMapContainer.removeAllViews();
+        }
     }
 
     private void showFloorMap(int floor) {
-        switch (floor) {
-            case 1:
-                // show 1st floor map
-                break;
-            case 2:
-                // show 2nd floor map
-                break;
-            case 3:
-                // show 3rd floor map
-                break;
-            case 4:
-                // show 4th floor map
-                break;
-            case 5:
-                // show 5th floor map
-                break;
+        if (overallMapContainer != null) {
+            overallMapContainer.setVisibility(View.GONE);
+        }
+
+        if (floorMapContainer != null) {
+            floorMapContainer.setVisibility(View.VISIBLE);
+            floorMapContainer.removeAllViews();
+
+            int layoutResId = 0;
+
+            switch (floor) {
+                case 1:
+                    layoutResId = R.layout.map_floor_1;
+                    break;
+                case 2:
+                    layoutResId = R.layout.map_floor_2;
+                    break;
+                case 3:
+                    layoutResId = R.layout.map_floor_3;
+                    break;
+                case 4:
+                    layoutResId = R.layout.map_floor_4;
+                    break;
+                case 5:
+                    layoutResId = R.layout.map_floor_5;
+                    break;
+            }
+
+            if (layoutResId != 0) {
+                LayoutInflater.from(requireContext()).inflate(layoutResId, floorMapContainer, true);
+                bindFloorData(floor);
+            }
         }
     }
 
-    private void openFloor(NavController nav, int floorNum) {
-        if (!CODE_MAIN.equalsIgnoreCase(selectedBuildingCode)) {
+    private void bindFloorData(int floorNumber) {
+        ioExecutor.execute(() -> {
+            try {
+                AppDatabase db = AppDatabase.getInstance(requireContext());
+                BuildingEntity building = db.buildingDao().getByCodeSync(CODE_MAIN);
+
+                if (building == null) {
+                    runOnUiThreadSafely(() -> {
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(), "Main building not found in database", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    return;
+                }
+
+                List<FloorEntity> floors = db.floorDao().getByBuildingSync(building.id);
+                FloorEntity targetFloor = null;
+
+                for (FloorEntity floor : floors) {
+                    if (floor.number == floorNumber) {
+                        targetFloor = floor;
+                        break;
+                    }
+                }
+
+                if (targetFloor == null) {
+                    runOnUiThreadSafely(() -> clearFloorRoomViews());
+                    return;
+                }
+
+                List<RoomEntity> rooms = db.roomDao().getByFloorSync(targetFloor.id);
+
+                runOnUiThreadSafely(() -> applyRoomsToCurrentFloorLayout(rooms));
+
+            } catch (Exception e) {
+                runOnUiThreadSafely(() -> {
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(), "Failed to load floor data", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+    private void applyRoomsToCurrentFloorLayout(List<RoomEntity> rooms) {
+        if (floorMapContainer == null) return;
+
+        clearFloorRoomViews();
+
+        if (rooms == null || rooms.isEmpty()) {
             return;
         }
 
-        Bundle args = new Bundle();
-        args.putString("buildingCode", CODE_MAIN);
-        args.putString("buildingName", "Main Building");
-        args.putInt("selectedFloor", floorNum);
-        nav.navigate(R.id.action_home_to_floorLayout, args);
+        View root = getView();
+        if (root == null) return;
+
+        final NavController navController = Navigation.findNavController(root);
+
+        for (int i = 0; i < rooms.size(); i++) {
+            int index = i + 1;
+            RoomEntity room = rooms.get(i);
+
+            View roomBox = floorMapContainer.findViewWithTag("room_box_" + index);
+
+            if (roomBox != null) {
+                TextView roomLabel = roomBox.findViewWithTag("room_label");
+
+                if (roomLabel != null) {
+                    roomLabel.setText(getRoomDisplayName(room));
+                }
+
+                roomBox.setOnClickListener(v -> {
+                    Bundle args = new Bundle();
+                    args.putInt("roomId", room.id);
+                    args.putString("roomName", getRoomDisplayName(room));
+                    navController.navigate(R.id.roomDetailFragment, args);
+                });
+            }
+        }
     }
 
-//    private Chip makeFilterChip(String label) {
-//        Chip chip = new Chip(requireContext(),
-//                null, com.google.android.material.R.attr.chipStyle);
-//
-//        chip.setText(label);
-//        chip.setCheckable(true);
-//        chip.setCheckedIconVisible(false);
-//
-//        float density = getResources().getDisplayMetrics().density;
-//
-//        chip.setEnsureMinTouchTargetSize(false);
-//        chip.setTextSize(11f);
-//        chip.setChipMinHeight(48f * density);
-//        chip.setChipStartPadding(18f * density);
-//        chip.setChipEndPadding(18f * density);
-//
-//        int green = requireContext().getColor(R.color.green_primary);
-//
-//        chip.setChipStrokeColorResource(R.color.green_primary);
-//        chip.setChipStrokeWidth(1.2f * density);
-//        chip.setChipCornerRadius(24f * density);
-//
-//        ColorStateList bg = new ColorStateList(
-//                new int[][]{
-//                        new int[]{android.R.attr.state_checked},
-//                        new int[]{}
-//                },
-//                new int[]{
-//                        green,
-//                        Color.WHITE
-//                }
-//        );
-//        chip.setChipBackgroundColor(bg);
-//
-//        ColorStateList tc = new ColorStateList(
-//                new int[][]{
-//                        new int[]{android.R.attr.state_checked},
-//                        new int[]{}
-//                },
-//                new int[]{
-//                        Color.WHITE,
-//                        green
-//                }
-//        );
-//        chip.setTextColor(tc);
-//
-//        return chip;
-//    }
+    private void clearFloorRoomViews() {
+        if (floorMapContainer == null) return;
+
+        for (int i = 1; i <= 30; i++) {
+            View roomBox = floorMapContainer.findViewWithTag("room_box_" + i);
+
+            if (roomBox != null) {
+                TextView roomLabel = roomBox.findViewWithTag("room_label");
+                if (roomLabel != null) {
+                    roomLabel.setText("Room");
+                }
+                roomBox.setOnClickListener(null);
+            }
+        }
+    }
+
+    private String getRoomDisplayName(RoomEntity room) {
+        if (room == null) return "Room";
+        if (room.name != null && !room.name.trim().isEmpty()) return room.name;
+        if (room.code != null && !room.code.trim().isEmpty()) return room.code;
+        return "Room";
+    }
 
     private void setupChipFade() {
         if (floorChipContainer == null) return;
@@ -276,20 +354,6 @@ public class HomeFragment extends Fragment {
         leftFade.setVisibility(scrollX > 0 ? View.VISIBLE : View.GONE);
         rightFade.setVisibility(scrollX < maxScroll ? View.VISIBLE : View.GONE);
     }
-
-//    private String floorLabel(int number) {
-//        return number + ordinalSuffix(number) + " Floor";
-//    }
-
-//    private String ordinalSuffix(int number) {
-//        if (number >= 11 && number <= 13) return "th";
-//        switch (number % 10) {
-//            case 1: return "st";
-//            case 2: return "nd";
-//            case 3: return "rd";
-//            default: return "th";
-//        }
-//    }
 
     private void setupCampusMap(NavController nav) {
         campusMap.setOnBuildingClickListener((code, name) -> {
@@ -396,6 +460,15 @@ public class HomeFragment extends Fragment {
         viewModel.getSyncError().observe(getViewLifecycleOwner(), err -> {
             if (err != null && !err.isEmpty()) {
                 Snackbar.make(view, "Sync failed: " + err, Snackbar.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void runOnUiThreadSafely(Runnable task) {
+        if (!isAdded()) return;
+        requireActivity().runOnUiThread(() -> {
+            if (isAdded()) {
+                task.run();
             }
         });
     }
