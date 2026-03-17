@@ -18,7 +18,11 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.freshguide.R;
+import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.entity.FacilityEntity;
+import com.example.freshguide.model.entity.RoomEntity;
+import com.example.freshguide.util.RoomImageCacheManager;
+import com.example.freshguide.util.RoomImageUrlResolver;
 import com.example.freshguide.viewmodel.RoomDetailViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -106,7 +110,8 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
             }
             tvDescription.setText(description);
 
-            loadRoomImage(room.cachedImagePath, room.imageUrl, ivRoomImage, tvImagePlaceholder);
+            String resolvedImageUrl = RoomImageUrlResolver.resolvePath(requireContext(), room.imageUrl);
+            loadRoomImage(room.cachedImagePath, resolvedImageUrl, ivRoomImage, tvImagePlaceholder);
         });
 
         viewModel.getFacilities().observe(getViewLifecycleOwner(), facilities -> {
@@ -201,6 +206,9 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         imageView.setImageBitmap(null);
         placeholderView.setVisibility(View.VISIBLE);
 
+        final android.content.Context appContext = requireContext().getApplicationContext();
+        final AppDatabase db = AppDatabase.getInstance(appContext);
+
         imageExecutor.execute(() -> {
             HttpURLConnection connection = null;
             InputStream inputStream = null;
@@ -230,6 +238,21 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
             }
 
             Bitmap finalBitmap = bitmap;
+            String cachedPath = null;
+            if (finalBitmap != null && roomId > 0) {
+                cachedPath = RoomImageCacheManager.cacheRoomBitmap(appContext, roomId, finalBitmap);
+                if (cachedPath != null && !cachedPath.isBlank()) {
+                    RoomEntity localRoom = db.roomDao().getByIdSync(roomId);
+                    if (localRoom != null) {
+                        localRoom.cachedImagePath = cachedPath;
+                        if (localRoom.imageUrl == null || localRoom.imageUrl.isBlank()) {
+                            localRoom.imageUrl = imageUrl;
+                        }
+                        db.roomDao().insert(localRoom);
+                    }
+                }
+            }
+
             if (!isAdded()) return;
             requireActivity().runOnUiThread(() -> {
                 if (!isAdded()) return;

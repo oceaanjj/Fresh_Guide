@@ -32,6 +32,7 @@ import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.network.ApiClient;
 import com.example.freshguide.network.ApiService;
 import com.example.freshguide.util.RoomImageCacheManager;
+import com.example.freshguide.util.RoomImageUrlResolver;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
@@ -470,10 +471,7 @@ public class AdminRoomFormFragment extends Fragment {
         if (room == null) {
             return null;
         }
-        if (room.imageFullUrl != null && !room.imageFullUrl.trim().isEmpty()) {
-            return room.imageFullUrl;
-        }
-        return room.imageUrl;
+        return RoomImageUrlResolver.resolveFromDto(appContext, room.imageFullUrl, room.imageUrl);
     }
     
     private void loadExistingImage(String imageSource) {
@@ -481,12 +479,18 @@ public class AdminRoomFormFragment extends Fragment {
             return;
         }
 
-        if (imageSource.startsWith("/")) {
-            Bitmap localBitmap = BitmapFactory.decodeFile(imageSource);
+        File localFile = new File(imageSource);
+        if (localFile.exists()) {
+            Bitmap localBitmap = BitmapFactory.decodeFile(localFile.getAbsolutePath());
             if (localBitmap != null) {
                 ivRoomPreview.setImageBitmap(localBitmap);
                 showImagePreview();
+                return;
             }
+        }
+
+        String resolvedSource = RoomImageUrlResolver.resolvePath(appContext, imageSource);
+        if (resolvedSource == null || resolvedSource.isBlank()) {
             return;
         }
         
@@ -494,7 +498,7 @@ public class AdminRoomFormFragment extends Fragment {
             try {
                 // Simple image loading for existing images
                 // Use the same pattern as RoomDetailFragment
-                java.net.URL url = new java.net.URL(imageSource);
+                java.net.URL url = new java.net.URL(resolvedSource);
                 java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
@@ -506,6 +510,20 @@ public class AdminRoomFormFragment extends Fragment {
                 connection.disconnect();
                 
                 if (bitmap != null) {
+                    if (currentRoomId > 0) {
+                        String cachedPath = RoomImageCacheManager.cacheRoomBitmap(appContext, currentRoomId, bitmap);
+                        if (cachedPath != null && !cachedPath.isBlank()) {
+                            RoomEntity localRoom = db.roomDao().getByIdSync(currentRoomId);
+                            if (localRoom != null) {
+                                localRoom.cachedImagePath = cachedPath;
+                                if (localRoom.imageUrl == null || localRoom.imageUrl.isBlank()) {
+                                    localRoom.imageUrl = resolvedSource;
+                                }
+                                db.roomDao().insert(localRoom);
+                            }
+                        }
+                    }
+
                     requireActivity().runOnUiThread(() -> {
                         ivRoomPreview.setImageBitmap(bitmap);
                         showImagePreview();

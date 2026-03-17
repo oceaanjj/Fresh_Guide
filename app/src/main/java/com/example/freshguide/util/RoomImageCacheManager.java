@@ -1,6 +1,7 @@
 package com.example.freshguide.util;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -71,6 +72,36 @@ public final class RoomImageCacheManager {
             if (input != null) {
                 try {
                     input.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
+    }
+
+    @Nullable
+    public static String cacheRoomBitmap(@NonNull Context context, int roomId, @Nullable Bitmap bitmap) {
+        if (bitmap == null) {
+            return null;
+        }
+
+        File dir = getCacheDir(context);
+        if (!dir.exists() && !dir.mkdirs()) {
+            return null;
+        }
+
+        File targetFile = new File(dir, "room_" + roomId + ".jpg");
+        FileOutputStream output = null;
+        try {
+            output = new FileOutputStream(targetFile, false);
+            boolean ok = bitmap.compress(Bitmap.CompressFormat.JPEG, 88, output);
+            output.flush();
+            return ok ? targetFile.getAbsolutePath() : null;
+        } catch (Exception ignored) {
+            return null;
+        } finally {
+            if (output != null) {
+                try {
+                    output.close();
                 } catch (IOException ignored) {
                 }
             }

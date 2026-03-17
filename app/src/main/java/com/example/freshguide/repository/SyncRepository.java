@@ -26,6 +26,7 @@ import com.example.freshguide.model.entity.SyncMetaEntity;
 import com.example.freshguide.network.ApiClient;
 import com.example.freshguide.network.ApiService;
 import com.example.freshguide.util.RoomImageCacheManager;
+import com.example.freshguide.util.RoomImageUrlResolver;
 import com.example.freshguide.util.SessionManager;
 
 import java.text.SimpleDateFormat;
@@ -142,20 +143,7 @@ public class SyncRepository {
 
                         if (f.rooms != null) {
                             for (RoomDto r : f.rooms) {
-                                String roomImage = (r.imageFullUrl != null && !r.imageFullUrl.isEmpty())
-                                        ? r.imageFullUrl
-                                        : r.imageUrl;
-
-                                if (roomImage != null && !roomImage.startsWith("http")) {
-                                    String baseUrl = ApiClient.getInstance(appContext).getBaseUrl();
-                                    if (baseUrl.endsWith("/api/")) {
-                                        baseUrl = baseUrl.substring(0, baseUrl.length() - 5);
-                                    } else if (baseUrl.endsWith("/api")) {
-                                        baseUrl = baseUrl.substring(0, baseUrl.length() - 4);
-                                    }
-                                    if (!baseUrl.endsWith("/")) baseUrl += "/";
-                                    roomImage = baseUrl + "storage/" + roomImage;
-                                }
+                                String roomImage = RoomImageUrlResolver.resolveFromDto(appContext, r.imageFullUrl, r.imageUrl);
 
                                 String cachedPath = RoomImageCacheManager.cacheRoomImage(appContext, r.id, roomImage);
                                 rooms.add(new RoomEntity(
