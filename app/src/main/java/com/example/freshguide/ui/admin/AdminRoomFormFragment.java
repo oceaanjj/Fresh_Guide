@@ -25,10 +25,13 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.freshguide.R;
+import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.dto.ApiResponse;
 import com.example.freshguide.model.dto.RoomDto;
+import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.network.ApiClient;
 import com.example.freshguide.network.ApiService;
+import com.example.freshguide.util.RoomImageCacheManager;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
@@ -59,6 +62,8 @@ public class AdminRoomFormFragment extends Fragment {
     private File compressedImageFile;
     private int currentRoomId = -1;
     private boolean isEditMode = false;
+    private AppDatabase db;
+    private android.content.Context appContext;
     
     private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
     
@@ -86,6 +91,9 @@ public class AdminRoomFormFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        appContext = requireContext().getApplicationContext();
+        db = AppDatabase.getInstance(appContext);
 
         currentRoomId = getArguments() != null ? getArguments().getInt("roomId", -1) : -1;
         isEditMode = currentRoomId != -1;
@@ -141,11 +149,16 @@ public class AdminRoomFormFragment extends Fragment {
                 public void onResponse(Call<ApiResponse<RoomDto>> c, Response<ApiResponse<RoomDto>> r) {
                     if (r.isSuccessful() && r.body() != null && r.body().isSuccess()) {
                         RoomDto savedRoom = r.body().getData();
-                        
+
+                        if (savedRoom != null) {
+                            persistRoomLocally(savedRoom, null, false);
+                        }
+
                         // Handle image upload after successful room save
                         if (compressedImageFile != null && savedRoom != null) {
                             uploadRoomImage(savedRoom.id, view);
                         } else {
+                            showSnackbar("Room saved successfully");
                             Navigation.findNavController(view).popBackStack();
                         }
                     } else {
@@ -303,7 +316,31 @@ public class AdminRoomFormFragment extends Fragment {
             @Override
             public void onResponse(Call<ApiResponse<RoomDto>> call, Response<ApiResponse<RoomDto>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    showSnackbar("Room and image saved successfully");
+                    RoomDto updatedRoom = response.body().getData();
+                    imageExecutor.execute(() -> {
+                        RoomEntity existing = db.roomDao().getByIdSync(roomId);
+                        String previousCachedPath = existing != null ? existing.cachedImagePath : null;
+                        if (previousCachedPath != null && !previousCachedPath.isBlank()) {
+                            RoomImageCacheManager.deleteCachedRoomImage(previousCachedPath);
+                        }
+
+                        String cachedPath = RoomImageCacheManager.cacheRoomImageFromFile(appContext, roomId, compressedImageFile);
+                        if (updatedRoom != null) {
+                            persistRoomLocallyInternal(updatedRoom, cachedPath, true);
+                        } else if (existing != null) {
+                            existing.cachedImagePath = cachedPath;
+                            db.roomDao().insert(existing);
+                        }
+
+                        if (!isAdded()) {
+                            return;
+                        }
+                        requireActivity().runOnUiThread(() -> {
+                            showSnackbar("Room and image saved successfully");
+                            Navigation.findNavController(view).popBackStack();
+                        });
+                    });
+                    return;
                 } else {
                     showSnackbar("Room saved, but image upload failed");
                 }
@@ -324,7 +361,26 @@ public class AdminRoomFormFragment extends Fragment {
             @Override
             public void onResponse(Call<ApiResponse<RoomDto>> call, Response<ApiResponse<RoomDto>> response) {
                 if (response.isSuccessful()) {
-                    showSnackbar("Image removed");
+                    imageExecutor.execute(() -> {
+                        RoomEntity existing = db.roomDao().getByIdSync(roomId);
+                        if (existing != null && existing.cachedImagePath != null) {
+                            RoomImageCacheManager.deleteCachedRoomImage(existing.cachedImagePath);
+                        }
+
+                        RoomDto updated = response.body() != null ? response.body().getData() : null;
+                        if (updated != null) {
+                            persistRoomLocallyInternal(updated, null, true);
+                        } else if (existing != null) {
+                            existing.imageUrl = null;
+                            existing.cachedImagePath = null;
+                            db.roomDao().insert(existing);
+                        }
+
+                        if (!isAdded()) {
+                            return;
+                        }
+                        requireActivity().runOnUiThread(() -> showSnackbar("Image removed"));
+                    });
                 }
             }
             
@@ -344,7 +400,21 @@ public class AdminRoomFormFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     RoomDto room = response.body().getData();
                     populateFormFields(room);
-                    loadExistingImage(room.imageUrl);
+
+                    imageExecutor.execute(() -> {
+                        RoomEntity localRoom = db.roomDao().getByIdSync(room.id);
+                        String localCachedPath = localRoom != null ? localRoom.cachedImagePath : null;
+
+                        if (localCachedPath != null && !localCachedPath.isBlank()) {
+                            requireActivity().runOnUiThread(() -> loadExistingImage(localCachedPath));
+                            return;
+                        }
+
+                        String remoteImageUrl = resolveRoomImageUrl(room);
+                        if (remoteImageUrl != null && !remoteImageUrl.isBlank()) {
+                            requireActivity().runOnUiThread(() -> loadExistingImage(remoteImageUrl));
+                        }
+                    });
                 }
             }
             
@@ -370,9 +440,53 @@ public class AdminRoomFormFragment extends Fragment {
         etFloorId.setText(String.valueOf(room.floorId));
         etDescription.setText(room.description != null ? room.description : "");
     }
+
+    private void persistRoomLocally(RoomDto room, String cachedImagePath, boolean replaceCachedPath) {
+        imageExecutor.execute(() -> persistRoomLocallyInternal(room, cachedImagePath, replaceCachedPath));
+    }
+
+    private void persistRoomLocallyInternal(RoomDto room, String cachedImagePath, boolean replaceCachedPath) {
+        RoomEntity existing = db.roomDao().getByIdSync(room.id);
+        String effectiveCachedPath = replaceCachedPath
+                ? cachedImagePath
+                : (existing != null ? existing.cachedImagePath : null);
+
+        String imageUrl = resolveRoomImageUrl(room);
+        RoomEntity entity = new RoomEntity(
+                room.id,
+                room.floorId,
+                room.name,
+                room.code,
+                room.type,
+                room.description,
+                imageUrl,
+                room.location,
+                effectiveCachedPath
+        );
+        db.roomDao().insert(entity);
+    }
+
+    private String resolveRoomImageUrl(RoomDto room) {
+        if (room == null) {
+            return null;
+        }
+        if (room.imageFullUrl != null && !room.imageFullUrl.trim().isEmpty()) {
+            return room.imageFullUrl;
+        }
+        return room.imageUrl;
+    }
     
-    private void loadExistingImage(String imageUrl) {
-        if (imageUrl == null || imageUrl.trim().isEmpty()) {
+    private void loadExistingImage(String imageSource) {
+        if (imageSource == null || imageSource.trim().isEmpty()) {
+            return;
+        }
+
+        if (imageSource.startsWith("/")) {
+            Bitmap localBitmap = BitmapFactory.decodeFile(imageSource);
+            if (localBitmap != null) {
+                ivRoomPreview.setImageBitmap(localBitmap);
+                showImagePreview();
+            }
             return;
         }
         
@@ -380,7 +494,7 @@ public class AdminRoomFormFragment extends Fragment {
             try {
                 // Simple image loading for existing images
                 // Use the same pattern as RoomDetailFragment
-                java.net.URL url = new java.net.URL(imageUrl);
+                java.net.URL url = new java.net.URL(imageSource);
                 java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);

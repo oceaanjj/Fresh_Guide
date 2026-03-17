@@ -25,6 +25,7 @@ import com.example.freshguide.model.entity.RouteStepEntity;
 import com.example.freshguide.model.entity.SyncMetaEntity;
 import com.example.freshguide.network.ApiClient;
 import com.example.freshguide.network.ApiService;
+import com.example.freshguide.util.RoomImageCacheManager;
 import com.example.freshguide.util.SessionManager;
 
 import java.text.SimpleDateFormat;
@@ -50,13 +51,15 @@ public class SyncRepository {
     private final ApiService apiService;
     private final AppDatabase db;
     private final SessionManager session;
+    private final Context appContext;
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public SyncRepository(Context context) {
-        apiService = ApiClient.getInstance(context).getApiService();
-        db = AppDatabase.getInstance(context);
-        session = SessionManager.getInstance(context);
+        appContext = context.getApplicationContext();
+        apiService = ApiClient.getInstance(appContext).getApiService();
+        db = AppDatabase.getInstance(appContext);
+        session = SessionManager.getInstance(appContext);
     }
 
     public void syncIfNeeded(SyncCallback callback) {
@@ -109,6 +112,8 @@ public class SyncRepository {
     }
 
     private void storeBootstrap(BootstrapResponse.BootstrapData data, int version) {
+        RoomImageCacheManager.clearAllCachedRoomImages(appContext);
+
         // Clear old data
         db.routeDao().deleteAllSteps();
         db.routeDao().deleteAllRoutes();
@@ -140,6 +145,7 @@ public class SyncRepository {
                                 String roomImage = (r.imageFullUrl != null && !r.imageFullUrl.isEmpty())
                                         ? r.imageFullUrl
                                         : r.imageUrl;
+                                String cachedPath = RoomImageCacheManager.cacheRoomImage(appContext, r.id, roomImage);
                                 rooms.add(new RoomEntity(
                                         r.id,
                                         f.id,
@@ -148,7 +154,8 @@ public class SyncRepository {
                                         r.type,
                                         r.description,
                                         roomImage,
-                                        r.location
+                                        r.location,
+                                        cachedPath
                                 ));
                                 if (r.facilities != null) {
                                     for (FacilityDto fac : r.facilities) {

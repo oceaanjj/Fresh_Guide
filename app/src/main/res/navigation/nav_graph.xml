@@ -76,7 +76,7 @@
             app:destination="@id/roomDetailFragment" />
     </fragment>
 
-    <fragment
+    <dialog
         android:id="@+id/roomDetailFragment"
         android:name="com.example.freshguide.ui.user.RoomDetailFragment"
         android:label="Room Detail"
@@ -99,7 +99,7 @@
         <action
             android:id="@+id/action_roomDetail_to_directions"
             app:destination="@id/directionsFragment" />
-    </fragment>
+    </dialog>
 
     <fragment
         android:id="@+id/originPickerFragment"

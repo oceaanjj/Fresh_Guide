@@ -39,10 +39,14 @@ public class RoomEntity {
     @ColumnInfo(name = "image_url")
     public String imageUrl;
 
+    @ColumnInfo(name = "cached_image_path")
+    public String cachedImagePath;
+
     @ColumnInfo(name = "location")
     public String location;
 
-    public RoomEntity(int id, int floorId, String name, String code, String type, String description, String imageUrl, String location) {
+    public RoomEntity(int id, int floorId, String name, String code, String type, String description,
+                      String imageUrl, String location, String cachedImagePath) {
         this.id = id;
         this.floorId = floorId;
         this.name = name;
@@ -51,5 +55,6 @@ public class RoomEntity {
         this.description = description;
         this.imageUrl = imageUrl;
         this.location = location;
+        this.cachedImagePath = cachedImagePath;
     }
 }

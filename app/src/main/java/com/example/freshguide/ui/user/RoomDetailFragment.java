@@ -6,31 +6,34 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentResultListener;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.freshguide.R;
 import com.example.freshguide.model.entity.FacilityEntity;
 import com.example.freshguide.viewmodel.RoomDetailViewModel;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class RoomDetailFragment extends Fragment {
+public class RoomDetailFragment extends BottomSheetDialogFragment {
 
     public static final String ARG_ROOM_ID = "roomId";
 
@@ -48,6 +51,21 @@ public class RoomDetailFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        if (getDialog() instanceof BottomSheetDialog) {
+            BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
+            View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (sheet != null) {
+                sheet.setBackgroundResource(R.drawable.bg_room_detail_sheet);
+                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(sheet);
+                behavior.setSkipCollapsed(true);
+                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            }
+        }
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -57,28 +75,38 @@ public class RoomDetailFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(RoomDetailViewModel.class);
 
         TextView tvName = view.findViewById(R.id.tv_room_name);
-        TextView tvCode = view.findViewById(R.id.tv_room_code);
+        TextView tvSubtitle = view.findViewById(R.id.tv_room_subtitle);
         TextView tvType = view.findViewById(R.id.tv_room_type);
         TextView tvDescription = view.findViewById(R.id.tv_room_description);
         TextView tvFacilities = view.findViewById(R.id.tv_facilities);
         ImageView ivRoomImage = view.findViewById(R.id.iv_room_image);
-        Button btnDirections = view.findViewById(R.id.btn_get_directions);
-        NavController nav = Navigation.findNavController(view);
+        TextView tvImagePlaceholder = view.findViewById(R.id.tv_image_placeholder);
+        View btnDirections = view.findViewById(R.id.btn_get_directions);
+        ImageButton btnBookmark = view.findViewById(R.id.btn_room_bookmark);
+        NavController nav = NavHostFragment.findNavController(this);
+
+        btnBookmark.setOnClickListener(v ->
+                Toast.makeText(requireContext(), "Favorites coming soon", Toast.LENGTH_SHORT).show());
 
         viewModel.getRoom().observe(getViewLifecycleOwner(), room -> {
             if (room == null) return;
             tvName.setText(room.name);
-            tvCode.setText(room.code);
-            tvType.setText(room.type != null ? room.type : "");
+            tvSubtitle.setText(buildSubtitle(room.code, room.location));
+
+            if (room.type != null && !room.type.isBlank()) {
+                tvType.setVisibility(View.VISIBLE);
+                tvType.setText(room.type.toUpperCase(Locale.getDefault()));
+            } else {
+                tvType.setVisibility(View.GONE);
+            }
+
             String description = room.description != null ? room.description : "";
-            if (room.location != null && !room.location.isEmpty()) {
-                description = description.isEmpty()
-                        ? "Location: " + room.location
-                        : description + "\nLocation: " + room.location;
+            if (description.isBlank()) {
+                description = "No description available.";
             }
             tvDescription.setText(description);
 
-            loadRoomImage(room.imageUrl, ivRoomImage);
+            loadRoomImage(room.cachedImagePath, room.imageUrl, ivRoomImage, tvImagePlaceholder);
         });
 
         viewModel.getFacilities().observe(getViewLifecycleOwner(), facilities -> {
@@ -131,17 +159,47 @@ public class RoomDetailFragment extends Fragment {
         }
     }
 
-    private void loadRoomImage(String imageUrl, ImageView imageView) {
+    private String buildSubtitle(String code, String location) {
+        String c = code != null ? code.trim() : "";
+        String l = location != null ? location.trim() : "";
+        if (!l.isEmpty() && !c.isEmpty()) {
+            return l + " • " + c;
+        }
+        if (!l.isEmpty()) {
+            return l;
+        }
+        if (!c.isEmpty()) {
+            return c;
+        }
+        return "Location details unavailable";
+    }
+
+    private void loadRoomImage(String cachedImagePath, String imageUrl, ImageView imageView, TextView placeholderView) {
+        if (cachedImagePath != null && !cachedImagePath.trim().isEmpty()) {
+            File cachedFile = new File(cachedImagePath);
+            if (cachedFile.exists()) {
+                Bitmap cachedBitmap = BitmapFactory.decodeFile(cachedFile.getAbsolutePath());
+                if (cachedBitmap != null) {
+                    imageView.setImageBitmap(cachedBitmap);
+                    imageView.setVisibility(View.VISIBLE);
+                    placeholderView.setVisibility(View.GONE);
+                    return;
+                }
+            }
+        }
+
         latestImageUrl = imageUrl;
 
         if (imageUrl == null || imageUrl.trim().isEmpty()) {
             imageView.setImageBitmap(null);
-            imageView.setVisibility(View.GONE);
+            imageView.setVisibility(View.VISIBLE);
+            placeholderView.setVisibility(View.VISIBLE);
             return;
         }
 
         imageView.setVisibility(View.VISIBLE);
         imageView.setImageBitmap(null);
+        placeholderView.setVisibility(View.VISIBLE);
 
         imageExecutor.execute(() -> {
             HttpURLConnection connection = null;
@@ -180,9 +238,11 @@ public class RoomDetailFragment extends Fragment {
                 if (finalBitmap != null) {
                     imageView.setImageBitmap(finalBitmap);
                     imageView.setVisibility(View.VISIBLE);
+                    placeholderView.setVisibility(View.GONE);
                 } else {
                     imageView.setImageBitmap(null);
-                    imageView.setVisibility(View.GONE);
+                    imageView.setVisibility(View.VISIBLE);
+                    placeholderView.setVisibility(View.VISIBLE);
                 }
             });
         });

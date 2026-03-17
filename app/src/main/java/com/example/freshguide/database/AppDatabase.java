@@ -40,7 +40,7 @@ import com.example.freshguide.model.entity.SyncMetaEntity;
         ScheduleEntryEntity.class,
         SyncMetaEntity.class
     },
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -81,6 +81,13 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    private static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE rooms ADD COLUMN cached_image_path TEXT");
+        }
+    };
+
     public abstract BuildingDao buildingDao();
     public abstract FloorDao floorDao();
     public abstract RoomDao roomDao();
@@ -96,7 +103,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     AppDatabase.class,
                     DB_NAME
-            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
              .build();
         }
         return instance;

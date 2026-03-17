@@ -151,6 +151,24 @@
                 android:backgroundTint="@color/green_primary"
                 android:layout_marginBottom="12dp" />
 
+            <TextView
+                android:id="@+id/btn_manual_student_input"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingStart="8dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp"
+                android:text="@string/btn_manual_student_input"
+                android:textColor="@color/text_hint"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
             <!-- Create Account button -->
             <Button
                 android:id="@+id/btnCreateAccount"

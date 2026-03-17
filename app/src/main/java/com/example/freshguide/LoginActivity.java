@@ -1,6 +1,7 @@
 package com.example.freshguide;
 
 import android.content.Intent;
+import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.text.method.SingleLineTransformationMethod;
 import android.os.Bundle;
@@ -10,15 +11,18 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.freshguide.viewmodel.LoginViewModel;
 
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 public class LoginActivity extends AppCompatActivity {
@@ -34,6 +38,7 @@ public class LoginActivity extends AppCompatActivity {
     private ImageButton btnTogglePassword;
     private Button btnSignIn;
     private Button btnCreateAccount;
+    private TextView btnManualStudentInput;
     private ProgressBar progressBar;
     private android.widget.TextView tvLoginHint;
     private View labelUsername;
@@ -64,6 +69,7 @@ public class LoginActivity extends AppCompatActivity {
         btnTogglePassword = findViewById(R.id.btnTogglePassword);
         btnSignIn = findViewById(R.id.btnSignIn);
         btnCreateAccount = findViewById(R.id.btnCreateAccount);
+        btnManualStudentInput = findViewById(R.id.btn_manual_student_input);
         progressBar = findViewById(R.id.progress_bar);
         tvLoginHint = findViewById(R.id.tv_login_hint);
         labelUsername = findViewById(R.id.labelUsername);
@@ -98,11 +104,19 @@ public class LoginActivity extends AppCompatActivity {
 
         btnCreateAccount.setOnClickListener(v -> setAdminMode(!adminMode));
 
+        if (BuildConfig.DEBUG && btnManualStudentInput != null) {
+            btnManualStudentInput.setVisibility(View.VISIBLE);
+            btnManualStudentInput.setOnClickListener(v -> showManualStudentIdDialog());
+        }
+
         viewModel.getState().observe(this, state -> {
             boolean loading = state == LoginViewModel.State.LOADING;
             progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
             btnSignIn.setEnabled(!loading);
             btnCreateAccount.setEnabled(!loading);
+            if (btnManualStudentInput != null) {
+                btnManualStudentInput.setEnabled(!loading);
+            }
 
             if (state == LoginViewModel.State.SUCCESS_STUDENT || state == LoginViewModel.State.SUCCESS_ADMIN) {
                 boolean onboardingDone = getSharedPreferences(
@@ -144,6 +158,11 @@ public class LoginActivity extends AppCompatActivity {
         }
         passwordRow.setVisibility(visibility);
 
+        if (btnManualStudentInput != null) {
+            boolean showManual = BuildConfig.DEBUG && !enabled;
+            btnManualStudentInput.setVisibility(showManual ? View.VISIBLE : View.GONE);
+        }
+
         if (enabled) {
             tvLoginHint.setText(R.string.login_hint_admin_mode);
             inputUsername.setHint(R.string.hint_admin_email);
@@ -156,5 +175,27 @@ public class LoginActivity extends AppCompatActivity {
             btnSignIn.setText(R.string.btn_scan_qr_login);
             btnCreateAccount.setText(R.string.btn_switch_to_admin_login);
         }
+    }
+
+    private void showManualStudentIdDialog() {
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setSingleLine(true);
+        input.setHint(R.string.register_student_id_hint);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.manual_input_title)
+                .setMessage(R.string.manual_input_subtitle)
+                .setView(input)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.manual_input_continue, (dialog, which) -> {
+                    String studentId = input.getText().toString().trim().toUpperCase(Locale.ROOT);
+                    if (!STUDENT_ID_PATTERN.matcher(studentId).matches()) {
+                        Toast.makeText(this, R.string.error_student_id_format, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    viewModel.loginStudent(studentId);
+                })
+                .show();
     }
 }
