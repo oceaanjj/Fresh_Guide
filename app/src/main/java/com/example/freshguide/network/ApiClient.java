@@ -48,6 +48,10 @@ public class ApiClient {
         return apiService;
     }
 
+    public String getBaseUrl() {
+        return BASE_URL;
+    }
+
     private static String ensureApiBaseUrl(String url) {
         if (url == null || url.isBlank()) {
             throw new IllegalStateException("API base URL is empty. Set api.base.url in local.properties.");

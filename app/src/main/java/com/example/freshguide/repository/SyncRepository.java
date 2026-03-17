@@ -145,6 +145,18 @@ public class SyncRepository {
                                 String roomImage = (r.imageFullUrl != null && !r.imageFullUrl.isEmpty())
                                         ? r.imageFullUrl
                                         : r.imageUrl;
+
+                                if (roomImage != null && !roomImage.startsWith("http")) {
+                                    String baseUrl = ApiClient.getInstance(appContext).getBaseUrl();
+                                    if (baseUrl.endsWith("/api/")) {
+                                        baseUrl = baseUrl.substring(0, baseUrl.length() - 5);
+                                    } else if (baseUrl.endsWith("/api")) {
+                                        baseUrl = baseUrl.substring(0, baseUrl.length() - 4);
+                                    }
+                                    if (!baseUrl.endsWith("/")) baseUrl += "/";
+                                    roomImage = baseUrl + "storage/" + roomImage;
+                                }
+
                                 String cachedPath = RoomImageCacheManager.cacheRoomImage(appContext, r.id, roomImage);
                                 rooms.add(new RoomEntity(
                                         r.id,
