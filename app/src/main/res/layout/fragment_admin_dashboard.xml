@@ -153,6 +153,12 @@
             android:backgroundTint="@color/orange_accent" android:textColor="#FFFFFF"
             android:textStyle="bold" />
 
+        <Button android:id="@+id/btn_admin_settings"
+            android:layout_width="match_parent" android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:text="Basic Settings"
+            android:backgroundTint="#2A2929" android:textColor="#FFFFFF" />
+
         <Button android:id="@+id/btn_admin_logout"
             android:layout_width="match_parent" android:layout_height="52dp"
             android:layout_marginTop="10dp"

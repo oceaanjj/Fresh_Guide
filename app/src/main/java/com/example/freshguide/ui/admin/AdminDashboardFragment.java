@@ -60,6 +60,8 @@ public class AdminDashboardFragment extends Fragment {
                 nav.navigate(R.id.action_adminDashboard_to_adminRouteList));
         view.findViewById(R.id.btn_publish).setOnClickListener(v ->
                 nav.navigate(R.id.action_adminDashboard_to_adminPublish));
+        view.findViewById(R.id.btn_admin_settings).setOnClickListener(v ->
+                nav.navigate(R.id.settingsFragment));
         view.findViewById(R.id.btn_admin_logout).setOnClickListener(v -> {
             new AuthRepository(requireContext()).logout();
             Intent intent = new Intent(requireActivity(), LoginActivity.class);

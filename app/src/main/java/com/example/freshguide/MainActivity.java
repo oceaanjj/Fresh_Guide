@@ -140,7 +140,7 @@
                     navSchedule.setOnClickListener(v -> navigateTo(R.id.scheduleFragment));
                 }
                 if (navSettings != null) {
-                    navSettings.setOnClickListener(v -> showComingSoon());
+                    navSettings.setOnClickListener(v -> navigateTo(R.id.settingsFragment));
                 }
             }
 
@@ -148,12 +148,6 @@
                 if (navController.getCurrentDestination() == null) return;
                 if (navController.getCurrentDestination().getId() == destinationId) return;
                 navController.navigate(destinationId);
-            }
-
-            private void showComingSoon() {
-                if (rootView != null) {
-                    Snackbar.make(rootView, "Coming soon", Snackbar.LENGTH_SHORT).show();
-                }
             }
 
             private void updateNavSelection(@IdRes int destinationId) {
@@ -164,11 +158,12 @@
 
                 boolean homeSelected = destinationId == R.id.homeFragment;
                 boolean scheduleSelected = destinationId == R.id.scheduleFragment;
+                boolean settingsSelected = destinationId == R.id.settingsFragment;
                 boolean profileSelected = destinationId == R.id.profileFragment;
 
                 setNavItemSelected(navHome, R.id.nav_icon_home, R.id.nav_text_home, homeSelected);
                 setNavItemSelected(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule, scheduleSelected);
-                setNavItemSelected(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings, false);
+                setNavItemSelected(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings, settingsSelected);
                 setNavItemSelected(navProfile, R.id.nav_icon_profile, R.id.nav_text_profile, profileSelected);
             }
 

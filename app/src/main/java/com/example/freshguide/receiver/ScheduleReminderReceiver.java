@@ -17,6 +17,7 @@ import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.entity.ScheduleEntryEntity;
 import com.example.freshguide.util.ScheduleReminderHelper;
+import com.example.freshguide.util.SessionManager;
 
 import java.util.Locale;
 import java.util.concurrent.Executors;
@@ -29,6 +30,9 @@ public class ScheduleReminderReceiver extends BroadcastReceiver {
                 ? intent.getIntExtra(ScheduleReminderHelper.EXTRA_SCHEDULE_ID, -1)
                 : -1;
         if (scheduleId <= 0) {
+            return;
+        }
+        if (!SessionManager.getInstance(context).isScheduleNotificationsEnabled()) {
             return;
         }
 

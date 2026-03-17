@@ -17,9 +17,20 @@ public class SessionManager {
     private static final String KEY_STUDENT_ID = "student_id";
     private static final String KEY_USER_NAME = "user_name";
     private static final String KEY_SYNC_VERSION = "sync_version";
+    private static final String KEY_SCHEDULE_VIEW_MODE = "schedule_view_mode";
+    private static final String KEY_SCHEDULE_SELECTED_DAY = "schedule_selected_day";
+    private static final String KEY_DEFAULT_REMINDER_MINUTES = "default_reminder_minutes";
+    private static final String KEY_USE_24_HOUR_TIME = "use_24_hour_time";
+    private static final String KEY_START_WEEK_ON_SUNDAY = "start_week_on_sunday";
+    private static final String KEY_SCHEDULE_NOTIFICATIONS_ENABLED = "schedule_notifications_enabled";
+    private static final String KEY_SYNC_ALERTS_ENABLED = "sync_alerts_enabled";
+    private static final String KEY_AUTO_SYNC_ENABLED = "auto_sync_enabled";
+    private static final String KEY_WIFI_ONLY_SYNC = "wifi_only_sync";
 
     public static final String ROLE_STUDENT = "student";
     public static final String ROLE_ADMIN = "admin";
+    public static final String VIEW_MODE_WEEKLY = "weekly";
+    public static final String VIEW_MODE_DAILY = "daily";
 
     private static SessionManager instance;
     private final SharedPreferences prefs;
@@ -90,6 +101,92 @@ public class SessionManager {
 
     public int getSyncVersion() {
         return prefs.getInt(KEY_SYNC_VERSION, -1);
+    }
+
+    public void setScheduleViewMode(String mode) {
+        prefs.edit().putString(KEY_SCHEDULE_VIEW_MODE, mode).apply();
+    }
+
+    public String getScheduleViewMode() {
+        return prefs.getString(KEY_SCHEDULE_VIEW_MODE, VIEW_MODE_WEEKLY);
+    }
+
+    public void setSelectedScheduleDay(int day) {
+        prefs.edit().putInt(KEY_SCHEDULE_SELECTED_DAY, day).apply();
+    }
+
+    public int getSelectedScheduleDay(int fallbackDay) {
+        return prefs.getInt(KEY_SCHEDULE_SELECTED_DAY, fallbackDay);
+    }
+
+    public void setDefaultReminderMinutes(int reminderMinutes) {
+        prefs.edit().putInt(KEY_DEFAULT_REMINDER_MINUTES, reminderMinutes).apply();
+    }
+
+    public int getDefaultReminderMinutes() {
+        return prefs.getInt(KEY_DEFAULT_REMINDER_MINUTES, 10);
+    }
+
+    public void setUse24HourTime(boolean value) {
+        prefs.edit().putBoolean(KEY_USE_24_HOUR_TIME, value).apply();
+    }
+
+    public boolean shouldUse24HourTime() {
+        return prefs.getBoolean(KEY_USE_24_HOUR_TIME, false);
+    }
+
+    public void setStartWeekOnSunday(boolean value) {
+        prefs.edit().putBoolean(KEY_START_WEEK_ON_SUNDAY, value).apply();
+    }
+
+    public boolean shouldStartWeekOnSunday() {
+        return prefs.getBoolean(KEY_START_WEEK_ON_SUNDAY, false);
+    }
+
+    public void setScheduleNotificationsEnabled(boolean value) {
+        prefs.edit().putBoolean(KEY_SCHEDULE_NOTIFICATIONS_ENABLED, value).apply();
+    }
+
+    public boolean isScheduleNotificationsEnabled() {
+        return prefs.getBoolean(KEY_SCHEDULE_NOTIFICATIONS_ENABLED, true);
+    }
+
+    public void setSyncAlertsEnabled(boolean value) {
+        prefs.edit().putBoolean(KEY_SYNC_ALERTS_ENABLED, value).apply();
+    }
+
+    public boolean isSyncAlertsEnabled() {
+        return prefs.getBoolean(KEY_SYNC_ALERTS_ENABLED, true);
+    }
+
+    public void setAutoSyncEnabled(boolean value) {
+        prefs.edit().putBoolean(KEY_AUTO_SYNC_ENABLED, value).apply();
+    }
+
+    public boolean isAutoSyncEnabled() {
+        return prefs.getBoolean(KEY_AUTO_SYNC_ENABLED, true);
+    }
+
+    public void setWifiOnlySync(boolean value) {
+        prefs.edit().putBoolean(KEY_WIFI_ONLY_SYNC, value).apply();
+    }
+
+    public boolean isWifiOnlySync() {
+        return prefs.getBoolean(KEY_WIFI_ONLY_SYNC, false);
+    }
+
+    public void resetAppPreferences() {
+        prefs.edit()
+                .remove(KEY_SCHEDULE_VIEW_MODE)
+                .remove(KEY_SCHEDULE_SELECTED_DAY)
+                .remove(KEY_DEFAULT_REMINDER_MINUTES)
+                .remove(KEY_USE_24_HOUR_TIME)
+                .remove(KEY_START_WEEK_ON_SUNDAY)
+                .remove(KEY_SCHEDULE_NOTIFICATIONS_ENABLED)
+                .remove(KEY_SYNC_ALERTS_ENABLED)
+                .remove(KEY_AUTO_SYNC_ENABLED)
+                .remove(KEY_WIFI_ONLY_SYNC)
+                .apply();
     }
 
     public void clearSession() {
