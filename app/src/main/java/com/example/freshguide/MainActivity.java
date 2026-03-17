@@ -61,6 +61,12 @@
                 } else {
                     setupCustomNav(navHome, navSchedule, navSettings, navProfile);
                     updateNavSelection(R.id.homeFragment);
+                    if (savedInstanceState == null) {
+                        String openTab = getIntent() != null ? getIntent().getStringExtra("open_tab") : null;
+                        if ("schedule".equalsIgnoreCase(openTab)) {
+                            navigateTo(R.id.scheduleFragment);
+                        }
+                    }
                 }
 
                 if (headerBack != null) {
@@ -131,7 +137,7 @@
                     navProfile.setOnClickListener(v -> navigateTo(R.id.profileFragment));
                 }
                 if (navSchedule != null) {
-                    navSchedule.setOnClickListener(v -> showComingSoon());
+                    navSchedule.setOnClickListener(v -> navigateTo(R.id.scheduleFragment));
                 }
                 if (navSettings != null) {
                     navSettings.setOnClickListener(v -> showComingSoon());
@@ -157,10 +163,11 @@
                 View navProfile = findViewById(R.id.nav_item_profile);
 
                 boolean homeSelected = destinationId == R.id.homeFragment;
+                boolean scheduleSelected = destinationId == R.id.scheduleFragment;
                 boolean profileSelected = destinationId == R.id.profileFragment;
 
                 setNavItemSelected(navHome, R.id.nav_icon_home, R.id.nav_text_home, homeSelected);
-                setNavItemSelected(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule, false);
+                setNavItemSelected(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule, scheduleSelected);
                 setNavItemSelected(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings, false);
                 setNavItemSelected(navProfile, R.id.nav_icon_profile, R.id.nav_text_profile, profileSelected);
             }

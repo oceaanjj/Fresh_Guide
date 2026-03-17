@@ -27,6 +27,16 @@
     </fragment>
 
     <fragment
+        android:id="@+id/scheduleFragment"
+        android:name="com.example.freshguide.ui.user.ScheduleFragment"
+        android:label="Schedule"
+        tools:layout="@layout/fragment_schedule">
+        <action
+            android:id="@+id/action_schedule_to_roomDetail"
+            app:destination="@id/roomDetailFragment" />
+    </fragment>
+
+    <fragment
         android:id="@+id/floorLayoutFragment"
         android:name="com.example.freshguide.ui.user.FloorLayoutFragment"
         android:label="Floor Layout"

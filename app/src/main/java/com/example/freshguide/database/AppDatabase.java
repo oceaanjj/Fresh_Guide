@@ -14,6 +14,7 @@ import com.example.freshguide.database.dao.FloorDao;
 import com.example.freshguide.database.dao.OriginDao;
 import com.example.freshguide.database.dao.RoomDao;
 import com.example.freshguide.database.dao.RouteDao;
+import com.example.freshguide.database.dao.ScheduleDao;
 import com.example.freshguide.database.dao.SyncMetaDao;
 import com.example.freshguide.model.entity.BuildingEntity;
 import com.example.freshguide.model.entity.FacilityEntity;
@@ -23,6 +24,7 @@ import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.model.entity.RoomFacilityCrossRef;
 import com.example.freshguide.model.entity.RouteEntity;
 import com.example.freshguide.model.entity.RouteStepEntity;
+import com.example.freshguide.model.entity.ScheduleEntryEntity;
 import com.example.freshguide.model.entity.SyncMetaEntity;
 
 @Database(
@@ -35,9 +37,10 @@ import com.example.freshguide.model.entity.SyncMetaEntity;
         OriginEntity.class,
         RouteEntity.class,
         RouteStepEntity.class,
+        ScheduleEntryEntity.class,
         SyncMetaEntity.class
     },
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -53,12 +56,38 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    private static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS schedule_entries ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "title TEXT, "
+                    + "course_code TEXT, "
+                    + "instructor TEXT, "
+                    + "notes TEXT, "
+                    + "color_hex TEXT, "
+                    + "day_of_week INTEGER NOT NULL, "
+                    + "start_minutes INTEGER NOT NULL, "
+                    + "end_minutes INTEGER NOT NULL, "
+                    + "is_online INTEGER NOT NULL, "
+                    + "room_id INTEGER, "
+                    + "online_platform TEXT, "
+                    + "reminder_minutes INTEGER NOT NULL, "
+                    + "created_at INTEGER NOT NULL, "
+                    + "updated_at INTEGER NOT NULL, "
+                    + "FOREIGN KEY(room_id) REFERENCES rooms(id) ON DELETE SET NULL)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_schedule_entries_day_of_week ON schedule_entries(day_of_week)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_schedule_entries_room_id ON schedule_entries(room_id)");
+        }
+    };
+
     public abstract BuildingDao buildingDao();
     public abstract FloorDao floorDao();
     public abstract RoomDao roomDao();
     public abstract FacilityDao facilityDao();
     public abstract OriginDao originDao();
     public abstract RouteDao routeDao();
+    public abstract ScheduleDao scheduleDao();
     public abstract SyncMetaDao syncMetaDao();
 
     public static synchronized AppDatabase getInstance(Context context) {
@@ -67,7 +96,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     AppDatabase.class,
                     DB_NAME
-            ).addMigrations(MIGRATION_1_2)
+            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
              .build();
         }
         return instance;
