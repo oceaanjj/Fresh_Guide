@@ -8,6 +8,7 @@ import com.example.freshguide.model.dto.FloorDto;
 import com.example.freshguide.model.dto.LoginResponse;
 import com.example.freshguide.model.dto.OriginDto;
 import com.example.freshguide.model.dto.RoomDto;
+import com.example.freshguide.model.dto.ScheduleEntryDto;
 import com.example.freshguide.model.dto.RouteDto;
 import com.example.freshguide.model.dto.SyncVersionResponse;
 
@@ -54,6 +55,20 @@ public interface ApiService {
 
     @GET("routes/{roomId}")
     Call<ApiResponse<RouteDto>> getRoute(@Path("roomId") int roomId, @Query("origin_id") int originId);
+
+    // ── User — Schedule ───────────────────────────────────────────────────────
+
+    @GET("schedules")
+    Call<ApiResponse<List<ScheduleEntryDto>>> getSchedules();
+
+    @POST("schedules")
+    Call<ApiResponse<ScheduleEntryDto>> createSchedule(@Body Map<String, Object> body);
+
+    @PUT("schedules/{id}")
+    Call<ApiResponse<ScheduleEntryDto>> updateSchedule(@Path("id") int id, @Body Map<String, Object> body);
+
+    @DELETE("schedules/{id}")
+    Call<ApiResponse<Void>> deleteSchedule(@Path("id") int id);
 
     // ── Admin — Buildings ─────────────────────────────────────────────────────
 

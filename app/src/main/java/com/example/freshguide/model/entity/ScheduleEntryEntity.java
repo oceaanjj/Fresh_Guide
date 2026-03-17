@@ -21,6 +21,9 @@ import androidx.room.PrimaryKey;
 )
 public class ScheduleEntryEntity {
 
+    public static final int SYNC_STATE_DIRTY = 0;
+    public static final int SYNC_STATE_CLEAN = 1;
+
     @PrimaryKey(autoGenerate = true)
     public int id;
 
@@ -66,6 +69,21 @@ public class ScheduleEntryEntity {
     @ColumnInfo(name = "updated_at")
     public long updatedAt;
 
+    @ColumnInfo(name = "remote_id")
+    public Integer remoteId;
+
+    @ColumnInfo(name = "client_uuid")
+    public String clientUuid;
+
+    @ColumnInfo(name = "owner_student_id")
+    public String ownerStudentId;
+
+    @ColumnInfo(name = "sync_state")
+    public int syncState;
+
+    @ColumnInfo(name = "pending_delete")
+    public int pendingDelete;
+
     public ScheduleEntryEntity(String title,
                                String courseCode,
                                String instructor,
@@ -94,5 +112,10 @@ public class ScheduleEntryEntity {
         this.reminderMinutes = reminderMinutes;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.remoteId = null;
+        this.clientUuid = null;
+        this.ownerStudentId = null;
+        this.syncState = SYNC_STATE_DIRTY;
+        this.pendingDelete = 0;
     }
 }

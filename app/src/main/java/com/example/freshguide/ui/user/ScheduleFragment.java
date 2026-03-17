@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.net.ConnectivityManager;
+import android.net.Network;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -112,6 +114,9 @@ public class ScheduleFragment extends Fragment {
     private final List<RoomEntity> allRooms = new ArrayList<>();
     private final List<RoomEntity> roomOptions = new ArrayList<>();
     private final Map<Integer, String> roomNameMap = new HashMap<>();
+    @Nullable private ConnectivityManager connectivityManager;
+    @Nullable private ConnectivityManager.NetworkCallback scheduleNetworkCallback;
+    private boolean networkCallbackRegistered = false;
 
     private int selectedDay = 1;
 
@@ -173,6 +178,7 @@ public class ScheduleFragment extends Fragment {
 
         loadRoomOptions();
         observeAllSchedules();
+        viewModel.syncSchedules();
     }
 
     private void observeAllSchedules() {
@@ -195,6 +201,7 @@ public class ScheduleFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        viewModel.syncSchedules();
 
         boolean shouldShowWeekly = !SessionManager.VIEW_MODE_DAILY.equals(sessionManager.getScheduleViewMode());
         int restoredDay = normalizeDay(sessionManager.getSelectedScheduleDay(getDefaultDay()));
@@ -214,6 +221,59 @@ public class ScheduleFragment extends Fragment {
             applyDailyDaySelectionUi();
             renderScheduleContent();
         }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        registerScheduleNetworkCallback();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        unregisterScheduleNetworkCallback();
+    }
+
+    private void registerScheduleNetworkCallback() {
+        if (!isAdded() || networkCallbackRegistered || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return;
+        }
+
+        connectivityManager = (ConnectivityManager) requireContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager == null) {
+            return;
+        }
+
+        scheduleNetworkCallback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(@NonNull Network network) {
+                viewModel.syncSchedules();
+            }
+        };
+
+        try {
+            connectivityManager.registerDefaultNetworkCallback(scheduleNetworkCallback);
+            networkCallbackRegistered = true;
+        } catch (Exception ignored) {
+            networkCallbackRegistered = false;
+        }
+    }
+
+    private void unregisterScheduleNetworkCallback() {
+        if (!networkCallbackRegistered || connectivityManager == null || scheduleNetworkCallback == null) {
+            return;
+        }
+
+        try {
+            connectivityManager.unregisterNetworkCallback(scheduleNetworkCallback);
+        } catch (Exception ignored) {
+            // no-op
+        }
+
+        networkCallbackRegistered = false;
+        scheduleNetworkCallback = null;
+        connectivityManager = null;
     }
 
     private void setupViewToggle() {
@@ -544,6 +604,11 @@ public class ScheduleFragment extends Fragment {
             );
             if (existing != null) {
                 entry.id = existing.id;
+                entry.remoteId = existing.remoteId;
+                entry.clientUuid = existing.clientUuid;
+                entry.ownerStudentId = existing.ownerStudentId;
+                entry.syncState = existing.syncState;
+                entry.pendingDelete = existing.pendingDelete;
             }
 
             maybeRequestNotificationPermission(entry.reminderMinutes);
