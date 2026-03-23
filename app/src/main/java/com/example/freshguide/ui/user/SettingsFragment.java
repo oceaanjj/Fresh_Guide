@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import com.example.freshguide.BuildConfig;
 import com.example.freshguide.R;
 import com.example.freshguide.util.SessionManager;
+import com.example.freshguide.util.ThemePreferenceManager;
 
 public class SettingsFragment extends Fragment {
 
@@ -40,6 +42,8 @@ public class SettingsFragment extends Fragment {
     private TextView tvSyncVersionInfo;
     private TextView tvAppVersionInfo;
     private TextView tvRoleInfo;
+
+    private RadioGroup themeRadioGroup;
 
     private boolean bindingValues;
 
@@ -73,6 +77,8 @@ public class SettingsFragment extends Fragment {
         tvAppVersionInfo = view.findViewById(R.id.tv_app_version_info);
         tvRoleInfo = view.findViewById(R.id.tv_role_info);
 
+        themeRadioGroup = view.findViewById(R.id.theme_radio_group);
+
         setupExpandableSection(
                 view.findViewById(R.id.header_schedule),
                 view.findViewById(R.id.content_schedule),
@@ -101,6 +107,7 @@ public class SettingsFragment extends Fragment {
         setupScheduleControls();
         setupNotificationControls();
         setupDataControls(view.findViewById(R.id.btn_reset_preferences));
+        setupThemeControls();
         setupAboutSection();
         applyRoleVisibility();
 
@@ -202,6 +209,41 @@ public class SettingsFragment extends Fragment {
             sessionManager.resetAppPreferences();
             bindSavedValues();
             Toast.makeText(requireContext(), "Preferences reset", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void setupThemeControls() {
+        // Set current selection
+        int currentTheme = ThemePreferenceManager.getThemeMode(requireContext());
+        switch (currentTheme) {
+            case ThemePreferenceManager.THEME_LIGHT:
+                themeRadioGroup.check(R.id.radio_theme_light);
+                break;
+            case ThemePreferenceManager.THEME_DARK:
+                themeRadioGroup.check(R.id.radio_theme_dark);
+                break;
+            case ThemePreferenceManager.THEME_SYSTEM:
+            default:
+                themeRadioGroup.check(R.id.radio_theme_system);
+                break;
+        }
+
+        // Listen for changes
+        themeRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (bindingValues) return;
+
+            int newTheme;
+            if (checkedId == R.id.radio_theme_light) {
+                newTheme = ThemePreferenceManager.THEME_LIGHT;
+            } else if (checkedId == R.id.radio_theme_dark) {
+                newTheme = ThemePreferenceManager.THEME_DARK;
+            } else {
+                newTheme = ThemePreferenceManager.THEME_SYSTEM;
+            }
+
+            ThemePreferenceManager.saveThemeMode(requireContext(), newTheme);
+            ThemePreferenceManager.applyTheme(newTheme);
+            requireActivity().recreate(); // Recreate activity to apply theme
         });
     }
 

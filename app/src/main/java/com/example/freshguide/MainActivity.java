@@ -2,6 +2,7 @@
 
         import android.content.Intent;
         import android.content.IntentFilter;
+        import android.content.res.Configuration;
         import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -9,10 +10,12 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.NavOptions;
@@ -21,6 +24,7 @@ import androidx.navigation.NavOptions;
 
         import com.example.freshguide.receiver.NetworkChangeReceiver;
         import com.example.freshguide.util.SessionManager;
+        import com.example.freshguide.util.ThemePreferenceManager;
         import com.google.android.material.snackbar.Snackbar;
 
         public class MainActivity extends AppCompatActivity implements NetworkChangeReceiver.NetworkListener {
@@ -35,7 +39,32 @@ import androidx.navigation.NavOptions;
             @Override
             protected void onCreate(Bundle savedInstanceState) {
                 super.onCreate(savedInstanceState);
+
+                // Apply saved theme preference
+                ThemePreferenceManager.applyTheme(ThemePreferenceManager.getThemeMode(this));
+
                 WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+                // Control system bar appearance based on current theme
+                WindowInsetsControllerCompat windowInsetsController =
+                    WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+
+                if (windowInsetsController != null) {
+                    // Check if dark mode is active
+                    int nightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+                    boolean isDarkMode = (nightMode == Configuration.UI_MODE_NIGHT_YES);
+
+                    // Set light or dark appearance for system bars
+                    windowInsetsController.setAppearanceLightStatusBars(!isDarkMode);
+                    windowInsetsController.setAppearanceLightNavigationBars(!isDarkMode);
+                }
+
+                // Set system bar colors to match theme
+                getWindow().setStatusBarColor(
+                    ContextCompat.getColor(this, R.color.background_default));
+                getWindow().setNavigationBarColor(
+                    ContextCompat.getColor(this, R.color.background_default));
+
                 setContentView(R.layout.activity_main);
 
                 rootView = findViewById(R.id.main);

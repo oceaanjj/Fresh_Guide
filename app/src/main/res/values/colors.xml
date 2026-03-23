@@ -1,18 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Surface & Background Colors (Light Mode) -->
+    <color name="surface_white">#FFFFFF</color>          <!-- Main surface -->
+    <color name="background_default">#FFFFFF</color>      <!-- App background -->
+    <color name="background_subtle">#F5F5F5</color>       <!-- Subtle elevation -->
+    <color name="background_card">#FFFFFF</color>         <!-- Card surfaces -->
+    <color name="input_background">#F0F0F0</color>        <!-- Input fields -->
+
+    <!-- Text Colors (Light Mode) -->
+    <color name="text_primary">#1C1B1F</color>
+    <color name="text_secondary">#5E5E5E</color>
+    <color name="text_tertiary">#7A7A7A</color>
+    <color name="text_hint">#9E9E9E</color>
+
+    <!-- Brand Colors (Light Mode) -->
     <color name="green_primary">#29A829</color>
     <color name="green_dark">#1B5E20</color>
     <color name="green_light">#A5D6A7</color>
     <color name="green_pill">#DFF5DF</color>
+    <color name="green">#1AA514</color>
     <color name="orange_accent">#FF6D00</color>
     <color name="orange_text">#FFA500</color>
-    <color name="surface_white">#FFFFFF</color>
-    <color name="text_primary">#1C1B1F</color>
-    <color name="text_hint">#9E9E9E</color>
-    <color name="chip_border">#29A829</color>
-    <color name="input_background">#F0F0F0</color>
-    <color name="green">#1AA514</color>
     <color name="map_orange">#F4A340</color>
+
+    <!-- Border & Divider Colors (Light Mode) -->
+    <color name="border_default">#E0E0E0</color>
+    <color name="border_subtle">#EEEEEE</color>
+    <color name="divider">#E6E6E6</color>
+    <color name="chip_border">#29A829</color>
+
+    <!-- Admin-Specific Colors (always dark - same in both modes) -->
+    <color name="admin_background">#181A1B</color>
+    <color name="admin_card_bg">#242729</color>
+    <color name="admin_card_secondary">#202224</color>
+    <color name="admin_card_stroke">#303436</color>
+    <color name="admin_button_bg">#2D3133</color>
+    <color name="admin_text_primary">#FFFFFF</color>
+    <color name="admin_text_secondary">#A8A8A8</color>
+    <color name="admin_text_tertiary">#949494</color>
+
+    <!-- Map Colors (Light Mode) -->
+    <color name="map_background">#FFFFFF</color>
+    <color name="map_stroke">#FFFFFF</color>
+    <color name="map_label_text">#6A6A6A</color>
+    <color name="map_accent">#FF6D00</color>
+    <color name="map_pin">#29A829</color>
+    <color name="map_pin_inner">#FFFFFF</color>
+    <color name="map_building_main">#4FAE63</color>
+    <color name="map_building_registrar">#6CC978</color>
+    <color name="map_building_court">#7ACB86</color>
+    <color name="map_building_library">#6CC978</color>
+    <color name="map_building_entrance">#F2F2F2</color>
+    <color name="map_building_exit">#F4F4F4</color>
+
+    <!-- Schedule Colors (Light Mode) -->
+    <color name="schedule_bg">#F6F6F6</color>
+    <color name="schedule_grid_major">#D8D8D8</color>
+    <color name="schedule_grid_minor">#ECECEC</color>
+    <color name="schedule_time_text">#8A8A8A</color>
+    <color name="schedule_header_bg">#FFFFFF</color>
+    <color name="schedule_day_label">#4F4F4F</color>
+    <color name="schedule_card_bg">#FFFFFF</color>
+    <color name="schedule_card_stroke">#D0D0D0</color>
+
+    <!-- Floor Layout Colors (Light Mode) -->
+    <color name="floor_room_label">#8F8F8F</color>           <!-- Room label text -->
+    <color name="floor_room_fill">#F4F4F4</color>            <!-- Room outline fill -->
+    <color name="floor_room_stroke">#BDBDBD</color>          <!-- Room outline stroke -->
+    <color name="classroom_fill">#CFEFCA</color>             <!-- Classroom room fill -->
+    <color name="classroom_stroke">#5EAF53</color>           <!-- Classroom border/door -->
+    <color name="legend_classroom">#BFE5BF</color>           <!-- Legend dot color -->
+
+    <!-- Room Detail Colors (Light Mode) -->
+    <color name="room_detail_heading">#3E7B42</color>        <!-- Section headings -->
+    <color name="room_detail_subtitle">#9C9C9C</color>       <!-- Subtitle text -->
+    <color name="room_detail_body">#5B5B5B</color>           <!-- Description body -->
+    <color name="room_detail_section_label">#7D7D7D</color>  <!-- Section labels -->
+    <color name="room_detail_facilities_text">#3C3C3C</color><!-- Facilities text -->
+    <color name="room_detail_placeholder">#A0A0A0</color>    <!-- "No image" text -->
+    <color name="room_detail_directions_bg">#CFE8D0</color>  <!-- DIRECTIONS button -->
+    <color name="room_detail_handle">#C7C7C7</color>         <!-- Drag handle -->
+    <color name="media_placeholder_bg">#E5E5E5</color>       <!-- Image placeholder -->
+
+    <!-- Schedule & Dialog Colors (Light Mode) -->
+    <color name="schedule_form_label">#4F8E4F</color>        <!-- Form labels -->
+    <color name="schedule_time_button">#4F4F4F</color>       <!-- Time button text -->
+    <color name="schedule_time_placeholder">#A0A0A0</color>  <!-- Time placeholder -->
+    <color name="schedule_detail_code">#7C7C7C</color>       <!-- Course code -->
+    <color name="schedule_detail_professor">#6B6B6B</color>  <!-- Professor name -->
+    <color name="schedule_detail_info">#4F4F4F</color>       <!-- Secondary info -->
+    <color name="schedule_detail_notes_label">#737373</color><!-- Notes label -->
+    <color name="schedule_detail_notes">#4C4C4C</color>      <!-- Notes text -->
+    <color name="dialog_drag_handle">#DADADA</color>         <!-- Drag handle -->
 </resources>

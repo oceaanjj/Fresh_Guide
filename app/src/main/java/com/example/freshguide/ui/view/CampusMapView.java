@@ -15,6 +15,9 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+
+import com.example.freshguide.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,8 +86,8 @@ public class CampusMapView extends View {
 
     public CampusMapView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        initBuildings();
-        initPaints();
+        initBuildings(context);
+        initPaints(context);
 
         gestureDetector = new GestureDetector(context,
                 new GestureDetector.SimpleOnGestureListener() {
@@ -136,59 +139,59 @@ public class CampusMapView extends View {
     //  ENTRANCE = thin portrait strip far-left (14% × 16%)
     //  EXIT = small block centre-right bottom (18% × 14%)
 
-    private void initBuildings() {
+    private void initBuildings(Context context) {
         // MAIN — tall portrait, left (drawn first = behind COURT)
         buildings.add(new BuildingShape("MAIN", "UCC - SOUTH MAIN\nBUILDING",
                 new float[]{ 0.08f,0.26f, 0.44f,0.26f, 0.42f,0.86f, 0.06f,0.86f },
-                Color.parseColor("#4FAE63")));
+                ContextCompat.getColor(context, R.color.map_building_main)));
 
         // REGISTRAR — small landscape, upper-right
         buildings.add(new BuildingShape("REG", "REGISTRAR",
                 new float[]{ 0.48f,0.14f, 0.78f,0.14f, 0.76f,0.26f, 0.46f,0.26f },
-                Color.parseColor("#6CC978")));
+                ContextCompat.getColor(context, R.color.map_building_registrar)));
 
         // COURT — medium, centre (sits to the right of MAIN)
         buildings.add(new BuildingShape("COURT", "COURT",
                 new float[]{ 0.50f,0.30f, 0.88f,0.30f, 0.86f,0.70f, 0.48f,0.70f },
-                Color.parseColor("#7ACB86")));
+                ContextCompat.getColor(context, R.color.map_building_court)));
 
         // LIBRARY — medium landscape, right
         buildings.add(new BuildingShape("LIB", "LIBRARY",
                 new float[]{ 0.70f,0.71f, 0.86f,0.71f, 0.84f,0.87f, 0.68f,0.87f },
-                Color.parseColor("#6CC978")));
+                ContextCompat.getColor(context, R.color.map_building_library)));
 
         // ENTRANCE — compact grey block, lower-left
         buildings.add(new BuildingShape("ENT", "ENTRANCE",
                 new float[]{ 0.26f,0.90f, 0.42f,0.90f, 0.42f,1.00f, 0.26f,1.00f },
-                Color.parseColor("#F2F2F2")));
+                ContextCompat.getColor(context, R.color.map_building_entrance)));
 
         // EXIT — small grey block, bottom-right
         buildings.add(new BuildingShape("EXIT", "EXIT",
                 new float[]{ 0.60f,0.90f, 0.76f,0.90f, 0.76f,1.00f, 0.60f,1.00f },
-                Color.parseColor("#F4F4F4")));
+                ContextCompat.getColor(context, R.color.map_building_exit)));
 
     }
 
-    private void initPaints() {
+    private void initPaints(Context context) {
         pFill.setStyle(Paint.Style.FILL);
 
         pStroke.setStyle(Paint.Style.STROKE);
-        pStroke.setColor(Color.WHITE);
+        pStroke.setColor(ContextCompat.getColor(context, R.color.map_stroke));
         pStroke.setStrokeWidth(2.0f);
 
         pLabel.setStyle(Paint.Style.FILL);
         pLabel.setTextAlign(Paint.Align.CENTER);
         pLabel.setFakeBoldText(false);
-        pLabel.setColor(Color.parseColor("#6A6A6A"));
+        pLabel.setColor(ContextCompat.getColor(context, R.color.map_label_text));
 
         pAccent.setStyle(Paint.Style.FILL);
-        pAccent.setColor(Color.parseColor("#FF6D00"));
+        pAccent.setColor(ContextCompat.getColor(context, R.color.map_accent));
 
         pMarkerOuter.setStyle(Paint.Style.FILL);
         pMarkerOuter.setColor(Color.parseColor("#1E88E5"));
 
         pMarkerInner.setStyle(Paint.Style.FILL);
-        pMarkerInner.setColor(Color.WHITE);
+        pMarkerInner.setColor(ContextCompat.getColor(context, R.color.map_background));
 
         pMarkerCore.setStyle(Paint.Style.FILL);
         pMarkerCore.setColor(Color.parseColor("#D9D9D9"));
@@ -197,12 +200,12 @@ public class CampusMapView extends View {
         pDashed.setColor(Color.parseColor("#BDBDBD"));
 
         pPin.setStyle(Paint.Style.FILL);
-        pPin.setColor(Color.parseColor("#29A829"));
+        pPin.setColor(ContextCompat.getColor(context, R.color.map_pin));
 
         pPinInner.setStyle(Paint.Style.FILL);
-        pPinInner.setColor(Color.WHITE);
+        pPinInner.setColor(ContextCompat.getColor(context, R.color.map_pin_inner));
 
-        pBg.setColor(Color.WHITE);
+        pBg.setColor(ContextCompat.getColor(context, R.color.map_background));
         pBg.setStyle(Paint.Style.FILL);
     }
 

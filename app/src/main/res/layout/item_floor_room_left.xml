@@ -12,6 +12,6 @@
         android:gravity="center"
         android:tag="room_label"
         android:text="Room"
-        android:textColor="#8F8F8F"
+        android:textColor="@color/floor_room_label"
         android:textSize="11sp" />
 </FrameLayout>

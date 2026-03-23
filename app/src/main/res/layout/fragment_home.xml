@@ -5,14 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@android:color/white">
+    android:background="@color/background_default">
 
     <!-- Header: full logo + search bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="@android:color/white"
+        android:background="@color/background_default"
         android:paddingTop="5dp">
 
         <!-- Full FreshGuide brand logo -->
@@ -207,7 +207,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="REGISTRAR"
-                android:textColor="@android:color/black"
+                android:textColor="@color/text_primary"
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.587"
@@ -309,7 +309,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:text="COURT"
-                android:textColor="@android:color/black"
+                android:textColor="@color/text_primary"
                 android:textSize="12sp"
                 app:layout_constraintStart_toStartOf="@id/img_court"
                 app:layout_constraintTop_toBottomOf="@id/img_court" />
@@ -368,7 +368,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="LIBRARY"
-                android:textColor="@android:color/black"
+                android:textColor="@color/text_primary"
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="@id/img_library"
                 app:layout_constraintHorizontal_bias="0.0"
@@ -405,7 +405,7 @@
                 android:layout_marginTop="10dp"
                 android:gravity="center"
                 android:text="UCC - SOUTH MAIN\nBUILDING"
-                android:textColor="@android:color/black"
+                android:textColor="@color/text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="@id/img_main_building"
@@ -467,7 +467,7 @@
             android:layout_marginBottom="5dp"
             android:contentDescription="Directions"
             android:src="@drawable/direction"
-            app:backgroundTint="@android:color/white"
+            app:backgroundTint="@color/background_default"
             app:borderWidth="0dp"
             app:elevation="2dp"
             app:ensureMinTouchTargetSize="false"

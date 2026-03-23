@@ -2,6 +2,7 @@ package com.example.freshguide.ui.user;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -75,14 +76,16 @@ public class ScheduleFragment extends Fragment {
             R.id.daily_day_fri,
             R.id.daily_day_sat
     };
-    private static final String[] COLOR_HEXES = {
-            "#F2F2F2",
-            "#F8D1E2",
-            "#D7E8FF",
-            "#EFD8F7",
-            "#D7F1D5",
-            "#EDF58F"
-    };
+    private String[] getScheduleColors() {
+        boolean isDarkMode = (getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+
+        if (isDarkMode) {
+            return new String[]{"#3A3A3A", "#4D2A3A", "#2A3D4D", "#3A2D4D", "#2D3A2D", "#4D4A2A"};
+        } else {
+            return new String[]{"#F2F2F2", "#F8D1E2", "#D7E8FF", "#EFD8F7", "#D7F1D5", "#EDF58F"};
+        }
+    }
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -506,13 +509,13 @@ public class ScheduleFragment extends Fragment {
             startMinutesHolder[0] = existing.startMinutes;
             endMinutesHolder[0] = existing.endMinutes;
             btnPickStart.setText(formatMinutes(existing.startMinutes));
-            btnPickStart.setTextColor(Color.parseColor("#4F4F4F"));
+            btnPickStart.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
             btnPickEnd.setText(formatMinutes(existing.endMinutes));
-            btnPickEnd.setTextColor(Color.parseColor("#4F4F4F"));
+            btnPickEnd.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
 
             if (existing.colorHex != null) {
-                for (int i = 0; i < COLOR_HEXES.length; i++) {
-                    if (COLOR_HEXES[i].equalsIgnoreCase(existing.colorHex)) {
+                for (int i = 0; i < getScheduleColors().length; i++) {
+                    if (getScheduleColors()[i].equalsIgnoreCase(existing.colorHex)) {
                         selectedColorIndex[0] = i;
                         break;
                     }
@@ -593,7 +596,7 @@ public class ScheduleFragment extends Fragment {
                 }
 
                 int colorIndex = selectedColorIndex[0];
-                if (colorIndex < 0 || colorIndex >= COLOR_HEXES.length) {
+                if (colorIndex < 0 || colorIndex >= getScheduleColors().length) {
                     colorIndex = 0;
                 }
 
@@ -602,7 +605,7 @@ public class ScheduleFragment extends Fragment {
                         normalize(etSubjectCode.getText().toString()),
                         normalize(etProfessor.getText().toString()),
                         normalize(etNotes.getText().toString()),
-                        COLOR_HEXES[colorIndex],
+                        getScheduleColors()[colorIndex],
                         selectedDayHolder[0],
                         startMinutesHolder[0],
                         endMinutesHolder[0],
@@ -747,7 +750,7 @@ public class ScheduleFragment extends Fragment {
                 (TimePicker view, int hourOfDay, int minute) -> {
                     holder[0] = (hourOfDay * 60) + minute;
                     target.setText(formatMinutes(holder[0]));
-                    target.setTextColor(Color.parseColor("#4F4F4F"));
+                    target.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
                 },
                 initialHour,
                 initialMinute,
@@ -815,7 +818,7 @@ public class ScheduleFragment extends Fragment {
             View colorView = formView.findViewById(colorViewIds[i]);
             GradientDrawable drawable = new GradientDrawable();
             drawable.setShape(GradientDrawable.OVAL);
-            drawable.setColor(Color.parseColor(COLOR_HEXES[i]));
+            drawable.setColor(Color.parseColor(getScheduleColors()[i]));
             drawable.setStroke(i == selectedIndex ? 3 : 1, Color.parseColor(i == selectedIndex ? "#5A5A5A" : "#D0D0D0"));
             colorView.setBackground(drawable);
         }

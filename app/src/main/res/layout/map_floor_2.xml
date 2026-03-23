@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@android:color/white">
+    android:background="@color/map_background">
 
     <!-- Fixed legend -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:text="Classroom"
-            android:textColor="#8F8F8F"
+            android:textColor="@color/floor_room_label"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="@id/legend_classroom_dot"
             app:layout_constraintStart_toEndOf="@id/legend_classroom_dot"
@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:text="Door / Entrance"
-            android:textColor="#8F8F8F"
+            android:textColor="@color/floor_room_label"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="@id/legend_door_dot"
             app:layout_constraintStart_toEndOf="@id/legend_door_dot"
@@ -70,7 +70,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:text="Faculty"
-            android:textColor="#8F8F8F"
+            android:textColor="@color/floor_room_label"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="@id/legend_faculty_dot"
             app:layout_constraintStart_toEndOf="@id/legend_faculty_dot"
@@ -85,14 +85,14 @@
         android:layout_weight="1"
         android:fillViewport="true"
         android:scrollbars="none"
-        android:background="@android:color/white">
+        android:background="@color/map_background">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="760dp"
             android:layout_margin="16dp"
-            android:background="@android:color/white"
+            android:background="@color/map_background"
             android:paddingBottom="24dp">
 
             <View
@@ -112,7 +112,7 @@
                 android:background="@drawable/bg_room_outline_gray"
                 android:gravity="center"
                 android:text="Faculty&#10;Room"
-                android:textColor="#8F8F8F"
+                android:textColor="@color/floor_room_label"
                 android:textSize="10sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.43"
@@ -127,7 +127,7 @@
                 android:background="@drawable/bg_room_outline_gray"
                 android:gravity="center"
                 android:text="Storage"
-                android:textColor="#8F8F8F"
+                android:textColor="@color/floor_room_label"
                 android:textSize="10sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -140,7 +140,7 @@
                 android:background="@drawable/bg_room_outline_gray"
                 android:gravity="center"
                 android:text="Office"
-                android:textColor="#8F8F8F"
+                android:textColor="@color/floor_room_label"
                 android:textSize="10sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/storage_room" />
@@ -273,7 +273,7 @@
                 android:background="@drawable/bg_room_outline_gray"
                 android:gravity="center"
                 android:text="Elevator"
-                android:textColor="#8F8F8F"
+                android:textColor="@color/floor_room_label"
                 android:textSize="10sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/room_right_5" />

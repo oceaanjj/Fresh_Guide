@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -129,7 +130,7 @@ public class HomeFragment extends Fragment {
                 },
                 new int[]{
                         green,
-                        Color.WHITE
+                        ContextCompat.getColor(requireContext(), R.color.background_default)
                 }
         );
 

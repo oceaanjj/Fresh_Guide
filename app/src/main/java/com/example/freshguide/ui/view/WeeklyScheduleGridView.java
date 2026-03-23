@@ -14,7 +14,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
+import com.example.freshguide.R;
 import com.example.freshguide.model.entity.ScheduleEntryEntity;
 import com.google.android.material.card.MaterialCardView;
 
@@ -101,25 +103,26 @@ public class WeeklyScheduleGridView extends ViewGroup {
     }
 
     private void initPaints() {
-        headerBackgroundPaint.setColor(Color.parseColor("#FFFFFF"));
-        timeAxisBackgroundPaint.setColor(Color.parseColor("#FAFAFA"));
+        Context context = getContext();
+        headerBackgroundPaint.setColor(ContextCompat.getColor(context, R.color.schedule_header_bg));
+        timeAxisBackgroundPaint.setColor(ContextCompat.getColor(context, R.color.schedule_bg));
 
-        dayLabelPaint.setColor(Color.parseColor("#4F4F4F"));
+        dayLabelPaint.setColor(ContextCompat.getColor(context, R.color.schedule_day_label));
         dayLabelPaint.setTextSize(sp(12));
         dayLabelPaint.setFakeBoldText(true);
         dayLabelPaint.setTextAlign(Paint.Align.CENTER);
 
-        hourLabelPaint.setColor(Color.parseColor("#8A8A8A"));
+        hourLabelPaint.setColor(ContextCompat.getColor(context, R.color.schedule_time_text));
         hourLabelPaint.setTextSize(sp(11));
         hourLabelPaint.setTextAlign(Paint.Align.LEFT);
 
-        majorLinePaint.setColor(Color.parseColor("#D8D8D8"));
+        majorLinePaint.setColor(ContextCompat.getColor(context, R.color.schedule_grid_major));
         majorLinePaint.setStrokeWidth(dpF(1));
 
-        minorLinePaint.setColor(Color.parseColor("#ECECEC"));
+        minorLinePaint.setColor(ContextCompat.getColor(context, R.color.schedule_grid_minor));
         minorLinePaint.setStrokeWidth(dpF(1));
 
-        verticalLinePaint.setColor(Color.parseColor("#E3E3E3"));
+        verticalLinePaint.setColor(ContextCompat.getColor(context, R.color.schedule_grid_minor));
         verticalLinePaint.setStrokeWidth(dpF(1));
     }
 
@@ -225,9 +228,10 @@ public class WeeklyScheduleGridView extends ViewGroup {
         MaterialCardView card = new MaterialCardView(context);
         card.setRadius(dpF(8));
         card.setCardElevation(0f);
-        card.setStrokeColor(Color.parseColor("#D0D0D0"));
+        card.setStrokeColor(ContextCompat.getColor(context, R.color.schedule_card_stroke));
         card.setStrokeWidth(dp(1));
-        card.setCardBackgroundColor(parseColorOrDefault(entry.colorHex, "#F2F2F2"));
+        int defaultBg = ContextCompat.getColor(context, R.color.schedule_card_bg);
+        card.setCardBackgroundColor(parseColorOrDefault(entry.colorHex, String.format("#%06X", (0xFFFFFF & defaultBg))));
         card.setClickable(true);
         card.setFocusable(true);
         card.setUseCompatPadding(false);
@@ -261,8 +265,9 @@ public class WeeklyScheduleGridView extends ViewGroup {
     }
 
     private TextView buildBlockText(int textSizeSp, boolean bold) {
-        TextView view = new TextView(getContext());
-        view.setTextColor(Color.parseColor("#3A3A3A"));
+        Context context = getContext();
+        TextView view = new TextView(context);
+        view.setTextColor(ContextCompat.getColor(context, R.color.text_primary));
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp);
         view.setMaxLines(1);
         view.setEllipsize(TextUtils.TruncateAt.END);

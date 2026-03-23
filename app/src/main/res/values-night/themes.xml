@@ -1,7 +1,39 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Dark Theme -->
     <style name="Base.Theme.FreshGuide" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <!-- Primary colors -->
+        <item name="colorPrimary">@color/green_primary</item>
+        <item name="colorPrimaryVariant">@color/green_dark</item>
+        <item name="colorOnPrimary">@color/black</item>
+
+        <!-- Secondary colors -->
+        <item name="colorSecondary">@color/orange_accent</item>
+        <item name="colorOnSecondary">@color/black</item>
+
+        <!-- Surface colors -->
+        <item name="colorSurface">@color/background_card</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/background_default</item>
+        <item name="android:windowBackground">@color/background_default</item>
+
+        <!-- Material3 dark theme specific -->
+        <item name="elevationOverlayEnabled">true</item>
+        <item name="elevationOverlayColor">@color/white</item>
+
+        <!-- System bars -->
+        <item name="android:statusBarColor">@color/background_default</item>
+        <item name="android:navigationBarColor">@color/background_default</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <style name="Theme.FreshGuide" parent="Base.Theme.FreshGuide" />
+
+    <style name="Theme.FreshGuide.Splash" parent="Base.Theme.FreshGuide">
+        <item name="android:windowBackground">@color/background_default</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
     </style>
 </resources>

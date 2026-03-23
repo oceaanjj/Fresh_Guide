@@ -4,5 +4,5 @@
     <corners
         android:topLeftRadius="28dp"
         android:topRightRadius="28dp" />
-    <solid android:color="@android:color/white" />
+    <solid android:color="@color/background_card" />
 </shape>

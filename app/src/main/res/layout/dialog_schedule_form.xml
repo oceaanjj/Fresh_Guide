@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:text="Color"
-            android:textColor="#4F8E4F"
+            android:textColor="@color/schedule_form_label"
             android:textSize="12sp" />
 
         <LinearLayout
@@ -86,7 +86,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:text="Subject Name"
-            android:textColor="#4F8E4F"
+            android:textColor="@color/schedule_form_label"
             android:textSize="12sp" />
 
         <EditText
@@ -105,7 +105,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Subject Code"
-            android:textColor="#4F8E4F"
+            android:textColor="@color/schedule_form_label"
             android:textSize="12sp" />
 
         <EditText
@@ -124,7 +124,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Professor"
-            android:textColor="#4F8E4F"
+            android:textColor="@color/schedule_form_label"
             android:textSize="12sp" />
 
         <EditText
@@ -143,7 +143,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Class Type"
-            android:textColor="#4F8E4F"
+            android:textColor="@color/schedule_form_label"
             android:textSize="12sp" />
 
         <Spinner
@@ -166,7 +166,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="Room Location"
-                android:textColor="#4F8E4F"
+                android:textColor="@color/schedule_form_label"
                 android:textSize="12sp" />
 
             <Spinner
@@ -191,7 +191,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="Online Platform"
-                android:textColor="#4F8E4F"
+                android:textColor="@color/schedule_form_label"
                 android:textSize="12sp" />
 
             <Spinner
@@ -209,7 +209,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Schedule Day"
-            android:textColor="#4F8E4F"
+            android:textColor="@color/schedule_form_label"
             android:textSize="12sp" />
 
         <HorizontalScrollView
@@ -281,7 +281,7 @@
                 android:background="@drawable/bg_field_pill"
                 android:gravity="center"
                 android:text="Start Time"
-                android:textColor="#A0A0A0"
+                android:textColor="@color/schedule_time_placeholder"
                 android:textSize="12sp" />
 
             <TextView
@@ -293,7 +293,7 @@
                 android:background="@drawable/bg_field_pill"
                 android:gravity="center"
                 android:text="End Time"
-                android:textColor="#A0A0A0"
+                android:textColor="@color/schedule_time_placeholder"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -302,7 +302,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Reminder"
-            android:textColor="#4F8E4F"
+            android:textColor="@color/schedule_form_label"
             android:textSize="12sp" />
 
         <Spinner
@@ -319,7 +319,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Notes"
-            android:textColor="#4F8E4F"
+            android:textColor="@color/schedule_form_label"
             android:textSize="12sp" />
 
         <EditText
