@@ -274,15 +274,15 @@ public class ScheduleFragment extends Fragment {
     private void applyDailyDaySelectionUi() {
         for (int i = 0; i < dailyDayViews.length; i++) {
             TextView dayView = dailyDayViews[i];
-            boolean selected = (i + 1) == selectedDay;
+            boolean isToday = (i + 1) == selectedDay;
 
-            dayView.setBackgroundResource(
-                    selected ? R.drawable.bg_schedule_day_selected : R.drawable.bg_schedule_day_plain
-            );
-            dayView.setTextColor(ContextCompat.getColor(
-                    requireContext(),
-                    selected ? R.color.green_primary : R.color.text_primary
-            ));
+            if (isToday) {
+                dayView.setBackgroundResource(R.drawable.bg_schedule_day_selected);
+                dayView.setTextColor(ContextCompat.getColor(requireContext(), R.color.green_primary));
+            } else {
+                dayView.setBackground(null);
+                dayView.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary));
+            }
         }
     }
 

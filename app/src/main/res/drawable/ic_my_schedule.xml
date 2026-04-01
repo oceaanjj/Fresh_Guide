@@ -7,7 +7,7 @@
 
     <!-- Main body: flush left, right, and bottom -->
     <path
-        android:fillColor="#D9D9D9"
+        android:fillColor="@color/text_hint"
         android:pathData="M0,18
                           C0,14.686 2.686,12 6,12
                           H66
@@ -20,7 +20,7 @@
 
     <!-- Top rings -->
     <path
-        android:fillColor="#D9D9D9"
+        android:fillColor="@color/text_hint"
         android:pathData="M22,6
                           C23.657,6 25,7.343 25,9
                           V15
@@ -30,7 +30,7 @@
                           C19,7.343 20.343,6 22,6 Z" />
 
     <path
-        android:fillColor="#D9D9D9"
+        android:fillColor="@color/text_hint"
         android:pathData="M50,6
                           C51.657,6 53,7.343 53,9
                           V15

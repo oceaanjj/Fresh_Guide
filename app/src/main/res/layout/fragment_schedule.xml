@@ -27,7 +27,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/inter_bold"
                 android:text="Class Schedule"
-                android:textColor="@color/green_dark"
+                android:textColor="@color/green_primary"
                 android:textSize="28sp" />
 
             <TextView
@@ -47,7 +47,7 @@
             android:layout_marginEnd="4dp"
             android:contentDescription="Add schedule"
             android:src="@drawable/ic_schedule_add"
-            android:tint="@color/green_dark"
+            android:tint="@color/green_primary"
             />
     </LinearLayout>
 
@@ -155,81 +155,122 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <HorizontalScrollView
+    <LinearLayout
         android:id="@+id/daily_day_selector_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="14dp"
-        android:scrollbars="none">
+        android:orientation="horizontal">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <FrameLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingEnd="16dp">
+            android:layout_weight="1">
 
             <TextView
                 android:id="@+id/daily_day_mon"
-                android:layout_width="52dp"
+                android:layout_width="wrap_content"
                 android:layout_height="30dp"
-                android:background="@drawable/bg_schedule_day_selected"
+                android:layout_gravity="center"
                 android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
                 android:text="Mon"
-                android:textColor="@color/green_dark"
+                android:textColor="@color/text_primary"
                 android:textSize="13sp" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
             <TextView
                 android:id="@+id/daily_day_tue"
-                android:layout_width="52dp"
+                android:layout_width="wrap_content"
                 android:layout_height="30dp"
-                android:layout_marginStart="8dp"
+                android:layout_gravity="center"
                 android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
                 android:text="Tue"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
             <TextView
                 android:id="@+id/daily_day_wed"
-                android:layout_width="52dp"
+                android:layout_width="wrap_content"
                 android:layout_height="30dp"
-                android:layout_marginStart="8dp"
+                android:layout_gravity="center"
                 android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
                 android:text="Wed"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
             <TextView
                 android:id="@+id/daily_day_thu"
-                android:layout_width="52dp"
+                android:layout_width="wrap_content"
                 android:layout_height="30dp"
-                android:layout_marginStart="8dp"
+                android:layout_gravity="center"
                 android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
                 android:text="Thu"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
             <TextView
                 android:id="@+id/daily_day_fri"
-                android:layout_width="52dp"
+                android:layout_width="wrap_content"
                 android:layout_height="30dp"
-                android:layout_marginStart="8dp"
+                android:layout_gravity="center"
                 android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
                 android:text="Fri"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
             <TextView
                 android:id="@+id/daily_day_sat"
-                android:layout_width="52dp"
+                android:layout_width="wrap_content"
                 android:layout_height="30dp"
-                android:layout_marginStart="8dp"
+                android:layout_gravity="center"
                 android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
                 android:text="Sat"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp" />
-        </LinearLayout>
-    </HorizontalScrollView>
+        </FrameLayout>
+
+    </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -276,7 +317,7 @@
                 android:layout_marginTop="10dp"
                 android:background="@drawable/bg_schedule_add_outline"
                 android:drawableStart="@drawable/ic_schedule_add"
-                android:drawableTint="@color/green_dark"
+                android:drawableTint="@color/green_primary"
                 android:drawablePadding="6dp"
                 android:gravity="center_vertical"
                 android:paddingStart="25dp"
@@ -284,7 +325,7 @@
                 android:paddingEnd="25dp"
                 android:paddingBottom="6dp"
                 android:text="Schedule"
-                android:textColor="@color/green_dark"
+                android:textColor="@color/green_primary"
                 android:textSize="14sp" />
         </LinearLayout>
     </FrameLayout>

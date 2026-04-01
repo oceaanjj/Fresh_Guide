@@ -19,9 +19,9 @@
 
     <!-- Brand Colors (adjusted for dark backgrounds) -->
     <color name="green_primary">#4CAF50</color>           <!-- Brighter for visibility -->
-    <color name="green_dark">#2E7D32</color>              <!-- Darker variant -->
+    <color name="green_dark">#12770E</color>            <!-- Darker variant -->
     <color name="green_light">#81C784</color>             <!-- Light green accent -->
-    <color name="green_pill">#1B4D1F</color>              <!-- Dark pill background -->
+    <color name="green_pill">#A91B4D1F</color>              <!-- Dark pill background -->
     <color name="green">#4CAF50</color>                   <!-- Alternative green -->
     <color name="orange_accent">#FF8A3D</color>           <!-- Slightly desaturated -->
     <color name="orange_text">#FFB74D</color>             <!-- Orange text -->
