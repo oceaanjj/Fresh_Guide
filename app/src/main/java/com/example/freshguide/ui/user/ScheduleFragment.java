@@ -45,6 +45,10 @@ import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.viewmodel.ScheduleViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import android.view.WindowManager;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -553,13 +557,15 @@ public class ScheduleFragment extends Fragment {
             spinnerReminder.setSelection(reminderToPosition(existing.reminderMinutes));
         }
 
-        AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
-                .setView(formView)
-                .setNegativeButton("Cancel", (d, which) -> d.dismiss())
-                .setPositiveButton(existing == null ? "Create Schedule" : "Save Changes", null)
-                .create();
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext(), R.style.ThemeOverlay_FreshGuide_BottomSheet);
+        dialog.setContentView(formView);
 
-        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+        TextView btnCancel = formView.findViewById(R.id.btn_sheet_cancel);
+        TextView btnSave = formView.findViewById(R.id.btn_sheet_save);
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnSave.setOnClickListener(v -> {
             try {
                 String title = etSubjectName.getText().toString().trim();
                 if (title.isEmpty()) {
@@ -658,7 +664,20 @@ public class ScheduleFragment extends Fragment {
                     Toast.makeText(requireContext(), "Unable to save schedule right now", Toast.LENGTH_SHORT).show();
                 }
             }
-        }));
+        });
+
+        dialog.setOnShowListener(d -> {
+            View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                behavior.setSkipCollapsed(true);
+
+                ViewGroup.LayoutParams params = bottomSheet.getLayoutParams();
+                params.height = WindowManager.LayoutParams.MATCH_PARENT;
+                bottomSheet.setLayoutParams(params);
+            }
+        });
 
         dialog.show();
     }
