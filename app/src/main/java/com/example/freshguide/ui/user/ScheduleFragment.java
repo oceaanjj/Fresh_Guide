@@ -5,14 +5,15 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
-import android.os.Build;
-import android.os.Bundle;
 import android.net.ConnectivityManager;
 import android.net.Network;
+import android.os.Build;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -43,11 +44,9 @@ import com.example.freshguide.ui.adapter.ScheduleEntryAdapter;
 import com.example.freshguide.util.ScheduleReminderHelper;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.viewmodel.ScheduleViewModel;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-
-import android.view.WindowManager;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -70,17 +69,6 @@ public class ScheduleFragment extends Fragment {
             R.id.form_day_fri,
             R.id.form_day_sat
     };
-
-    private String[] getScheduleColors() {
-        boolean isDarkMode = (getResources().getConfiguration().uiMode
-                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-
-        if (isDarkMode) {
-            return new String[]{"#3A3A3A", "#4D2A3A", "#2A3D4D", "#3A2D4D", "#2D3A2D", "#4D4A2A"};
-        } else {
-            return new String[]{"#F2F2F2", "#F8D1E2", "#D7E8FF", "#EFD8F7", "#D7F1D5", "#EDF58F"};
-        }
-    }
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -108,8 +96,8 @@ public class ScheduleFragment extends Fragment {
     private TextView tvSummaryTitle;
     private TextView tvSummaryProfessor;
     private TextView tvSummaryTime;
-    private TextView tvDate;
     private TextView tvSummaryLabel;
+    private TextView tvDate;
     private TextView tvEmptyStateMessage;
 
     private final List<RoomEntity> allRooms = new ArrayList<>();
@@ -174,7 +162,6 @@ public class ScheduleFragment extends Fragment {
         view.findViewById(R.id.btn_empty_add_schedule).setOnClickListener(v -> showScheduleFormDialog(null));
 
         selectedDay = getDefaultDay();
-        applyDailyDaySelectionUi();
         setupDailyDaySelector();
         applyDailyDaySelectionUi();
 
@@ -809,10 +796,14 @@ public class ScheduleFragment extends Fragment {
         for (int i = 0; i < FORM_DAY_VIEW_IDS.length; i++) {
             TextView tv = formView.findViewById(FORM_DAY_VIEW_IDS[i]);
             boolean selected = (i + 1) == selectedDayValue;
-            tv.setBackgroundResource(selected ? R.drawable.bg_schedule_day_selected : R.drawable.bg_schedule_day_plain);
+
+            tv.setBackgroundResource(selected
+                    ? R.drawable.bg_form_chip_selected
+                    : R.drawable.bg_form_chip_unselected);
+
             tv.setTextColor(ContextCompat.getColor(
                     requireContext(),
-                    selected ? R.color.green_primary : R.color.text_primary
+                    selected ? R.color.green_dark : R.color.green_primary
             ));
         }
     }
@@ -891,12 +882,6 @@ public class ScheduleFragment extends Fragment {
         }
     }
 
-    private int normalizeDay(int value) {
-        if (value < 1) return 1;
-        if (value > 6) return 6;
-        return value;
-    }
-
     private String buildRoomDisplay(RoomEntity room) {
         String name = room.name != null ? room.name : "Room";
         if (room.code != null && !room.code.isBlank()) {
@@ -968,5 +953,16 @@ public class ScheduleFragment extends Fragment {
         if (hour12 == 0) hour12 = 12;
         String suffix = hour24 >= 12 ? "PM" : "AM";
         return String.format(Locale.getDefault(), "%d:%02d %s", hour12, minute, suffix);
+    }
+
+    private String[] getScheduleColors() {
+        boolean isDarkMode = (getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+
+        if (isDarkMode) {
+            return new String[]{"#3A3A3A", "#4D2A3A", "#2A3D4D", "#3A2D4D", "#2D3A2D", "#4D4A2A"};
+        } else {
+            return new String[]{"#F2F2F2", "#F8D1E2", "#D7E8FF", "#EFD8F7", "#D7F1D5", "#EDF58F"};
+        }
     }
 }
