@@ -4,24 +4,30 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.AdapterView;
+import android.view.animation.OvershootInterpolator;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+import android.widget.FrameLayout;
+import android.view.Gravity;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -29,6 +35,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
@@ -40,6 +47,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.freshguide.R;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.model.entity.ScheduleEntryEntity;
+import com.example.freshguide.ui.adapter.RoomDropdownAdapter;
 import com.example.freshguide.ui.adapter.ScheduleEntryAdapter;
 import com.example.freshguide.util.ScheduleReminderHelper;
 import com.example.freshguide.util.SessionManager;
@@ -47,6 +55,7 @@ import com.example.freshguide.viewmodel.ScheduleViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -61,13 +70,10 @@ public class ScheduleFragment extends Fragment {
     private static final String TAG = "ScheduleFragment";
 
     private static final String[] DAY_LABELS = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-    private static final int[] FORM_DAY_VIEW_IDS = {
-            R.id.form_day_mon,
-            R.id.form_day_tue,
-            R.id.form_day_wed,
-            R.id.form_day_thu,
-            R.id.form_day_fri,
-            R.id.form_day_sat
+    private static final String[] CLASS_TYPES = {"On-site", "Online"};
+    private static final String[] PLATFORMS = {"Zoom", "Google Meet", "Microsoft Teams", "Other"};
+    private static final String[] REMINDER_OPTIONS = {
+            "No reminder", "5 mins before", "10 mins before", "15 mins before", "30 mins before"
     };
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher =
@@ -111,6 +117,8 @@ public class ScheduleFragment extends Fragment {
     private boolean networkCallbackRegistered = false;
 
     private int selectedDay = 1;
+
+    private final List<ScheduleBlockBinding> scheduleBlocks = new ArrayList<>();
 
     @Nullable
     @Override
@@ -415,77 +423,110 @@ public class ScheduleFragment extends Fragment {
         EditText etProfessor = formView.findViewById(R.id.et_professor);
         EditText etNotes = formView.findViewById(R.id.et_notes);
 
-        Spinner spinnerClassType = formView.findViewById(R.id.spinner_class_type);
-        Spinner spinnerRoom = formView.findViewById(R.id.spinner_room_location);
-        Spinner spinnerPlatform = formView.findViewById(R.id.spinner_platform);
-        Spinner spinnerReminder = formView.findViewById(R.id.spinner_reminder);
+        MaterialAutoCompleteTextView dropdownClassType = formView.findViewById(R.id.dropdown_class_type);
+        MaterialAutoCompleteTextView dropdownPlatform = formView.findViewById(R.id.dropdown_platform);
+        MaterialAutoCompleteTextView dropdownReminder = formView.findViewById(R.id.dropdown_reminder);
+
+        EditText etRoomSearch = formView.findViewById(R.id.et_room_search);
+        ImageView btnClearRoomSearch = formView.findViewById(R.id.btn_clear_room_search);
+        RecyclerView recyclerRoomDropdown = formView.findViewById(R.id.recycler_room_dropdown);
 
         LinearLayout roomGroup = formView.findViewById(R.id.room_group);
         LinearLayout onlineGroup = formView.findViewById(R.id.online_group);
-        TextView btnPickStart = formView.findViewById(R.id.btn_pick_start);
-        TextView btnPickEnd = formView.findViewById(R.id.btn_pick_end);
+        LinearLayout scheduleContainer = formView.findViewById(R.id.schedule_container);
+        ImageView btnAddScheduleBlock = formView.findViewById(R.id.btn_add_schedule_block);
 
-        String[] classTypes = new String[]{"On-site", "Online"};
-        spinnerClassType.setAdapter(new ArrayAdapter<>(
+        TextView btnCancel = formView.findViewById(R.id.btn_sheet_cancel);
+        TextView btnSave = formView.findViewById(R.id.btn_sheet_save);
+
+        ArrayAdapter<String> classTypeAdapter = new ArrayAdapter<>(
                 requireContext(),
-                android.R.layout.simple_spinner_dropdown_item,
-                classTypes
-        ));
+                R.layout.item_dropdown_simple,
+                CLASS_TYPES
+        );
+        dropdownClassType.setAdapter(classTypeAdapter);
 
-        List<String> roomItems = new ArrayList<>();
-        roomItems.add("Select Room");
-        for (RoomEntity room : roomOptions) {
-            roomItems.add(buildRoomDisplay(room));
-        }
-        spinnerRoom.setAdapter(new ArrayAdapter<>(
+        ArrayAdapter<String> platformAdapter = new ArrayAdapter<>(
                 requireContext(),
-                android.R.layout.simple_spinner_dropdown_item,
-                roomItems
-        ));
+                R.layout.item_dropdown_simple,
+                PLATFORMS
+        );
+        dropdownPlatform.setAdapter(platformAdapter);
 
-        String[] platforms = new String[]{"Zoom", "Google Meet", "Microsoft Teams", "Other"};
-        spinnerPlatform.setAdapter(new ArrayAdapter<>(
+        ArrayAdapter<String> reminderAdapter = new ArrayAdapter<>(
                 requireContext(),
-                android.R.layout.simple_spinner_dropdown_item,
-                platforms
-        ));
+                R.layout.item_dropdown_simple,
+                REMINDER_OPTIONS
+        );
+        dropdownReminder.setAdapter(reminderAdapter);
 
-        String[] reminderOptions = new String[]{
-                "No reminder", "5 mins before", "10 mins before", "15 mins before", "30 mins before"
-        };
-        spinnerReminder.setAdapter(new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_spinner_dropdown_item,
-                reminderOptions
-        ));
+        dropdownClassType.setOnItemClickListener((parent, view, position, id) -> {
+            boolean online = position == 1;
+            roomGroup.setVisibility(online ? View.GONE : View.VISIBLE);
+            onlineGroup.setVisibility(online ? View.VISIBLE : View.GONE);
+        });
 
-        spinnerClassType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                boolean online = position == 1;
-                roomGroup.setVisibility(online ? View.GONE : View.VISIBLE);
-                onlineGroup.setVisibility(online ? View.VISIBLE : View.GONE);
-            }
+        recyclerRoomDropdown.setLayoutManager(new LinearLayoutManager(requireContext()));
+        RoomDropdownAdapter roomDropdownAdapter = new RoomDropdownAdapter(room -> {
+            etRoomSearch.setText(buildRoomDisplay(room));
+            etRoomSearch.setTag(room);
+            recyclerRoomDropdown.setVisibility(View.GONE);
+            btnClearRoomSearch.setVisibility(View.VISIBLE);
+        });
+        recyclerRoomDropdown.setAdapter(roomDropdownAdapter);
+        roomDropdownAdapter.submitList(new ArrayList<>(roomOptions));
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+        etRoomSearch.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && !roomOptions.isEmpty()) {
+                recyclerRoomDropdown.setVisibility(View.VISIBLE);
             }
         });
 
-        int[] selectedDayHolder = new int[]{selectedDay};
-        setupFormDaySelection(formView, selectedDayHolder, selectedDay);
+        etRoomSearch.setOnClickListener(v -> {
+            if (!roomOptions.isEmpty()) {
+                recyclerRoomDropdown.setVisibility(View.VISIBLE);
+            }
+        });
 
-        int[] startMinutesHolder = new int[]{-1};
-        int[] endMinutesHolder = new int[]{-1};
-        btnPickStart.setOnClickListener(v -> showTimePicker(startMinutesHolder, btnPickStart));
-        btnPickEnd.setOnClickListener(v -> showTimePicker(endMinutesHolder, btnPickEnd));
+        etRoomSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String query = s != null ? s.toString().trim().toLowerCase(Locale.ROOT) : "";
+                btnClearRoomSearch.setVisibility(query.isEmpty() ? View.GONE : View.VISIBLE);
+
+                List<RoomEntity> filtered = new ArrayList<>();
+                for (RoomEntity room : roomOptions) {
+                    String name = room.name != null ? room.name.toLowerCase(Locale.ROOT) : "";
+                    String code = room.code != null ? room.code.toLowerCase(Locale.ROOT) : "";
+                    if (query.isEmpty() || name.contains(query) || code.contains(query)) {
+                        filtered.add(room);
+                    }
+                }
+
+                roomDropdownAdapter.submitList(filtered);
+                recyclerRoomDropdown.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+
+        btnClearRoomSearch.setOnClickListener(v -> {
+            etRoomSearch.setText("");
+            etRoomSearch.setTag(null);
+            btnClearRoomSearch.setVisibility(View.GONE);
+            roomDropdownAdapter.submitList(new ArrayList<>(roomOptions));
+            recyclerRoomDropdown.setVisibility(View.GONE);
+        });
 
         int[] selectedColorIndex = new int[]{0};
         setupColorPicker(formView, selectedColorIndex, 0);
 
-        if (existing == null) {
-            spinnerReminder.setSelection(reminderToPosition(sessionManager.getDefaultReminderMinutes()));
-        }
+        scheduleBlocks.clear();
+        scheduleContainer.removeAllViews();
 
         if (existing != null) {
             etSubjectName.setText(existing.title != null ? existing.title : "");
@@ -493,17 +534,34 @@ public class ScheduleFragment extends Fragment {
             etProfessor.setText(existing.instructor != null ? existing.instructor : "");
             etNotes.setText(existing.notes != null ? existing.notes : "");
 
-            selectedDayHolder[0] = existing.dayOfWeek;
-            setupFormDaySelection(formView, selectedDayHolder, existing.dayOfWeek);
+            dropdownClassType.setText(existing.isOnline == 1 ? "Online" : "On-site", false);
 
-            startMinutesHolder[0] = existing.startMinutes;
-            endMinutesHolder[0] = existing.endMinutes;
+            if (existing.isOnline == 1) {
+                onlineGroup.setVisibility(View.VISIBLE);
+                roomGroup.setVisibility(View.GONE);
+                dropdownPlatform.setText(
+                        existing.onlinePlatform != null ? existing.onlinePlatform : PLATFORMS[0],
+                        false
+                );
+            } else {
+                onlineGroup.setVisibility(View.GONE);
+                roomGroup.setVisibility(View.VISIBLE);
+                if (existing.roomId != null) {
+                    for (RoomEntity room : roomOptions) {
+                        if (room.id == existing.roomId) {
+                            etRoomSearch.setText(buildRoomDisplay(room));
+                            etRoomSearch.setTag(room);
+                            btnClearRoomSearch.setVisibility(View.VISIBLE);
+                            break;
+                        }
+                    }
+                }
+            }
 
-            btnPickStart.setText(formatMinutes(existing.startMinutes));
-            btnPickStart.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
-
-            btnPickEnd.setText(formatMinutes(existing.endMinutes));
-            btnPickEnd.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
+            dropdownReminder.setText(
+                    REMINDER_OPTIONS[reminderToPosition(existing.reminderMinutes)],
+                    false
+            );
 
             if (existing.colorHex != null) {
                 for (int i = 0; i < getScheduleColors().length; i++) {
@@ -513,42 +571,34 @@ public class ScheduleFragment extends Fragment {
                     }
                 }
             }
-
             setupColorPicker(formView, selectedColorIndex, selectedColorIndex[0]);
 
-            int typeIndex = existing.isOnline == 1 ? 1 : 0;
-            spinnerClassType.setSelection(typeIndex);
+            addScheduleBlock(scheduleContainer, existing.dayOfWeek, existing.startMinutes, existing.endMinutes, false);
+        } else {
+            dropdownClassType.setText(CLASS_TYPES[0], false);
+            dropdownReminder.setText(
+                    REMINDER_OPTIONS[reminderToPosition(sessionManager.getDefaultReminderMinutes())],
+                    false
+            );
+            roomGroup.setVisibility(View.VISIBLE);
+            onlineGroup.setVisibility(View.GONE);
 
-            if (existing.isOnline == 1) {
-                int platformIndex = 0;
-                if (existing.onlinePlatform != null) {
-                    for (int i = 0; i < platforms.length; i++) {
-                        if (platforms[i].equalsIgnoreCase(existing.onlinePlatform)) {
-                            platformIndex = i;
-                            break;
-                        }
-                    }
-                }
-                spinnerPlatform.setSelection(platformIndex);
-            } else if (existing.roomId != null) {
-                int roomSelection = 0;
-                for (int i = 0; i < roomOptions.size(); i++) {
-                    if (roomOptions.get(i).id == existing.roomId) {
-                        roomSelection = i + 1;
-                        break;
-                    }
-                }
-                spinnerRoom.setSelection(roomSelection);
-            }
-
-            spinnerReminder.setSelection(reminderToPosition(existing.reminderMinutes));
+            addScheduleBlock(scheduleContainer, selectedDay, -1, -1, false);
         }
 
-        BottomSheetDialog dialog = new BottomSheetDialog(requireContext(), R.style.ThemeOverlay_FreshGuide_BottomSheet);
-        dialog.setContentView(formView);
+        btnAddScheduleBlock.setOnClickListener(v -> addScheduleBlock(
+                scheduleContainer,
+                getDefaultDay(),
+                -1,
+                -1,
+                true
+        ));
 
-        TextView btnCancel = formView.findViewById(R.id.btn_sheet_cancel);
-        TextView btnSave = formView.findViewById(R.id.btn_sheet_save);
+        BottomSheetDialog dialog = new BottomSheetDialog(
+                requireContext(),
+                R.style.ThemeOverlay_FreshGuide_BottomSheet
+        );
+        dialog.setContentView(formView);
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
 
@@ -560,35 +610,41 @@ public class ScheduleFragment extends Fragment {
                     return;
                 }
 
-                if (startMinutesHolder[0] < 0 || endMinutesHolder[0] < 0) {
-                    Toast.makeText(requireContext(), "Please select start and end time", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+                boolean online = "Online".contentEquals(dropdownClassType.getText());
 
-                if (endMinutesHolder[0] <= startMinutesHolder[0]) {
-                    Toast.makeText(requireContext(), "End time must be later than start time", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                boolean online = spinnerClassType.getSelectedItemPosition() == 1;
                 Integer roomId = null;
                 String platform = null;
 
                 if (online) {
-                    platform = spinnerPlatform.getSelectedItem() != null
-                            ? String.valueOf(spinnerPlatform.getSelectedItem())
+                    platform = dropdownPlatform.getText() != null
+                            ? dropdownPlatform.getText().toString().trim()
                             : null;
+
+                    if (platform == null || platform.isEmpty()) {
+                        Toast.makeText(requireContext(), "Please choose an online platform", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                 } else {
-                    int roomPosition = spinnerRoom.getSelectedItemPosition();
-                    if (roomPosition <= 0 || roomOptions.isEmpty() || roomPosition - 1 >= roomOptions.size()) {
+                    Object selectedRoom = etRoomSearch.getTag();
+                    if (!(selectedRoom instanceof RoomEntity)) {
                         Toast.makeText(requireContext(), "Please choose a room location", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    roomId = roomOptions.get(roomPosition - 1).id;
+                    roomId = ((RoomEntity) selectedRoom).id;
                 }
 
-                long now = System.currentTimeMillis();
-                int reminderMinutes = positionToReminder(spinnerReminder.getSelectedItemPosition());
+                int reminderPosition = 0;
+                String reminderValue = dropdownReminder.getText() != null
+                        ? dropdownReminder.getText().toString()
+                        : REMINDER_OPTIONS[0];
+                for (int i = 0; i < REMINDER_OPTIONS.length; i++) {
+                    if (REMINDER_OPTIONS[i].equalsIgnoreCase(reminderValue)) {
+                        reminderPosition = i;
+                        break;
+                    }
+                }
+
+                int reminderMinutes = positionToReminder(reminderPosition);
                 if (!sessionManager.isScheduleNotificationsEnabled()) {
                     reminderMinutes = 0;
                 }
@@ -598,53 +654,90 @@ public class ScheduleFragment extends Fragment {
                     colorIndex = 0;
                 }
 
-                ScheduleEntryEntity entry = new ScheduleEntryEntity(
-                        title,
-                        normalize(etSubjectCode.getText().toString()),
-                        normalize(etProfessor.getText().toString()),
-                        normalize(etNotes.getText().toString()),
-                        getScheduleColors()[colorIndex],
-                        selectedDayHolder[0],
-                        startMinutesHolder[0],
-                        endMinutesHolder[0],
-                        online ? 1 : 0,
-                        roomId,
-                        platform,
-                        reminderMinutes,
-                        existing != null ? existing.createdAt : now,
-                        now
-                );
-
-                if (existing != null) {
-                    entry.id = existing.id;
-                    entry.remoteId = existing.remoteId;
-                    entry.clientUuid = existing.clientUuid;
-                    entry.ownerStudentId = existing.ownerStudentId;
-                    entry.syncState = existing.syncState;
-                    entry.pendingDelete = existing.pendingDelete;
+                if (scheduleBlocks.isEmpty()) {
+                    Toast.makeText(requireContext(), "Please add a schedule block", Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
-                maybeRequestNotificationPermission(entry.reminderMinutes);
+                for (ScheduleBlockBinding block : scheduleBlocks) {
+                    if (block.selectedDay < 1 || block.selectedDay > 6) {
+                        Toast.makeText(requireContext(), "Please choose a schedule day", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (block.startMinutes < 0 || block.endMinutes < 0) {
+                        Toast.makeText(requireContext(), "Please select start and end time", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (block.endMinutes <= block.startMinutes) {
+                        Toast.makeText(requireContext(), "End time must be later than start time", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
 
-                viewModel.saveSchedule(entry, new ScheduleViewModel.OperationCallback() {
-                    @Override
-                    public void onSuccess(ScheduleEntryEntity savedEntry) {
-                        if (!isAdded() || getActivity() == null) return;
-                        getActivity().runOnUiThread(() -> {
-                            dialog.dismiss();
-                            Toast.makeText(requireContext(), "Schedule saved", Toast.LENGTH_SHORT).show();
-                        });
+                long now = System.currentTimeMillis();
+                int totalToSave = scheduleBlocks.size();
+                int[] savedCount = {0};
+                boolean[] errorShown = {false};
+
+                for (int i = 0; i < scheduleBlocks.size(); i++) {
+                    ScheduleBlockBinding block = scheduleBlocks.get(i);
+
+                    ScheduleEntryEntity entry = new ScheduleEntryEntity(
+                            title,
+                            normalize(etSubjectCode.getText().toString()),
+                            normalize(etProfessor.getText().toString()),
+                            normalize(etNotes.getText().toString()),
+                            getScheduleColors()[colorIndex],
+                            block.selectedDay,
+                            block.startMinutes,
+                            block.endMinutes,
+                            online ? 1 : 0,
+                            roomId,
+                            platform,
+                            reminderMinutes,
+                            (existing != null && i == 0) ? existing.createdAt : now,
+                            now
+                    );
+
+                    if (existing != null && i == 0) {
+                        entry.id = existing.id;
+                        entry.remoteId = existing.remoteId;
+                        entry.clientUuid = existing.clientUuid;
+                        entry.ownerStudentId = existing.ownerStudentId;
+                        entry.syncState = existing.syncState;
+                        entry.pendingDelete = existing.pendingDelete;
                     }
 
-                    @Override
-                    public void onError(String message) {
-                        Log.e(TAG, "saveSchedule failed: " + message);
-                        if (!isAdded() || getActivity() == null) return;
-                        getActivity().runOnUiThread(() ->
-                                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                        );
-                    }
-                });
+                    maybeRequestNotificationPermission(entry.reminderMinutes);
+
+                    viewModel.saveSchedule(entry, new ScheduleViewModel.OperationCallback() {
+                        @Override
+                        public void onSuccess(ScheduleEntryEntity savedEntry) {
+                            if (!isAdded() || getActivity() == null) return;
+                            getActivity().runOnUiThread(() -> {
+                                savedCount[0]++;
+                                if (savedCount[0] == totalToSave && !errorShown[0]) {
+                                    dialog.dismiss();
+                                    Toast.makeText(
+                                            requireContext(),
+                                            totalToSave > 1 ? "Schedules saved" : "Schedule saved",
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            Log.e(TAG, "saveSchedule failed: " + message);
+                            if (!isAdded() || getActivity() == null || errorShown[0]) return;
+                            errorShown[0] = true;
+                            getActivity().runOnUiThread(() ->
+                                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                            );
+                        }
+                    });
+                }
             } catch (Exception e) {
                 Log.e(TAG, "Create/Save schedule flow crashed", e);
                 if (isAdded()) {
@@ -666,6 +759,150 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
+        dialog.show();
+    }
+
+    private void addScheduleBlock(LinearLayout container,
+                                  int initialDay,
+                                  int initialStartMinutes,
+                                  int initialEndMinutes,
+                                  boolean removable) {
+        View blockView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.item_schedule_block, container, false);
+
+        ScheduleBlockBinding binding = new ScheduleBlockBinding();
+        binding.root = blockView;
+        binding.label = blockView.findViewById(R.id.tv_schedule_label);
+        binding.delete = blockView.findViewById(R.id.btn_delete_schedule);
+        binding.dayContainer = blockView.findViewById(R.id.day_container);
+        binding.btnStart = blockView.findViewById(R.id.btn_start);
+        binding.btnEnd = blockView.findViewById(R.id.btn_end);
+        binding.selectedDay = initialDay;
+        binding.startMinutes = initialStartMinutes;
+        binding.endMinutes = initialEndMinutes;
+
+        setupDayChips(binding);
+
+        if (initialStartMinutes >= 0) {
+            binding.btnStart.setText(formatMinutes(initialStartMinutes));
+            binding.btnStart.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
+        }
+
+        if (initialEndMinutes >= 0) {
+            binding.btnEnd.setText(formatMinutes(initialEndMinutes));
+            binding.btnEnd.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
+        }
+
+        binding.btnStart.setOnClickListener(v -> showTimePickerForBlock(binding, true));
+        binding.btnEnd.setOnClickListener(v -> showTimePickerForBlock(binding, false));
+
+        binding.delete.setVisibility(removable ? View.VISIBLE : View.GONE);
+        binding.delete.setOnClickListener(v -> {
+            container.removeView(binding.root);
+            scheduleBlocks.remove(binding);
+            refreshScheduleLabels();
+        });
+
+        scheduleBlocks.add(binding);
+        container.addView(blockView);
+        refreshScheduleLabels();
+    }
+
+    private void refreshScheduleLabels() {
+        for (int i = 0; i < scheduleBlocks.size(); i++) {
+            scheduleBlocks.get(i).label.setText("Schedule " + (i + 1));
+            scheduleBlocks.get(i).delete.setVisibility(i == 0 ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    private void setupDayChips(ScheduleBlockBinding binding) {
+        binding.dayContainer.removeAllViews();
+
+        Typeface interMedium = ResourcesCompat.getFont(requireContext(), R.font.inter_medium);
+
+        for (int i = 0; i < DAY_LABELS.length; i++) {
+            int dayValue = i + 1;
+
+            FrameLayout slot = new FrameLayout(requireContext());
+            LinearLayout.LayoutParams slotParams = new LinearLayout.LayoutParams(0, dpToPx(40));
+            slotParams.weight = 1f;
+            slot.setLayoutParams(slotParams);
+
+            TextView chip = new TextView(requireContext());
+            FrameLayout.LayoutParams chipParams = new FrameLayout.LayoutParams(dpToPx(44), dpToPx(32));
+            chipParams.gravity = Gravity.CENTER;
+            chip.setLayoutParams(chipParams);
+            chip.setText(DAY_LABELS[i]);
+            chip.setGravity(Gravity.CENTER);
+            chip.setTextSize(12);
+            chip.setTypeface(interMedium);
+
+            boolean selected = dayValue == binding.selectedDay;
+            chip.setBackgroundResource(selected
+                    ? R.drawable.bg_form_chip_selected
+                    : R.drawable.bg_form_chip_unselected);
+            chip.setTextColor(ContextCompat.getColor(
+                    requireContext(),
+                    selected ? R.color.green_dark : R.color.green_primary
+            ));
+            chip.setScaleX(selected ? 1.05f : 1f);
+            chip.setScaleY(selected ? 1.05f : 1f);
+
+            chip.setOnClickListener(v -> {
+                binding.selectedDay = dayValue;
+                updateBlockDaySelection(binding);
+            });
+
+            slot.addView(chip);
+            binding.dayContainer.addView(slot);
+            binding.dayChips.add(chip);
+        }
+    }
+
+    private void updateBlockDaySelection(ScheduleBlockBinding binding) {
+        for (int i = 0; i < binding.dayChips.size(); i++) {
+            TextView chip = binding.dayChips.get(i);
+            boolean selected = (i + 1) == binding.selectedDay;
+
+            chip.setBackgroundResource(selected
+                    ? R.drawable.bg_form_chip_selected
+                    : R.drawable.bg_form_chip_unselected);
+            chip.setTextColor(ContextCompat.getColor(
+                    requireContext(),
+                    selected ? R.color.green_dark : R.color.green_primary
+            ));
+
+            chip.animate()
+                    .scaleX(selected ? 1.05f : 1f)
+                    .scaleY(selected ? 1.05f : 1f)
+                    .setDuration(120)
+                    .start();
+        }
+    }
+
+    private void showTimePickerForBlock(ScheduleBlockBinding binding, boolean isStart) {
+        int value = isStart ? binding.startMinutes : binding.endMinutes;
+        int initialHour = value >= 0 ? value / 60 : 9;
+        int initialMinute = value >= 0 ? value % 60 : 0;
+
+        android.app.TimePickerDialog dialog = new android.app.TimePickerDialog(
+                requireContext(),
+                (TimePicker view, int hourOfDay, int minute) -> {
+                    int minutes = (hourOfDay * 60) + minute;
+                    if (isStart) {
+                        binding.startMinutes = minutes;
+                        binding.btnStart.setText(formatMinutes(minutes));
+                        binding.btnStart.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
+                    } else {
+                        binding.endMinutes = minutes;
+                        binding.btnEnd.setText(formatMinutes(minutes));
+                        binding.btnEnd.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
+                    }
+                },
+                initialHour,
+                initialMinute,
+                false
+        );
         dialog.show();
     }
 
@@ -760,54 +997,6 @@ public class ScheduleFragment extends Fragment {
         detailDialog.show();
     }
 
-    private void showTimePicker(int[] holder, TextView target) {
-        int initialHour = holder[0] >= 0 ? holder[0] / 60 : 9;
-        int initialMinute = holder[0] >= 0 ? holder[0] % 60 : 0;
-
-        android.app.TimePickerDialog dialog = new android.app.TimePickerDialog(
-                requireContext(),
-                (TimePicker view, int hourOfDay, int minute) -> {
-                    holder[0] = (hourOfDay * 60) + minute;
-                    target.setText(formatMinutes(holder[0]));
-                    target.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
-                },
-                initialHour,
-                initialMinute,
-                false
-        );
-        dialog.show();
-    }
-
-    private void setupFormDaySelection(View formView, int[] selectedDayHolder, int selectedDayValue) {
-        for (int i = 0; i < FORM_DAY_VIEW_IDS.length; i++) {
-            TextView tv = formView.findViewById(FORM_DAY_VIEW_IDS[i]);
-            int day = i + 1;
-            tv.setOnClickListener(v -> {
-                selectedDayHolder[0] = day;
-                applyFormDayUi(formView, selectedDayHolder[0]);
-            });
-        }
-
-        selectedDayHolder[0] = selectedDayValue;
-        applyFormDayUi(formView, selectedDayHolder[0]);
-    }
-
-    private void applyFormDayUi(View formView, int selectedDayValue) {
-        for (int i = 0; i < FORM_DAY_VIEW_IDS.length; i++) {
-            TextView tv = formView.findViewById(FORM_DAY_VIEW_IDS[i]);
-            boolean selected = (i + 1) == selectedDayValue;
-
-            tv.setBackgroundResource(selected
-                    ? R.drawable.bg_form_chip_selected
-                    : R.drawable.bg_form_chip_unselected);
-
-            tv.setTextColor(ContextCompat.getColor(
-                    requireContext(),
-                    selected ? R.color.green_dark : R.color.green_primary
-            ));
-        }
-    }
-
     private void setupColorPicker(View formView, int[] selectedColorIndex, int currentSelected) {
         int[] colorViewIds = {
                 R.id.color_0,
@@ -843,12 +1032,20 @@ public class ScheduleFragment extends Fragment {
 
         for (int i = 0; i < colorViewIds.length; i++) {
             View colorView = formView.findViewById(colorViewIds[i]);
+
             GradientDrawable drawable = new GradientDrawable();
             drawable.setShape(GradientDrawable.OVAL);
             drawable.setColor(Color.parseColor(getScheduleColors()[i]));
-            drawable.setStroke(i == selectedIndex ? 3 : 1,
-                    Color.parseColor(i == selectedIndex ? "#5A5A5A" : "#D0D0D0"));
+            drawable.setStroke(1, Color.parseColor(i == selectedIndex ? "#BDBDBD" : "#D0D0D0"));
             colorView.setBackground(drawable);
+
+            float targetScale = i == selectedIndex ? 1.18f : 1f;
+            colorView.animate()
+                    .scaleX(targetScale)
+                    .scaleY(targetScale)
+                    .setDuration(180)
+                    .setInterpolator(new OvershootInterpolator(0.7f))
+                    .start();
         }
     }
 
@@ -964,5 +1161,25 @@ public class ScheduleFragment extends Fragment {
         } else {
             return new String[]{"#F2F2F2", "#F8D1E2", "#D7E8FF", "#EFD8F7", "#D7F1D5", "#EDF58F"};
         }
+    }
+
+    private int dpToPx(int dp) {
+        float density = requireContext().getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
+    }
+
+    private static class ScheduleBlockBinding {
+        View root;
+        TextView label;
+        ImageView delete;
+        LinearLayout dayContainer;
+        TextView btnStart;
+        TextView btnEnd;
+
+        final List<TextView> dayChips = new ArrayList<>();
+
+        int selectedDay = 1;
+        int startMinutes = -1;
+        int endMinutes = -1;
     }
 }
