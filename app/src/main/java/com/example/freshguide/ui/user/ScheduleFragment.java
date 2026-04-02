@@ -4,8 +4,10 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.os.Build;
@@ -24,8 +26,8 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -56,6 +58,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -489,7 +492,8 @@ public class ScheduleFragment extends Fragment {
 
         etRoomSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -510,7 +514,8 @@ public class ScheduleFragment extends Fragment {
             }
 
             @Override
-            public void afterTextChanged(Editable s) { }
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         btnClearRoomSearch.setOnClickListener(v -> {
@@ -885,29 +890,158 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void showTimePickerForBlock(ScheduleBlockBinding binding, boolean isStart) {
+        if (!isAdded()) return;
+
         int value = isStart ? binding.startMinutes : binding.endMinutes;
-        int initialHour = value >= 0 ? value / 60 : 9;
+        int initialHour24 = value >= 0 ? value / 60 : 9;
         int initialMinute = value >= 0 ? value % 60 : 0;
 
-        android.app.TimePickerDialog dialog = new android.app.TimePickerDialog(
+        int initialAmPm = initialHour24 >= 12 ? 1 : 0;
+        int initialHour12 = initialHour24 % 12;
+        if (initialHour12 == 0) initialHour12 = 12;
+
+        View pickerView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_time_picker_custom, null, false);
+
+        NumberPicker pickerHour = pickerView.findViewById(R.id.picker_hour);
+        NumberPicker pickerMinute = pickerView.findViewById(R.id.picker_minute);
+        NumberPicker pickerAmPm = pickerView.findViewById(R.id.picker_ampm);
+        TextView btnConfirm = pickerView.findViewById(R.id.btn_time_confirm);
+
+        String[] hours = {"01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"};
+        String[] minutes = new String[60];
+        for (int i = 0; i < 60; i++) {
+            minutes[i] = String.format(Locale.getDefault(), "%02d", i);
+        }
+        String[] ampm = {"AM", "PM"};
+
+        pickerHour.setMinValue(0);
+        pickerHour.setMaxValue(hours.length - 1);
+        pickerHour.setDisplayedValues(hours);
+        pickerHour.setWrapSelectorWheel(true);
+        pickerHour.setValue(initialHour12 - 1);
+
+        pickerMinute.setMinValue(0);
+        pickerMinute.setMaxValue(minutes.length - 1);
+        pickerMinute.setDisplayedValues(minutes);
+        pickerMinute.setWrapSelectorWheel(true);
+        pickerMinute.setValue(initialMinute);
+
+        pickerAmPm.setMinValue(0);
+        pickerAmPm.setMaxValue(ampm.length - 1);
+        pickerAmPm.setDisplayedValues(ampm);
+        pickerAmPm.setWrapSelectorWheel(false);
+        pickerAmPm.setValue(initialAmPm);
+
+        styleNumberPicker(pickerHour);
+        styleNumberPicker(pickerMinute);
+        styleNumberPicker(pickerAmPm);
+
+        BottomSheetDialog dialog = new BottomSheetDialog(
                 requireContext(),
-                (TimePicker view, int hourOfDay, int minute) -> {
-                    int minutes = (hourOfDay * 60) + minute;
-                    if (isStart) {
-                        binding.startMinutes = minutes;
-                        binding.btnStart.setText(formatMinutes(minutes));
-                        binding.btnStart.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
-                    } else {
-                        binding.endMinutes = minutes;
-                        binding.btnEnd.setText(formatMinutes(minutes));
-                        binding.btnEnd.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
-                    }
-                },
-                initialHour,
-                initialMinute,
-                false
+                R.style.CustomBottomSheetDialog
         );
+
+        dialog.setContentView(pickerView);
+        dialog.setCancelable(true);
+
+        dialog.setOnShowListener(d -> {
+            FrameLayout bottomSheet = dialog.findViewById(
+                    com.google.android.material.R.id.design_bottom_sheet
+            );
+            if (bottomSheet != null) {
+                bottomSheet.setBackgroundColor(Color.TRANSPARENT);
+                BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(bottomSheet);
+                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                behavior.setSkipCollapsed(true);
+                behavior.setDraggable(true);
+            }
+        });
+
+        btnConfirm.setOnClickListener(v -> {
+            int selectedHour12 = pickerHour.getValue() + 1;
+            int selectedMinute = pickerMinute.getValue();
+            int selectedAmPm = pickerAmPm.getValue();
+
+            int hour24;
+            if (selectedAmPm == 0) {
+                hour24 = (selectedHour12 == 12) ? 0 : selectedHour12;
+            } else {
+                hour24 = (selectedHour12 == 12) ? 12 : selectedHour12 + 12;
+            }
+
+            int totalMinutes = hour24 * 60 + selectedMinute;
+
+            if (isStart) {
+                binding.startMinutes = totalMinutes;
+                binding.btnStart.setText(formatMinutes(totalMinutes));
+                binding.btnStart.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
+            } else {
+                binding.endMinutes = totalMinutes;
+                binding.btnEnd.setText(formatMinutes(totalMinutes));
+                binding.btnEnd.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
+            }
+
+            dialog.dismiss();
+        });
+
         dialog.show();
+    }
+
+    private void styleNumberPicker(NumberPicker picker) {
+        int green = ContextCompat.getColor(requireContext(), R.color.green_primary);
+
+        setNumberPickerDividerColor(picker, green);
+        setNumberPickerTextColor(picker, green);
+
+        for (int i = 0; i < picker.getChildCount(); i++) {
+            View child = picker.getChildAt(i);
+            if (child instanceof EditText) {
+                EditText editText = (EditText) child;
+                editText.setTextColor(green);
+                editText.setTextSize(24f);
+                editText.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.inter_medium));
+                editText.setFocusable(false);
+                editText.setClickable(false);
+            }
+        }
+    }
+
+    private void setNumberPickerTextColor(NumberPicker numberPicker, int color) {
+        for (int i = 0; i < numberPicker.getChildCount(); i++) {
+            View child = numberPicker.getChildAt(i);
+            if (child instanceof EditText) {
+                try {
+                    EditText editText = (EditText) child;
+                    editText.setTextColor(color);
+                    editText.setTextSize(24f);
+                    editText.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.inter_medium));
+
+                    Field selectorWheelPaintField = NumberPicker.class.getDeclaredField("mSelectorWheelPaint");
+                    selectorWheelPaintField.setAccessible(true);
+                    Paint paint = (Paint) selectorWheelPaintField.get(numberPicker);
+                    paint.setColor(color);
+
+                    numberPicker.invalidate();
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    private void setNumberPickerDividerColor(NumberPicker numberPicker, int color) {
+        try {
+            Field dividerField = NumberPicker.class.getDeclaredField("mSelectionDivider");
+            dividerField.setAccessible(true);
+
+            ShapeDrawable dividerDrawable = new ShapeDrawable();
+            dividerDrawable.getPaint().setColor(color);
+            dividerDrawable.setIntrinsicHeight(2);
+
+            dividerField.set(numberPicker, dividerDrawable);
+            numberPicker.invalidate();
+        } catch (Exception ignored) {
+        }
     }
 
     private void showScheduleDetailDialog(ScheduleEntryEntity entry) {
