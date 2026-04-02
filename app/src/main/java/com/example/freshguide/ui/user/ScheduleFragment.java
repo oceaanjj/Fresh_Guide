@@ -42,6 +42,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 import com.example.freshguide.R;
 import com.example.freshguide.model.entity.RoomEntity;
@@ -891,49 +892,63 @@ public class ScheduleFragment extends Fragment {
     private void showTimePickerForBlock(ScheduleBlockBinding binding, boolean isStart) {
         if (!isAdded()) return;
 
+        // ── Validation boundary ───────────────────────────────────────────────────
+        // End-time must be strictly AFTER startMinutes.
+        // minTotalMinutes = -1 means no restriction (used for start-time picker).
+        final int minTotalMinutes = (!isStart && binding.startMinutes >= 0)
+                ? binding.startMinutes
+                : -1;
+
+        // ── Determine initial wheel position ──────────────────────────────────────
         int savedValue = isStart ? binding.startMinutes : binding.endMinutes;
 
         Calendar now = Calendar.getInstance();
-        int currentHour24 = now.get(Calendar.HOUR_OF_DAY);
-        int currentMinute = now.get(Calendar.MINUTE);
+        int nowTotal  = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
 
-        // Use saved time if already selected, otherwise use current time
-        int initialTotalMinutes = savedValue >= 0
-                ? savedValue
-                : (currentHour24 * 60 + currentMinute);
+        int initialTotalMinutes;
+        if (savedValue >= 0) {
+            // Restore a previously confirmed time (already valid by construction).
+            initialTotalMinutes = savedValue;
+        } else if (minTotalMinutes >= 0 && nowTotal <= minTotalMinutes) {
+            // Current time is at or before start → open at the first valid minute.
+            initialTotalMinutes = Math.min(minTotalMinutes + 1, 24 * 60 - 1);
+        } else {
+            // No prior selection → default to current time.
+            initialTotalMinutes = nowTotal;
+        }
 
         int initialHour24 = initialTotalMinutes / 60;
         int initialMinute = initialTotalMinutes % 60;
-
-        int initialAmPm = initialHour24 >= 12 ? 1 : 0;
+        int initialAmPm   = initialHour24 >= 12 ? 1 : 0;
         int initialHour12 = initialHour24 % 12;
         if (initialHour12 == 0) initialHour12 = 12;
 
+        // ── Inflate ───────────────────────────────────────────────────────────────
         View pickerView = LayoutInflater.from(requireContext())
                 .inflate(R.layout.dialog_time_picker_custom, null, false);
 
-        RecyclerView rvHour = pickerView.findViewById(R.id.rv_hour);
+        RecyclerView rvHour   = pickerView.findViewById(R.id.rv_hour);
         RecyclerView rvMinute = pickerView.findViewById(R.id.rv_minute);
-        TextView btnAm = pickerView.findViewById(R.id.btn_am);
-        TextView btnPm = pickerView.findViewById(R.id.btn_pm);
-        TextView btnConfirm = pickerView.findViewById(R.id.btn_time_confirm);
+        TextView btnAm        = pickerView.findViewById(R.id.btn_am);
+        TextView btnPm        = pickerView.findViewById(R.id.btn_pm);
+        TextView btnConfirm   = pickerView.findViewById(R.id.btn_time_confirm);
 
         final int[] selectedAmPm = {initialAmPm};
 
+        // ── Hour / minute item lists ───────────────────────────────────────────────
         List<String> hourItems = Arrays.asList(
                 "01", "02", "03", "04", "05", "06",
-                "07", "08", "09", "10", "11", "12"
-        );
+                "07", "08", "09", "10", "11", "12");
 
         List<String> minuteItems = new ArrayList<>();
         for (int i = 0; i < 60; i++) {
             minuteItems.add(String.format(Locale.getDefault(), "%02d", i));
         }
 
-        TimeWheelAdapter hourAdapter = new TimeWheelAdapter(hourItems);
+        TimeWheelAdapter hourAdapter   = new TimeWheelAdapter(hourItems);
         TimeWheelAdapter minuteAdapter = new TimeWheelAdapter(minuteItems);
 
-        LinearSnapHelper hourSnapHelper = setupWheelRecycler(rvHour, hourAdapter, initialHour12 - 1);
+        LinearSnapHelper hourSnapHelper   = setupWheelRecycler(rvHour,   hourAdapter,   initialHour12 - 1);
         LinearSnapHelper minuteSnapHelper = setupWheelRecycler(rvMinute, minuteAdapter, initialMinute);
 
         updateAmPmButtons(btnAm, btnPm, selectedAmPm[0]);
@@ -942,17 +957,67 @@ public class ScheduleFragment extends Fragment {
             selectedAmPm[0] = 0;
             updateAmPmButtons(btnAm, btnPm, selectedAmPm[0]);
         });
-
         btnPm.setOnClickListener(v -> {
             selectedAmPm[0] = 1;
             updateAmPmButtons(btnAm, btnPm, selectedAmPm[0]);
         });
 
+        // ── End-time scroll correction ────────────────────────────────────────────
+        // Track the latest snapped index for each wheel so we can evaluate the
+        // combined total whenever either wheel settles.
+        final int[] snappedHourIdx   = {initialHour12 - 1};
+        final int[] snappedMinuteIdx = {initialMinute};
+
+        if (minTotalMinutes >= 0) {
+            RecyclerView.OnScrollListener correctionListener = new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
+                    if (newState != RecyclerView.SCROLL_STATE_IDLE) return;
+                    rv.post(() -> {
+                        // Refresh both tracked positions after either wheel stops.
+                        snappedHourIdx[0]   = getSnappedAdapterPosition(rvHour,   hourSnapHelper);
+                        snappedMinuteIdx[0] = getSnappedAdapterPosition(rvMinute, minuteSnapHelper);
+
+                        int hour12   = snappedHourIdx[0] + 1;
+                        int hour24   = (selectedAmPm[0] == 0)
+                                ? (hour12 == 12 ? 0  : hour12)
+                                : (hour12 == 12 ? 12 : hour12 + 12);
+                        int combined = hour24 * 60 + snappedMinuteIdx[0];
+
+                        if (combined > minTotalMinutes) return; // already valid
+
+                        // The selected hour is the same as the boundary hour →
+                        // bump the minute wheel to the first valid minute.
+                        int minHour24 = minTotalMinutes / 60;
+                        if (hour24 == minHour24) {
+                            int correctedMinute = (minTotalMinutes % 60) + 1;
+                            if (correctedMinute < 60) {
+                                LinearLayoutManager lm =
+                                        (LinearLayoutManager) rvMinute.getLayoutManager();
+                                if (lm != null) {
+                                    lm.scrollToPositionWithOffset(correctedMinute, 0);
+                                    minuteAdapter.setSelectedPosition(correctedMinute);
+                                    snappedMinuteIdx[0] = correctedMinute;
+                                }
+                            }
+                            // correctedMinute >= 60 means the entire hour is invalid;
+                            // the Confirm guard below will catch it.
+                        }
+                        // hour24 < minHour24 → hour itself is invalid;
+                        // Confirm guard handles this with a clear error message.
+                    });
+                }
+            };
+
+            rvHour.addOnScrollListener(correctionListener);
+            rvMinute.addOnScrollListener(correctionListener);
+        }
+
+        // ── Dialog setup ──────────────────────────────────────────────────────────
         BottomSheetDialog dialog = new BottomSheetDialog(
                 requireContext(),
                 R.style.CustomBottomSheetDialog
         );
-
         dialog.setContentView(pickerView);
         dialog.setCancelable(true);
 
@@ -960,39 +1025,57 @@ public class ScheduleFragment extends Fragment {
             FrameLayout bottomSheet = dialog.findViewById(
                     com.google.android.material.R.id.design_bottom_sheet
             );
-            if (bottomSheet != null) {
-                bottomSheet.setBackgroundColor(Color.TRANSPARENT);
-                BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(bottomSheet);
-                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                behavior.setSkipCollapsed(true);
-                behavior.setDraggable(true);
-            }
+            if (bottomSheet == null) return;
+
+            bottomSheet.setBackgroundColor(Color.TRANSPARENT);
+
+            int margin = dpToPx(10);
+            CoordinatorLayout.LayoutParams lp =
+                    (CoordinatorLayout.LayoutParams) bottomSheet.getLayoutParams();
+            lp.setMargins(margin, 0, margin, margin);
+            bottomSheet.setLayoutParams(lp);
+
+            BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(bottomSheet);
+            behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            behavior.setSkipCollapsed(true);
+            behavior.setDraggable(true);
         });
 
+        // ── Confirm ───────────────────────────────────────────────────────────────
         btnConfirm.setOnClickListener(v -> {
-            int selectedHourIndex = getSnappedAdapterPosition(rvHour, hourSnapHelper);
+            int selectedHourIndex  = getSnappedAdapterPosition(rvHour,   hourSnapHelper);
             int selectedMinuteIndex = getSnappedAdapterPosition(rvMinute, minuteSnapHelper);
 
             int selectedHour12 = selectedHourIndex + 1;
-            int selectedMinute = selectedMinuteIndex;
-
             int hour24;
             if (selectedAmPm[0] == 0) {
-                hour24 = (selectedHour12 == 12) ? 0 : selectedHour12;
+                hour24 = (selectedHour12 == 12) ? 0  : selectedHour12;
             } else {
                 hour24 = (selectedHour12 == 12) ? 12 : selectedHour12 + 12;
             }
 
-            int totalMinutes = hour24 * 60 + selectedMinute;
+            int totalMinutes = hour24 * 60 + selectedMinuteIndex;
+
+            // Final guard — rejects any time that is at or before the start time.
+            if (minTotalMinutes >= 0 && totalMinutes <= minTotalMinutes) {
+                Toast.makeText(
+                        requireContext(),
+                        "End time must be after " + formatMinutes(minTotalMinutes),
+                        Toast.LENGTH_SHORT
+                ).show();
+                return; // keep dialog open so the user can correct their choice
+            }
 
             if (isStart) {
                 binding.startMinutes = totalMinutes;
                 binding.btnStart.setText(formatMinutes(totalMinutes));
-                binding.btnStart.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
+                binding.btnStart.setTextColor(
+                        ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
             } else {
                 binding.endMinutes = totalMinutes;
                 binding.btnEnd.setText(formatMinutes(totalMinutes));
-                binding.btnEnd.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
+                binding.btnEnd.setTextColor(
+                        ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
             }
 
             dialog.dismiss();
