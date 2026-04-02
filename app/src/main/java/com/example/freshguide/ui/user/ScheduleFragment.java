@@ -21,13 +21,12 @@ import android.view.WindowManager;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
-import android.widget.FrameLayout;
-import android.view.Gravity;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -817,6 +816,7 @@ public class ScheduleFragment extends Fragment {
 
     private void setupDayChips(ScheduleBlockBinding binding) {
         binding.dayContainer.removeAllViews();
+        binding.dayChips.clear();
 
         Typeface interMedium = ResourcesCompat.getFont(requireContext(), R.font.inter_medium);
 
@@ -838,13 +838,16 @@ public class ScheduleFragment extends Fragment {
             chip.setTypeface(interMedium);
 
             boolean selected = dayValue == binding.selectedDay;
+
             chip.setBackgroundResource(selected
                     ? R.drawable.bg_form_chip_selected
                     : R.drawable.bg_form_chip_unselected);
+
             chip.setTextColor(ContextCompat.getColor(
                     requireContext(),
-                    selected ? R.color.green_dark : R.color.green_primary
+                    selected ? android.R.color.white : R.color.green_primary
             ));
+
             chip.setScaleX(selected ? 1.05f : 1f);
             chip.setScaleY(selected ? 1.05f : 1f);
 
@@ -867,9 +870,10 @@ public class ScheduleFragment extends Fragment {
             chip.setBackgroundResource(selected
                     ? R.drawable.bg_form_chip_selected
                     : R.drawable.bg_form_chip_unselected);
+
             chip.setTextColor(ContextCompat.getColor(
                     requireContext(),
-                    selected ? R.color.green_dark : R.color.green_primary
+                    selected ? android.R.color.white : R.color.green_primary
             ));
 
             chip.animate()
