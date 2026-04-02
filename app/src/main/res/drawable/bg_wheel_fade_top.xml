@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/bg_wheel_fade_top.xml
+     No night variant needed — Android resolves @color/time_picker_wheel_fade_*
+     from values/ or values-night/ automatically. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="@color/time_picker_wheel_fade_opaque"
+        android:endColor="@color/time_picker_wheel_fade_transparent" />
+</shape>

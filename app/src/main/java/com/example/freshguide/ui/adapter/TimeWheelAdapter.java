@@ -15,6 +15,14 @@ import java.util.List;
 
 public class TimeWheelAdapter extends RecyclerView.Adapter<TimeWheelAdapter.ViewHolder> {
 
+    private static final float TEXT_SIZE_SELECTED = 35f;  // centre item — prominent
+    private static final float TEXT_SIZE_ADJACENT = 29f;  // one step away
+    private static final float TEXT_SIZE_OUTER    = 25f;  // two or more steps away
+
+    private static final float ALPHA_SELECTED       = 1.00f;
+    private static final float ALPHA_ADJACENT       = 0.50f;
+    private static final float ALPHA_OUTER          = 0.28f;
+
     private final List<String> items;
     private int selectedPosition = RecyclerView.NO_POSITION;
 
@@ -28,12 +36,12 @@ public class TimeWheelAdapter extends RecyclerView.Adapter<TimeWheelAdapter.View
         int oldPosition = selectedPosition;
         selectedPosition = newPosition;
 
-        if (oldPosition != RecyclerView.NO_POSITION) {
-            notifyItemChanged(oldPosition);
-        }
-        if (selectedPosition != RecyclerView.NO_POSITION) {
-            notifyItemChanged(selectedPosition);
-        }
+        // Refresh a window of items around the old and new positions so the
+        // size/alpha transition looks smooth without a full notifyDataSetChanged().
+        int start = Math.max(0, Math.min(oldPosition, newPosition) - 2);
+        int end   = Math.min(getItemCount() - 1,
+                Math.max(oldPosition, newPosition) + 2);
+        notifyItemRangeChanged(start, end - start + 1);
     }
 
     public int getSelectedPosition() {
@@ -50,20 +58,37 @@ public class TimeWheelAdapter extends RecyclerView.Adapter<TimeWheelAdapter.View
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String text = items.get(position);
-        boolean selected = position == selectedPosition;
+        holder.textView.setText(items.get(position));
 
-        holder.textView.setText(text);
+        int distance = (selectedPosition == RecyclerView.NO_POSITION)
+                ? Integer.MAX_VALUE
+                : Math.abs(position - selectedPosition);
+
+        boolean selected = distance == 0;
+
+        // Text colour
         holder.textView.setTextColor(ContextCompat.getColor(
                 holder.itemView.getContext(),
-                selected ? R.color.time_picker_text_primary : R.color.time_picker_text_secondary
+                selected ? R.color.time_picker_text_primary
+                        : R.color.time_picker_text_secondary
         ));
 
-        // same size for all, only color/alpha changes
-        holder.textView.setTextSize(22f);
-        holder.textView.setAlpha(selected ? 1f : 0.45f);
-        holder.textView.setScaleX(1f);
-        holder.textView.setScaleY(1f);
+        // Progressive size
+        float textSize;
+        float alpha;
+        if (distance == 0) {
+            textSize = TEXT_SIZE_SELECTED;
+            alpha    = ALPHA_SELECTED;
+        } else if (distance == 1) {
+            textSize = TEXT_SIZE_ADJACENT;
+            alpha    = ALPHA_ADJACENT;
+        } else {
+            textSize = TEXT_SIZE_OUTER;
+            alpha    = ALPHA_OUTER;
+        }
+
+        holder.textView.setTextSize(textSize);
+        holder.textView.setAlpha(alpha);
     }
 
     @Override
@@ -72,7 +97,7 @@ public class TimeWheelAdapter extends RecyclerView.Adapter<TimeWheelAdapter.View
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView textView;
+        final TextView textView;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);

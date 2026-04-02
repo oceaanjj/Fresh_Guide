@@ -118,6 +118,9 @@
     <color name="time_picker_text_secondary">#A9D9A7</color>
     <color name="time_picker_divider">#6612770E</color>
 
+    <color name="time_picker_wheel_fade_opaque">#FFFFFFFF</color>
+    <color name="time_picker_wheel_fade_transparent">#00FFFFFF</color>
+
 
     <color name="label">#188114</color>
 </resources>

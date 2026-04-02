@@ -891,14 +891,19 @@ public class ScheduleFragment extends Fragment {
     private void showTimePickerForBlock(ScheduleBlockBinding binding, boolean isStart) {
         if (!isAdded()) return;
 
-        int value = isStart ? binding.startMinutes : binding.endMinutes;
+        int savedValue = isStart ? binding.startMinutes : binding.endMinutes;
 
         Calendar now = Calendar.getInstance();
-        int fallbackHour24 = now.get(Calendar.HOUR_OF_DAY);
-        int fallbackMinute = now.get(Calendar.MINUTE);
+        int currentHour24 = now.get(Calendar.HOUR_OF_DAY);
+        int currentMinute = now.get(Calendar.MINUTE);
 
-        int initialHour24 = value >= 0 ? value / 60 : fallbackHour24;
-        int initialMinute = value >= 0 ? value % 60 : fallbackMinute;
+        // Use saved time if already selected, otherwise use current time
+        int initialTotalMinutes = savedValue >= 0
+                ? savedValue
+                : (currentHour24 * 60 + currentMinute);
+
+        int initialHour24 = initialTotalMinutes / 60;
+        int initialMinute = initialTotalMinutes % 60;
 
         int initialAmPm = initialHour24 >= 12 ? 1 : 0;
         int initialHour12 = initialHour24 % 12;
@@ -928,8 +933,8 @@ public class ScheduleFragment extends Fragment {
         TimeWheelAdapter hourAdapter = new TimeWheelAdapter(hourItems);
         TimeWheelAdapter minuteAdapter = new TimeWheelAdapter(minuteItems);
 
-        setupWheelRecycler(rvHour, hourAdapter, initialHour12 - 1);
-        setupWheelRecycler(rvMinute, minuteAdapter, initialMinute);
+        LinearSnapHelper hourSnapHelper = setupWheelRecycler(rvHour, hourAdapter, initialHour12 - 1);
+        LinearSnapHelper minuteSnapHelper = setupWheelRecycler(rvMinute, minuteAdapter, initialMinute);
 
         updateAmPmButtons(btnAm, btnPm, selectedAmPm[0]);
 
@@ -965,8 +970,8 @@ public class ScheduleFragment extends Fragment {
         });
 
         btnConfirm.setOnClickListener(v -> {
-            int selectedHourIndex = getCenteredAdapterPosition(rvHour);
-            int selectedMinuteIndex = getCenteredAdapterPosition(rvMinute);
+            int selectedHourIndex = getSnappedAdapterPosition(rvHour, hourSnapHelper);
+            int selectedMinuteIndex = getSnappedAdapterPosition(rvMinute, minuteSnapHelper);
 
             int selectedHour12 = selectedHourIndex + 1;
             int selectedMinute = selectedMinuteIndex;
@@ -1016,7 +1021,7 @@ public class ScheduleFragment extends Fragment {
         ));
     }
 
-    private void setupWheelRecycler(
+    private LinearSnapHelper setupWheelRecycler(
             RecyclerView recyclerView,
             TimeWheelAdapter adapter,
             int initialPosition
@@ -1035,14 +1040,21 @@ public class ScheduleFragment extends Fragment {
         LinearSnapHelper snapHelper = new LinearSnapHelper();
         snapHelper.attachToRecyclerView(recyclerView);
 
+        // FIX: offset must be 0 (= "place item at layout start").
+        // With clipToPadding=false and paddingTop=88dp the layout start is
+        // the visual centre of the 220dp wheel, so offset=0 centres the item.
+        // Previously we passed getPaddingTop() which pushed the item an extra
+        // 88dp downward — causing the "items stuck at the bottom" symptom.
         recyclerView.post(() -> {
-            int itemHeight = dpToPx(72);
-            int offset = recyclerView.getHeight() / 2 - itemHeight / 2;
-            layoutManager.scrollToPositionWithOffset(initialPosition, offset);
+            layoutManager.scrollToPositionWithOffset(initialPosition, 0);
 
+            // Derive the highlighted position from the snap helper AFTER layout
+            // so it always matches what is visually centred.
             recyclerView.post(() -> {
-                int centered = getCenteredAdapterPosition(recyclerView);
-                adapter.setSelectedPosition(centered);
+                int snapped = getSnappedAdapterPosition(recyclerView, snapHelper);
+                adapter.setSelectedPosition(
+                        snapped != RecyclerView.NO_POSITION ? snapped : initialPosition
+                );
             });
         });
 
@@ -1051,12 +1063,14 @@ public class ScheduleFragment extends Fragment {
             public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                     rv.post(() -> {
-                        int centered = getCenteredAdapterPosition(rv);
-                        adapter.setSelectedPosition(centered);
+                        int snappedPosition = getSnappedAdapterPosition(rv, snapHelper);
+                        adapter.setSelectedPosition(snappedPosition);
                     });
                 }
             }
         });
+
+        return snapHelper;
     }
 
 //    private void updateWheelSelection(
@@ -1076,32 +1090,15 @@ public class ScheduleFragment extends Fragment {
 //        adapter.setSelectedPosition(position);
 //    }
 
-    private int getCenteredAdapterPosition(RecyclerView recyclerView) {
+    private int getSnappedAdapterPosition(RecyclerView recyclerView, LinearSnapHelper snapHelper) {
         RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
         if (layoutManager == null) return 0;
 
-        int centerY = recyclerView.getHeight() / 2;
+        View snapView = snapHelper.findSnapView(layoutManager);
+        if (snapView == null) return 0;
 
-        View closestChild = null;
-        int closestDistance = Integer.MAX_VALUE;
-
-        for (int i = 0; i < recyclerView.getChildCount(); i++) {
-            View child = recyclerView.getChildAt(i);
-            int childCenterY = (child.getTop() + child.getBottom()) / 2;
-            int distance = Math.abs(childCenterY - centerY);
-
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestChild = child;
-            }
-        }
-
-        if (closestChild == null) return 0;
-
-        int position = recyclerView.getChildAdapterPosition(closestChild);
-        if (position == RecyclerView.NO_POSITION) return 0;
-
-        return position;
+        int position = layoutManager.getPosition(snapView);
+        return position == RecyclerView.NO_POSITION ? 0 : position;
     }
 
     private void showScheduleDetailDialog(ScheduleEntryEntity entry) {
