@@ -26,6 +26,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -609,13 +611,11 @@ public class ScheduleFragment extends Fragment {
             effectiveBgColor = ContextCompat.getColor(requireContext(), R.color.schedule_card_bg);
         }
 
-        GradientDrawable bg = buildGradientDrawable(bgSlot, 10f * density);
-        bg.setStroke(1, adjustColorAlpha(darkenColor(effectiveBgColor, 0.82f), 0.55f));
-        block.setBackground(bg);
+        block.setBackground(buildGlassBackground(bgSlot, 10f * density));
 
-// ── Text colors based on the effective themed background ───────────────
-        int primaryText = getContrastingTextColor(effectiveBgColor);
-        int secondaryText = getSecondaryTextColor(effectiveBgColor);
+        // ── Palette-aware text colors ───────────────────────────────────────────
+        int primaryText = getPalettePrimaryTextColor(bgSlot);
+        int secondaryText = getPaletteSecondaryTextColor(bgSlot);
 
         tvStartTime.setTextColor(secondaryText);
         tvEndTime.setTextColor(secondaryText);
@@ -729,19 +729,17 @@ public class ScheduleFragment extends Fragment {
                 effectiveBgColor = ContextCompat.getColor(requireContext(), R.color.background_subtle);
             }
 
-            GradientDrawable fill = buildGradientDrawable(bgSlot, dpToPx(24));
-
             MaterialCardView card = (MaterialCardView) cardSummary;
             card.setCardBackgroundColor(Color.TRANSPARENT);
-            card.setStrokeColor(adjustColorAlpha(darkenColor(effectiveBgColor, 0.82f), 0.45f));
+            card.setStrokeColor(adjustColorAlpha(lightenColor(effectiveBgColor, 1.05f), 0.22f));
             card.setStrokeWidth(1);
 
             if (summaryContent != null) {
-                summaryContent.setBackground(fill);
+                summaryContent.setBackground(buildGlassBackground(bgSlot, dpToPx(24)));
             }
 
-            int primaryText = getContrastingTextColor(effectiveBgColor);
-            int secondaryText = getSecondaryTextColor(effectiveBgColor);
+            int primaryText = getPalettePrimaryTextColor(bgSlot);
+            int secondaryText = getPaletteSecondaryTextColor(bgSlot);
 
             tvSummaryTitle.setTextColor(primaryText);
             tvSummaryLabel.setTextColor(secondaryText);
@@ -750,6 +748,60 @@ public class ScheduleFragment extends Fragment {
 
         } catch (Exception e) {
             resetSummaryCardColors();
+        }
+    }
+
+    private int getPalettePrimaryTextColor(int slotIndex) {
+        boolean isDark = (getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+
+        if (isDark) {
+            switch (slotIndex) {
+                case 0: return Color.parseColor("#F2F2F2"); // neutral
+                case 1: return Color.parseColor("#FFD6E5"); // rose
+                case 2: return Color.parseColor("#D6E8FF"); // blue
+                case 3: return Color.parseColor("#E7D6FF"); // violet
+                case 4: return Color.parseColor("#D8F5DB"); // green
+                case 5: return Color.parseColor("#F5EFC2"); // gold
+                default: return ContextCompat.getColor(requireContext(), R.color.text_primary);
+            }
+        } else {
+            switch (slotIndex) {
+                case 0: return Color.parseColor("#333333"); // neutral
+                case 1: return Color.parseColor("#8E2C52"); // dark rose
+                case 2: return Color.parseColor("#2F5D9A"); // deep blue
+                case 3: return Color.parseColor("#6E3FA3"); // plum
+                case 4: return Color.parseColor("#2F7A39"); // forest
+                case 5: return Color.parseColor("#7A6A16"); // olive-gold
+                default: return ContextCompat.getColor(requireContext(), R.color.text_primary);
+            }
+        }
+    }
+
+    private int getPaletteSecondaryTextColor(int slotIndex) {
+        boolean isDark = (getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+
+        if (isDark) {
+            switch (slotIndex) {
+                case 0: return adjustColorAlpha(Color.parseColor("#EAEAEA"), 0.72f);
+                case 1: return adjustColorAlpha(Color.parseColor("#FFD6E5"), 0.72f);
+                case 2: return adjustColorAlpha(Color.parseColor("#D6E8FF"), 0.72f);
+                case 3: return adjustColorAlpha(Color.parseColor("#E7D6FF"), 0.72f);
+                case 4: return adjustColorAlpha(Color.parseColor("#D8F5DB"), 0.72f);
+                case 5: return adjustColorAlpha(Color.parseColor("#F5EFC2"), 0.72f);
+                default: return ContextCompat.getColor(requireContext(), R.color.text_secondary);
+            }
+        } else {
+            switch (slotIndex) {
+                case 0: return Color.parseColor("#666666");
+                case 1: return Color.parseColor("#A24B6E");
+                case 2: return Color.parseColor("#4F78B1");
+                case 3: return Color.parseColor("#855DB5");
+                case 4: return Color.parseColor("#4D8D56");
+                case 5: return Color.parseColor("#958633");
+                default: return ContextCompat.getColor(requireContext(), R.color.text_secondary);
+            }
         }
     }
 
@@ -928,13 +980,9 @@ public class ScheduleFragment extends Fragment {
             dropdownReminder.setText(
                     REMINDER_OPTIONS[reminderToPosition(existing.reminderMinutes)], false);
             if (existing.colorHex != null) {
-                for (int i = 0; i < getScheduleColors().length; i++) {
-                    if (getScheduleColors()[i].equalsIgnoreCase(existing.colorHex)) {
-                        selectedColorIndex[0] = i;
-                        break;
-                    }
-                }
+                selectedColorIndex[0] = resolveSchedulePaletteSlot(existing.colorHex);
             }
+
             setupColorPicker(formView, selectedColorIndex, selectedColorIndex[0]);
             addScheduleBlock(scheduleContainer, existing.dayOfWeek,
                     existing.startMinutes, existing.endMinutes, false);
@@ -1727,14 +1775,77 @@ public class ScheduleFragment extends Fragment {
     private GradientDrawable buildGradientDrawable(int slotIndex, float cornerRadius) {
         String[][] g = getScheduleGradients();
         int idx = Math.max(0, Math.min(slotIndex, g.length - 1));
-        int startColor = Color.parseColor(g[idx][0]);
-        int endColor   = Color.parseColor(g[idx][1]);
-        GradientDrawable gd = new GradientDrawable(
-                GradientDrawable.Orientation.TL_BR,
-                new int[]{startColor, endColor});
-        gd.setCornerRadius(cornerRadius);
-        gd.setGradientType(GradientDrawable.LINEAR_GRADIENT);
-        return gd;
+
+        int topColor;
+        int bottomColor;
+
+        try {
+            topColor = Color.parseColor(g[idx][1]);     // lighter
+            bottomColor = Color.parseColor(g[idx][0]);  // darker
+        } catch (Exception e) {
+            topColor = ContextCompat.getColor(requireContext(), R.color.background_subtle);
+            bottomColor = ContextCompat.getColor(requireContext(), R.color.background_card);
+        }
+
+        GradientDrawable drawable = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{topColor, bottomColor}
+        );
+        drawable.setCornerRadius(cornerRadius);
+        return drawable;
+    }
+
+    private Drawable buildGlassBackground(int slotIndex, float cornerRadius) {
+        String[][] g = getScheduleGradients();
+        int idx = Math.max(0, Math.min(slotIndex, g.length - 1));
+
+        int topColor;
+        int bottomColor;
+
+        try {
+            topColor = Color.parseColor(g[idx][1]);
+            bottomColor = Color.parseColor(g[idx][0]);
+        } catch (Exception e) {
+            topColor = ContextCompat.getColor(requireContext(), R.color.background_subtle);
+            bottomColor = ContextCompat.getColor(requireContext(), R.color.background_card);
+        }
+
+        // Main vertical gradient
+        GradientDrawable base = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{
+                        adjustColorAlpha(topColor, 0.94f),
+                        adjustColorAlpha(bottomColor, 0.98f)
+                }
+        );
+        base.setCornerRadius(cornerRadius);
+
+        // Top glass highlight
+        GradientDrawable highlight = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{
+                        ContextCompat.getColor(requireContext(), R.color.glass_highlight_top),
+                        ContextCompat.getColor(requireContext(), R.color.glass_highlight_bottom)
+                }
+        );
+        highlight.setCornerRadius(cornerRadius);
+
+        // Subtle border
+        GradientDrawable stroke = new GradientDrawable();
+        stroke.setColor(Color.TRANSPARENT);
+        stroke.setCornerRadius(cornerRadius);
+        stroke.setStroke(1, adjustColorAlpha(lightenColor(topColor, 1.08f), 0.35f));
+
+        LayerDrawable layerDrawable = new LayerDrawable(new Drawable[]{base, highlight, stroke});
+        return layerDrawable;
+    }
+
+    private int lightenColor(int color, float factor) {
+        int a = Color.alpha(color);
+        int r = Math.min(255, Math.round(Color.red(color) * factor));
+        int g = Math.min(255, Math.round(Color.green(color) * factor));
+        int b = Math.min(255, Math.round(Color.blue(color) * factor));
+        return Color.argb(a, r, g, b);
     }
 
     // ── Color math helpers ─────────────────────────────────────────────────────
