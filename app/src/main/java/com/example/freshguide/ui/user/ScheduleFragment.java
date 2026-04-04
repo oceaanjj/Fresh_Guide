@@ -654,7 +654,7 @@ public class ScheduleFragment extends Fragment {
             tvStartTime.setVisibility(View.GONE);
         }
 
-        block.setOnClickListener(v -> showScheduleDetailDialog(entry));
+        block.setOnClickListener(v -> showScheduleFormDialog(entry));
         return block;
     }
 
@@ -986,6 +986,16 @@ public class ScheduleFragment extends Fragment {
 
         TextView btnCancel = formView.findViewById(R.id.btn_sheet_cancel);
         TextView btnSave   = formView.findViewById(R.id.btn_sheet_save);
+
+        TextView tvSheetTitle = formView.findViewById(R.id.tv_sheet_title);
+
+        if (existing != null) {
+            tvSheetTitle.setText("Edit Schedule");
+            btnSave.setText("Save Changes");
+        } else {
+            tvSheetTitle.setText("New Schedule");
+            btnSave.setText("Create Schedule");
+        }
 
         dropdownClassType.setAdapter(new ArrayAdapter<>(
                 requireContext(), R.layout.item_dropdown_simple, CLASS_TYPES));
