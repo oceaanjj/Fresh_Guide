@@ -60,7 +60,7 @@
             android:paddingTop="3dp"
             android:paddingBottom="3dp"
             android:textSize="11sp"
-            android:textColor="@color/green_dark"
+            android:textColor="@color/green_primary"
             android:background="@drawable/bg_chip_green_outline" />
 
     </LinearLayout>

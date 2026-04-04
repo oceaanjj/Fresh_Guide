@@ -1,336 +1,492 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:fillViewport="true">
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_sheet_top_radius"
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="48dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_bottom_sheet_handle" />
+
+    <TextView
+        android:id="@+id/tv_sheet_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/inter_medium"
+        android:gravity="center"
+        android:text="New Schedule"
+        android:textColor="@color/schedule_form_label"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="30dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="30dp"
+            android:paddingBottom="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/inter_regular"
+                android:text="Color"
+                android:textColor="@color/schedule_form_label"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/color_row"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:weightSum="6">
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <View
+                        android:id="@+id/color_0"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_schedule_color_unselected" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <View
+                        android:id="@+id/color_1"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_circle_classroom" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <View
+                        android:id="@+id/color_2"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_circle_door" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <View
+                        android:id="@+id/color_3"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_circle_faculty" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <View
+                        android:id="@+id/color_4"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_chip_green" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <View
+                        android:id="@+id/color_5"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_chip_orange_outline" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/inter_regular"
+                android:text="Subject Name"
+                android:textColor="@color/schedule_form_label"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/et_subject_name"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_field_pill"
+                android:fontFamily="@font/inter_medium"
+                android:hint="Enter subject name"
+                android:inputType="textCapWords"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:singleLine="true"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:fontFamily="@font/inter_regular"
+                android:text="Subject Code"
+                android:textColor="@color/schedule_form_label"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/et_subject_code"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_field_pill"
+                android:fontFamily="@font/inter_medium"
+                android:hint="Enter subject code"
+                android:inputType="textCapCharacters"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:singleLine="true"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:fontFamily="@font/inter_regular"
+                android:text="Professor"
+                android:textColor="@color/schedule_form_label"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/et_professor"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_field_pill"
+                android:fontFamily="@font/inter_medium"
+                android:hint="Enter professor name"
+                android:inputType="textCapWords"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:singleLine="true"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:fontFamily="@font/inter_regular"
+                android:text="Class Type"
+                android:textColor="@color/schedule_form_label"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layout_class_type"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="@color/input_background"
+                app:boxCornerRadiusTopStart="18dp"
+                app:boxCornerRadiusTopEnd="18dp"
+                app:boxCornerRadiusBottomStart="18dp"
+                app:boxCornerRadiusBottomEnd="18dp"
+                app:boxStrokeColor="@color/border_default"
+                app:hintEnabled="false">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/dropdown_class_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:fontFamily="@font/inter_medium"
+                    android:inputType="none"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:id="@+id/room_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="@font/inter_regular"
+                    android:text="Room Location"
+                    android:textColor="@color/schedule_form_label"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp">
+
+                    <EditText
+                        android:id="@+id/et_room_search"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_field_pill"
+                        android:fontFamily="@font/inter_medium"
+                        android:hint="Choose your room"
+                        android:imeOptions="actionDone"
+                        android:inputType="text"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="40dp"
+                        android:singleLine="true"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/btn_clear_room_search"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="end|center_vertical"
+                        android:layout_marginEnd="14dp"
+                        android:contentDescription="Clear room search"
+                        android:src="@android:drawable/ic_menu_close_clear_cancel"
+                        android:tint="@color/text_hint"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_room_dropdown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_field_pill"
+                    android:clipToPadding="false"
+                    android:maxHeight="260dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/online_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="@font/inter_medium"
+                    android:text="Online Platform"
+                    android:textColor="@color/schedule_form_label"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layout_platform"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    app:boxBackgroundMode="outline"
+                    app:boxBackgroundColor="@color/input_background"
+                    app:boxCornerRadiusTopStart="18dp"
+                    app:boxCornerRadiusTopEnd="18dp"
+                    app:boxCornerRadiusBottomStart="18dp"
+                    app:boxCornerRadiusBottomEnd="18dp"
+                    app:boxStrokeColor="@color/border_default"
+                    app:hintEnabled="false">
+
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/dropdown_platform"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:fontFamily="@font/inter_medium"
+                        android:inputType="none"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/schedule_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <ImageView
+                    android:id="@+id/btn_add_schedule_block"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_gravity="end"
+                    android:background="@drawable/bg_form_add_circle"
+                    android:contentDescription="Add another schedule"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_schedule_add"
+                    android:tint="@color/green_dark" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:fontFamily="@font/inter_regular"
+                android:text="Reminder"
+                android:textColor="@color/schedule_form_label"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layout_reminder"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="@color/input_background"
+                app:boxCornerRadiusTopStart="18dp"
+                app:boxCornerRadiusTopEnd="18dp"
+                app:boxCornerRadiusBottomStart="18dp"
+                app:boxCornerRadiusBottomEnd="18dp"
+                app:boxStrokeColor="@color/border_default"
+                app:hintEnabled="false">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/dropdown_reminder"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:fontFamily="@font/inter_medium"
+                    android:inputType="none"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:fontFamily="@font/inter_medium"
+                android:text="Notes"
+                android:textColor="@color/schedule_form_label"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/et_notes"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_field_pill"
+                android:fontFamily="@font/inter_medium"
+                android:gravity="top|start"
+                android:hint="Add notes"
+                android:inputType="textMultiLine"
+                android:padding="14dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </ScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:background="@color/background_card"
+        android:orientation="horizontal"
+        android:paddingStart="30dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="30dp"
+        android:paddingBottom="16dp">
 
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:id="@+id/btn_sheet_cancel"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_field_pill"
+            android:fontFamily="@font/inter_medium"
             android:gravity="center"
-            android:text="New Schedule"
-            android:textColor="@color/green_primary"
-            android:textSize="20sp"
+            android:text="Cancel"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:text="Color"
-            android:textColor="@color/schedule_form_label"
-            android:textSize="12sp" />
-
-        <LinearLayout
-            android:id="@+id/color_row"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <View
-                android:id="@+id/color_0"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:background="@drawable/bg_schedule_color_unselected" />
-
-            <View
-                android:id="@+id/color_1"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="12dp"
-                android:background="@drawable/bg_circle_classroom" />
-
-            <View
-                android:id="@+id/color_2"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="12dp"
-                android:background="@drawable/bg_circle_door" />
-
-            <View
-                android:id="@+id/color_3"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="12dp"
-                android:background="@drawable/bg_circle_faculty" />
-
-            <View
-                android:id="@+id/color_4"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="12dp"
-                android:background="@drawable/bg_chip_green" />
-
-            <View
-                android:id="@+id/color_5"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="12dp"
-                android:background="@drawable/bg_chip_orange_outline" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:text="Subject Name"
-            android:textColor="@color/schedule_form_label"
-            android:textSize="12sp" />
-
-        <EditText
-            android:id="@+id/et_subject_name"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/bg_field_pill"
-            android:inputType="textCapWords"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:singleLine="true" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Subject Code"
-            android:textColor="@color/schedule_form_label"
-            android:textSize="12sp" />
-
-        <EditText
-            android:id="@+id/et_subject_code"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/bg_field_pill"
-            android:inputType="textCapCharacters"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:singleLine="true" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Professor"
-            android:textColor="@color/schedule_form_label"
-            android:textSize="12sp" />
-
-        <EditText
-            android:id="@+id/et_professor"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/bg_field_pill"
-            android:inputType="textCapWords"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:singleLine="true" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Class Type"
-            android:textColor="@color/schedule_form_label"
-            android:textSize="12sp" />
-
-        <Spinner
-            android:id="@+id/spinner_class_type"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/bg_field_pill"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp" />
-
-        <LinearLayout
-            android:id="@+id/room_group"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="Room Location"
-                android:textColor="@color/schedule_form_label"
-                android:textSize="12sp" />
-
-            <Spinner
-                android:id="@+id/spinner_room_location"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="5dp"
-                android:background="@drawable/bg_field_pill"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/online_group"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="Online Platform"
-                android:textColor="@color/schedule_form_label"
-                android:textSize="12sp" />
-
-            <Spinner
-                android:id="@+id/spinner_platform"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="5dp"
-                android:background="@drawable/bg_field_pill"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Schedule Day"
-            android:textColor="@color/schedule_form_label"
-            android:textSize="12sp" />
-
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/form_day_mon"
-                    android:layout_width="44dp"
-                    android:layout_height="30dp"
-                    android:gravity="center"
-                    android:text="Mon" />
-
-                <TextView
-                    android:id="@+id/form_day_tue"
-                    android:layout_width="44dp"
-                    android:layout_height="30dp"
-                    android:gravity="center"
-                    android:text="Tue" />
-
-                <TextView
-                    android:id="@+id/form_day_wed"
-                    android:layout_width="44dp"
-                    android:layout_height="30dp"
-                    android:gravity="center"
-                    android:text="Wed" />
-
-                <TextView
-                    android:id="@+id/form_day_thu"
-                    android:layout_width="44dp"
-                    android:layout_height="30dp"
-                    android:gravity="center"
-                    android:text="Thu" />
-
-                <TextView
-                    android:id="@+id/form_day_fri"
-                    android:layout_width="44dp"
-                    android:layout_height="30dp"
-                    android:gravity="center"
-                    android:text="Fri" />
-
-                <TextView
-                    android:id="@+id/form_day_sat"
-                    android:layout_width="44dp"
-                    android:layout_height="30dp"
-                    android:gravity="center"
-                    android:text="Sat" />
-            </LinearLayout>
-        </HorizontalScrollView>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/btn_pick_start"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_field_pill"
-                android:gravity="center"
-                android:text="Start Time"
-                android:textColor="@color/schedule_time_placeholder"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/btn_pick_end"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_marginStart="10dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_field_pill"
-                android:gravity="center"
-                android:text="End Time"
-                android:textColor="@color/schedule_time_placeholder"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Reminder"
-            android:textColor="@color/schedule_form_label"
-            android:textSize="12sp" />
-
-        <Spinner
-            android:id="@+id/spinner_reminder"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/bg_field_pill"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Notes"
-            android:textColor="@color/schedule_form_label"
-            android:textSize="12sp" />
-
-        <EditText
-            android:id="@+id/et_notes"
-            android:layout_width="match_parent"
-            android:layout_height="90dp"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/bg_field_pill"
-            android:gravity="top|start"
-            android:inputType="textMultiLine"
-            android:padding="12dp" />
-
+            android:id="@+id/btn_sheet_save"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_schedule_add_outline"
+            android:fontFamily="@font/inter_medium"
+            android:gravity="center"
+            android:text="Create Schedule"
+            android:textColor="@color/green_dark"
+            android:textSize="14sp"
+            android:textStyle="bold" />
     </LinearLayout>
-</ScrollView>
+
+</LinearLayout>

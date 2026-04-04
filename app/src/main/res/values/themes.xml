@@ -32,4 +32,12 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">false</item>
     </style>
+
+    <style name="ThemeOverlay.FreshGuide.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.FreshGuide.BottomSheet</item>
+    </style>
+
+    <style name="Widget.FreshGuide.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="android:background">@drawable/bg_bottom_sheet_surface</item>
+    </style>
 </resources>

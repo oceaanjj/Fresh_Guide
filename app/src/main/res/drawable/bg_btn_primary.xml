@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Primary button: green gradient fill, 14dp corners, no stroke.
+    Uses a ripple wrapper for proper touch feedback.
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#33000000">
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="@color/btn_primary_start"
+                android:endColor="@color/btn_primary_end"
+                android:angle="135" />
+            <corners android:radius="30dp" />
+        </shape>
+    </item>
+
+</ripple>
