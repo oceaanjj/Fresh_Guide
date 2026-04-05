@@ -32,6 +32,11 @@
     <color name="border_subtle">#EEEEEE</color>
     <color name="divider">#E6E6E6</color>
     <color name="chip_border">#29A829</color>
+    <color name="floor_chip_selected_bg">#12770E</color>
+    <color name="floor_chip_unselected_bg">#FFFFFF</color>
+    <color name="floor_chip_selected_text">#E7FFE7</color>
+    <color name="floor_chip_unselected_text">#12770E</color>
+    <color name="floor_chip_stroke">#12770E</color>
 
     <!-- Admin-Specific Colors (Light Mode) -->
     <color name="admin_background">#F5F5F5</color>

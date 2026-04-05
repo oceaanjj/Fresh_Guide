@@ -79,24 +79,25 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_floor_1"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="85dp"
                         android:layout_height="48dp"
-                        android:checkable="true"
+                        android:checkable="false"
                         android:fontFamily="@font/instrument_regular"
                         android:gravity="center"
                         android:maxLines="1"
                         android:text="1st Floor"
                         android:textAlignment="center"
                         android:textSize="14sp"
+                        android:textColor="@color/floor_chip_unselected_text"
                         app:checkedIconVisible="false"
+                        app:chipBackgroundColor="@color/floor_chip_unselected_bg"
                         app:chipCornerRadius="24dp"
-                        app:chipStrokeColor="@color/green"
+                        app:chipStrokeColor="@color/floor_chip_stroke"
+                        android:checked="false"
                         app:chipStrokeWidth="0.8dp" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_floor_2"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="85dp"
                         android:layout_height="48dp"
                         android:checkable="true"
@@ -106,14 +107,15 @@
                         android:text="2nd Floor"
                         android:textAlignment="center"
                         android:textSize="14sp"
+                        android:textColor="@color/floor_chip_unselected_text"
                         app:checkedIconVisible="false"
+                        app:chipBackgroundColor="@color/floor_chip_unselected_bg"
                         app:chipCornerRadius="24dp"
-                        app:chipStrokeColor="@color/green"
+                        app:chipStrokeColor="@color/floor_chip_stroke"
                         app:chipStrokeWidth="0.8dp" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_floor_3"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="85dp"
                         android:layout_height="48dp"
                         android:checkable="true"
@@ -123,14 +125,15 @@
                         android:text="3rd Floor"
                         android:textAlignment="center"
                         android:textSize="14sp"
+                        android:textColor="@color/floor_chip_unselected_text"
                         app:checkedIconVisible="false"
+                        app:chipBackgroundColor="@color/floor_chip_unselected_bg"
                         app:chipCornerRadius="24dp"
-                        app:chipStrokeColor="@color/green"
+                        app:chipStrokeColor="@color/floor_chip_stroke"
                         app:chipStrokeWidth="0.8dp" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_floor_4"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="85dp"
                         android:layout_height="48dp"
                         android:checkable="true"
@@ -140,14 +143,15 @@
                         android:text="4th Floor"
                         android:textAlignment="center"
                         android:textSize="14sp"
+                        android:textColor="@color/floor_chip_unselected_text"
                         app:checkedIconVisible="false"
+                        app:chipBackgroundColor="@color/floor_chip_unselected_bg"
                         app:chipCornerRadius="24dp"
-                        app:chipStrokeColor="@color/green"
+                        app:chipStrokeColor="@color/floor_chip_stroke"
                         app:chipStrokeWidth="0.8dp" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_floor_5"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="85dp"
                         android:layout_height="48dp"
                         android:checkable="true"
@@ -157,9 +161,11 @@
                         android:text="5th Floor"
                         android:textAlignment="center"
                         android:textSize="14sp"
+                        android:textColor="@color/floor_chip_unselected_text"
                         app:checkedIconVisible="false"
+                        app:chipBackgroundColor="@color/floor_chip_unselected_bg"
                         app:chipCornerRadius="24dp"
-                        app:chipStrokeColor="@color/green"
+                        app:chipStrokeColor="@color/floor_chip_stroke"
                         app:chipStrokeWidth="1dp" />
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>

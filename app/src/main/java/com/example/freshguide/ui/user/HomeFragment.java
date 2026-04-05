@@ -1,7 +1,6 @@
 package com.example.freshguide.ui.user;
 
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.util.Log;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -121,7 +120,11 @@ public class HomeFragment extends Fragment {
 
         floorChips = new Chip[]{chip1, chip2, chip3, chip4, chip5};
 
-        int green = requireContext().getColor(R.color.green);
+        int selectedBg = ContextCompat.getColor(requireContext(), R.color.floor_chip_selected_bg);
+        int uncheckedBg = ContextCompat.getColor(requireContext(), R.color.floor_chip_unselected_bg);
+        int selectedText = ContextCompat.getColor(requireContext(), R.color.floor_chip_selected_text);
+        int uncheckedText = ContextCompat.getColor(requireContext(), R.color.floor_chip_unselected_text);
+        int stroke = ContextCompat.getColor(requireContext(), R.color.floor_chip_stroke);
 
         ColorStateList bgColors = new ColorStateList(
                 new int[][]{
@@ -129,8 +132,8 @@ public class HomeFragment extends Fragment {
                         new int[]{}
                 },
                 new int[]{
-                        green,
-                        ContextCompat.getColor(requireContext(), R.color.background_default)
+                        selectedBg,
+                        uncheckedBg
                 }
         );
 
@@ -140,8 +143,8 @@ public class HomeFragment extends Fragment {
                         new int[]{}
                 },
                 new int[]{
-                        Color.WHITE,
-                        green
+                        selectedText,
+                        uncheckedText
                 }
         );
 
@@ -150,7 +153,8 @@ public class HomeFragment extends Fragment {
             chip.setCheckedIconVisible(false);
             chip.setChipBackgroundColor(bgColors);
             chip.setTextColor(textColors);
-            chip.setChipStrokeColor(ColorStateList.valueOf(green));
+            chip.setChipStrokeColor(ColorStateList.valueOf(stroke));
+            chip.setChipStrokeWidth(getResources().getDisplayMetrics().density * 0.5f);
         }
 
         chip1.setOnClickListener(v -> handleFloorChipClick(chip1, 1, floorChips));
@@ -326,7 +330,7 @@ public class HomeFragment extends Fragment {
 
                 if (targetFloor == null) {
                     Log.w(TAG, "No floor entity found for floorNumber=" + floorNumber);
-                    runOnUiThreadSafely(() -> clearFloorRoomViews());
+                    runOnUiThreadSafely(this::clearFloorRoomViews);
                     return;
                 }
 

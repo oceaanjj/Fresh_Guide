@@ -76,6 +76,13 @@ public class SplashActivity extends AppCompatActivity {
                                 "20230372-S",
                                 "Test Student"
                         );
+
+//                        session.saveSession(
+//                                "debug_token_123",
+//                                SessionManager.ROLE_ADMIN,
+//                                "20230372-S",
+//                                "Test Student"
+//                        );
                         startActivity(new Intent(SplashActivity.this, MainActivity.class));
 
                         // =========================================================
