@@ -49,4 +49,6 @@ public class DirectionsViewModel extends AndroidViewModel {
             }
         });
     }
+
+
 }
