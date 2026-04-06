@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -46,6 +47,12 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         DESTINATION
     }
 
+    private enum SheetDisplayState {
+        FULL,
+        HALF,
+        CLOSED
+    }
+
     private final List<OriginEntity> allOrigins = new ArrayList<>();
     private final List<RoomEntity> allRooms = new ArrayList<>();
 
@@ -54,6 +61,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     private View sheetRoot;
     private View resultsScrim;
+    private View originLabel;
+    private View destinationLabel;
     private View originFieldContainer;
     private View destinationFieldContainer;
     private EditText etOrigin;
@@ -74,6 +83,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private int preselectedRoomId = -1;
     private String preselectedRoomName;
     private ActiveField activeField = ActiveField.NONE;
+    private SheetDisplayState sheetDisplayState = SheetDisplayState.HALF;
+    private boolean dropdownVisible;
     private boolean suppressOriginWatcher;
     private boolean suppressDestinationWatcher;
     private int resultPanelMaxHeightPx;
@@ -107,19 +118,13 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                 bottomSheetBehavior.setExpandedOffset(0);
                 bottomSheetBehavior.setHalfExpandedRatio(0.50f);
                 bottomSheetBehavior.setSkipCollapsed(true);
-                bottomSheetBehavior.setHideable(false);
+                bottomSheetBehavior.setHideable(true);
                 bottomSheetBehavior.setDraggable(true);
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                sheet.post(() -> bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED));
                 bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                     @Override
                     public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                        if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-                            resultPanelMaxHeightPx = dpToPx(360);
-                        } else if (newState == BottomSheetBehavior.STATE_HALF_EXPANDED
-                                || newState == BottomSheetBehavior.STATE_COLLAPSED
-                                || newState == BottomSheetBehavior.STATE_SETTLING) {
-                            resultPanelMaxHeightPx = dpToPx(200);
-                        }
+                        handleBottomSheetStateChanged(newState);
                         updateResultPanelHeights();
                     }
 
@@ -146,6 +151,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
         sheetRoot = view.findViewById(R.id.sheet_root);
         resultsScrim = view.findViewById(R.id.view_results_scrim);
+        originLabel = view.findViewById(R.id.tv_origin_label);
+        destinationLabel = view.findViewById(R.id.tv_destination_label);
         originFieldContainer = view.findViewById(R.id.layout_origin_field);
         destinationFieldContainer = view.findViewById(R.id.layout_destination_field);
         etOrigin = view.findViewById(R.id.et_origin_search);
@@ -190,86 +197,29 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     private void setupInputs() {
         resultsScrim.setOnClickListener(v -> hideResultsAndClearFocus());
+        sheetRoot.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN && shouldDismissResults(event)) {
+                hideResultsAndClearFocus();
+            }
+            return false;
+        });
         originResults.setOnClickListener(v -> {
         });
         destinationResults.setOnClickListener(v -> {
         });
 
-        originFieldContainer.setOnClickListener(v -> focusField(etOrigin, ActiveField.ORIGIN));
-        destinationFieldContainer.setOnClickListener(v -> focusField(etDestination, ActiveField.DESTINATION));
-
-        etOrigin.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                activeField = ActiveField.ORIGIN;
-                updateSuggestionList();
-            } else if (!etDestination.hasFocus()) {
-                hideResults();
-            }
-        });
-
-        etDestination.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                activeField = ActiveField.DESTINATION;
-                updateSuggestionList();
-            } else if (!etOrigin.hasFocus()) {
-                hideResults();
-            }
-        });
-
-        etOrigin.addTextChangedListener(new SimpleWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (suppressOriginWatcher) {
-                    return;
-                }
-                activeField = ActiveField.ORIGIN;
-                originId = -1;
-                btnClearOrigin.setVisibility(s.length() > 0 ? View.VISIBLE : View.GONE);
-                updateSuggestionList();
-                updateStartState();
-            }
-        });
-
-        etDestination.addTextChangedListener(new SimpleWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (suppressDestinationWatcher) {
-                    return;
-                }
-                activeField = ActiveField.DESTINATION;
-                selectedRoomId = -1;
-                btnClearDestination.setVisibility(s.length() > 0 ? View.VISIBLE : View.GONE);
-                updateSuggestionList();
-                updateStartState();
-            }
-        });
-
-        btnClearOrigin.setOnClickListener(v -> {
-            originId = -1;
-            etOrigin.setText("");
-            focusField(etOrigin, ActiveField.ORIGIN);
-            updateStartState();
-        });
-
-        btnClearDestination.setOnClickListener(v -> {
-            selectedRoomId = -1;
-            etDestination.setText("");
-            focusField(etDestination, ActiveField.DESTINATION);
-            updateStartState();
-        });
+        bindFieldInteractions(ActiveField.ORIGIN);
+        bindFieldInteractions(ActiveField.DESTINATION);
     }
 
     private void onSuggestionPicked(DirectionSearchAdapter.SuggestionItem item) {
         if (item.isOrigin) {
-            originId = item.id;
-            setFieldText(etOrigin, item.title, true);
-            btnClearOrigin.setVisibility(View.VISIBLE);
+            applySuggestionSelection(ActiveField.ORIGIN, item.id, item.title);
         } else {
-            selectedRoomId = item.id;
-            setFieldText(etDestination, item.title, false);
-            btnClearDestination.setVisibility(View.VISIBLE);
+            applySuggestionSelection(ActiveField.DESTINATION, item.id, item.title);
         }
-        hideResultsAndClearFocus();
+        closeDropdown();
+        updateClearButtons();
         updateSuggestionList();
         updateStartState();
     }
@@ -328,8 +278,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                     : (preselectedRoomName != null && !preselectedRoomName.trim().isEmpty()
                     ? preselectedRoomName
                     : getString(R.string.label_destination));
-            setFieldText(etDestination, name, false);
-            btnClearDestination.setVisibility(View.VISIBLE);
+            setFieldText(getFieldInput(ActiveField.DESTINATION), name, false);
+            updateClearButtons();
             break;
         }
     }
@@ -387,11 +337,13 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         }
         boolean showOrigin = activeField == ActiveField.ORIGIN && etOrigin.hasFocus();
         boolean showDestination = activeField == ActiveField.DESTINATION && etDestination.hasFocus();
-        originResults.setVisibility(showOrigin ? View.VISIBLE : View.GONE);
-        destinationResults.setVisibility(showDestination ? View.VISIBLE : View.GONE);
-        resultsScrim.setVisibility((showOrigin || showDestination) ? View.VISIBLE : View.GONE);
-        if (resultsScrim.getVisibility() == View.VISIBLE) {
+        dropdownVisible = showOrigin || showDestination;
+        setDropdownVisibility(originResults, showOrigin);
+        setDropdownVisibility(destinationResults, showDestination);
+        setDropdownVisibility(resultsScrim, dropdownVisible);
+        if (dropdownVisible) {
             resultsScrim.bringToFront();
+            bringPersistentControlsToFront();
             if (showOrigin) {
                 originResults.bringToFront();
             } else if (showDestination) {
@@ -401,15 +353,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void hideResults() {
-        if (originResults != null) {
-            originResults.setVisibility(View.GONE);
-        }
-        if (destinationResults != null) {
-            destinationResults.setVisibility(View.GONE);
-        }
-        if (resultsScrim != null) {
-            resultsScrim.setVisibility(View.GONE);
-        }
+        dropdownVisible = false;
+        setDropdownVisibility(originResults, false);
+        setDropdownVisibility(destinationResults, false);
+        setDropdownVisibility(resultsScrim, false);
         activeField = ActiveField.NONE;
     }
 
@@ -424,18 +371,79 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         if (sheetRoot != null) {
             sheetRoot.requestFocus();
         }
+        updateClearButtons();
     }
 
-    private void focusField(EditText field, ActiveField fieldType) {
-        if (fieldType == ActiveField.ORIGIN && etDestination != null) {
-            etDestination.clearFocus();
-        } else if (fieldType == ActiveField.DESTINATION && etOrigin != null) {
-            etOrigin.clearFocus();
+    private void closeDropdown() {
+        hideResultsAndClearFocus();
+    }
+
+    private void focusField(ActiveField fieldType) {
+        if (fieldType == ActiveField.NONE) {
+            hideResultsAndClearFocus();
+            return;
+        }
+        EditText field = getFieldInput(fieldType);
+        EditText otherField = getFieldInput(getOtherField(fieldType));
+        if (otherField != null) {
+            otherField.clearFocus();
         }
         activeField = fieldType;
-        field.requestFocus();
-        field.setSelection(field.getText() != null ? field.getText().length() : 0);
+        if (field != null) {
+            field.requestFocus();
+            field.setSelection(field.getText() != null ? field.getText().length() : 0);
+        }
         updateSuggestionList();
+    }
+
+    private void updateClearButtons() {
+        if (btnClearOrigin != null) {
+            btnClearOrigin.setVisibility(textOf(etOrigin).trim().isEmpty() ? View.GONE : View.VISIBLE);
+        }
+        if (btnClearDestination != null) {
+            btnClearDestination.setVisibility(textOf(etDestination).trim().isEmpty() ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    private void bringPersistentControlsToFront() {
+        if (originLabel != null) {
+            originLabel.bringToFront();
+        }
+        if (originFieldContainer != null) {
+            originFieldContainer.bringToFront();
+        }
+        if (destinationLabel != null) {
+            destinationLabel.bringToFront();
+        }
+        if (destinationFieldContainer != null) {
+            destinationFieldContainer.bringToFront();
+        }
+        if (btnStart != null) {
+            btnStart.bringToFront();
+        }
+    }
+
+    private boolean shouldDismissResults(@NonNull MotionEvent event) {
+        if (activeField == ActiveField.NONE || !dropdownVisible) {
+            return false;
+        }
+        View activeInput = getFieldContainer(activeField);
+        View activeResults = getResultsPanel(activeField);
+        return !isTouchWithinView(activeInput, event) && !isTouchWithinView(activeResults, event);
+    }
+
+    private boolean isTouchWithinView(@Nullable View target, @NonNull MotionEvent event) {
+        if (target == null || target.getVisibility() != View.VISIBLE) {
+            return false;
+        }
+        int[] location = new int[2];
+        target.getLocationOnScreen(location);
+        float rawX = event.getRawX();
+        float rawY = event.getRawY();
+        return rawX >= location[0]
+                && rawX <= location[0] + target.getWidth()
+                && rawY >= location[1]
+                && rawY <= location[1] + target.getHeight();
     }
 
     private void updateResultPanelHeights() {
@@ -478,6 +486,16 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         target.setLayoutParams(params);
     }
 
+    private void setDropdownVisibility(@Nullable View target, boolean visible) {
+        if (target == null) {
+            return;
+        }
+        target.setVisibility(visible ? View.VISIBLE : View.GONE);
+        target.setClickable(visible);
+        target.setFocusable(visible);
+        target.setEnabled(visible);
+    }
+
     private boolean matches(String query, String... values) {
         if (query == null || query.trim().isEmpty()) {
             return true;
@@ -509,6 +527,167 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         boolean enabled = originId != -1 && selectedRoomId != -1;
         btnStart.setEnabled(enabled);
         btnStart.setAlpha(enabled ? 1f : 0.7f);
+    }
+
+    private void handleBottomSheetStateChanged(int newState) {
+        if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+            sheetDisplayState = SheetDisplayState.FULL;
+            resultPanelMaxHeightPx = dpToPx(360);
+            return;
+        }
+
+        if (newState == BottomSheetBehavior.STATE_HALF_EXPANDED) {
+            sheetDisplayState = SheetDisplayState.HALF;
+            resultPanelMaxHeightPx = dpToPx(200);
+            return;
+        }
+
+        if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+            sheetDisplayState = SheetDisplayState.CLOSED;
+            hideResultsAndClearFocus();
+            dismissAllowingStateLoss();
+            return;
+        }
+
+        if (newState == BottomSheetBehavior.STATE_COLLAPSED && bottomSheetBehavior != null) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        }
+    }
+
+    private void bindFieldInteractions(ActiveField fieldType) {
+        View fieldContainer = getFieldContainer(fieldType);
+        EditText field = getFieldInput(fieldType);
+        ImageButton clearButton = getClearButton(fieldType);
+        if (fieldContainer != null) {
+            fieldContainer.setOnClickListener(v -> focusField(fieldType));
+        }
+        if (field != null) {
+            field.setOnFocusChangeListener((v, hasFocus) -> handleFieldFocusChanged(fieldType, hasFocus));
+            field.addTextChangedListener(new SimpleWatcher() {
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if (isWatcherSuppressed(fieldType)) {
+                        return;
+                    }
+                    handleFieldTextChanged(fieldType);
+                }
+            });
+        }
+        if (clearButton != null) {
+            clearButton.setOnClickListener(v -> clearFieldSelection(fieldType));
+        }
+    }
+
+    private void handleFieldFocusChanged(ActiveField fieldType, boolean hasFocus) {
+        if (hasFocus) {
+            activeField = fieldType;
+            updateSuggestionList();
+            return;
+        }
+        EditText otherField = getFieldInput(getOtherField(fieldType));
+        if (otherField == null || !otherField.hasFocus()) {
+            hideResults();
+            updateClearButtons();
+        }
+    }
+
+    private void handleFieldTextChanged(ActiveField fieldType) {
+        activeField = fieldType;
+        clearSelectedId(fieldType);
+        updateClearButtons();
+        updateSuggestionList();
+        updateStartState();
+    }
+
+    private void clearFieldSelection(ActiveField fieldType) {
+        clearSelectedId(fieldType);
+        EditText field = getFieldInput(fieldType);
+        if (field != null) {
+            field.setText("");
+        }
+        focusField(fieldType);
+        updateClearButtons();
+        updateStartState();
+    }
+
+    private void applySuggestionSelection(ActiveField fieldType, int id, String value) {
+        assignSelectedId(fieldType, id);
+        setFieldText(getFieldInput(fieldType), value, fieldType == ActiveField.ORIGIN);
+    }
+
+    private void clearSelectedId(ActiveField fieldType) {
+        if (fieldType == ActiveField.ORIGIN) {
+            originId = -1;
+        } else if (fieldType == ActiveField.DESTINATION) {
+            selectedRoomId = -1;
+        }
+    }
+
+    private void assignSelectedId(ActiveField fieldType, int id) {
+        if (fieldType == ActiveField.ORIGIN) {
+            originId = id;
+        } else if (fieldType == ActiveField.DESTINATION) {
+            selectedRoomId = id;
+        }
+    }
+
+    private boolean isWatcherSuppressed(ActiveField fieldType) {
+        return fieldType == ActiveField.ORIGIN ? suppressOriginWatcher : suppressDestinationWatcher;
+    }
+
+    @Nullable
+    private EditText getFieldInput(ActiveField fieldType) {
+        if (fieldType == ActiveField.ORIGIN) {
+            return etOrigin;
+        }
+        if (fieldType == ActiveField.DESTINATION) {
+            return etDestination;
+        }
+        return null;
+    }
+
+    @Nullable
+    private View getFieldContainer(ActiveField fieldType) {
+        if (fieldType == ActiveField.ORIGIN) {
+            return originFieldContainer;
+        }
+        if (fieldType == ActiveField.DESTINATION) {
+            return destinationFieldContainer;
+        }
+        return null;
+    }
+
+    @Nullable
+    private ImageButton getClearButton(ActiveField fieldType) {
+        if (fieldType == ActiveField.ORIGIN) {
+            return btnClearOrigin;
+        }
+        if (fieldType == ActiveField.DESTINATION) {
+            return btnClearDestination;
+        }
+        return null;
+    }
+
+    @Nullable
+    private View getResultsPanel(ActiveField fieldType) {
+        if (fieldType == ActiveField.ORIGIN) {
+            return originResults;
+        }
+        if (fieldType == ActiveField.DESTINATION) {
+            return destinationResults;
+        }
+        return null;
+    }
+
+    @NonNull
+    private ActiveField getOtherField(ActiveField fieldType) {
+        if (fieldType == ActiveField.ORIGIN) {
+            return ActiveField.DESTINATION;
+        }
+        if (fieldType == ActiveField.DESTINATION) {
+            return ActiveField.ORIGIN;
+        }
+        return ActiveField.NONE;
     }
 
     private void navigateToDirections(int roomId, int selectedOriginId) {
