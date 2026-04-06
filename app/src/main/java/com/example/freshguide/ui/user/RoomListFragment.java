@@ -31,9 +31,12 @@ import java.util.List;
 
 public class RoomListFragment extends Fragment {
 
+    public static final String KEY_MAP_FOCUS_REQUEST = "map_focus_request";
+
     private static final String PREFS_SEARCH = "room_search_state";
     private static final String KEY_RECENT_ROOM_IDS = "recent_room_ids";
     private static final int MAX_RECENT_ROOMS = 6;
+    private static final String BUILDING_MAIN = "MAIN";
 
     private RoomListViewModel viewModel;
     private RoomAdapter adapter;
@@ -78,10 +81,24 @@ public class RoomListFragment extends Fragment {
         NavController nav = Navigation.findNavController(view);
         adapter.setOnItemClickListener(room -> {
             saveRecentRoom(room.roomId);
-            Bundle args = new Bundle();
-            args.putInt("roomId", room.roomId);
-            args.putString("roomName", room.getDisplayName());
-            nav.navigate(R.id.action_roomList_to_roomDetail, args);
+            if (canOpenIndoorMap(room) && nav.getPreviousBackStackEntry() != null) {
+                Bundle focusRequest = new Bundle();
+                focusRequest.putInt("roomId", room.roomId);
+                focusRequest.putInt("floorNumber", room.floorNumber);
+                focusRequest.putString("roomName", room.getDisplayName());
+                focusRequest.putString("buildingCode", room.buildingCode);
+                focusRequest.putString("buildingName", room.buildingName);
+                focusRequest.putBoolean("fromSearch", true);
+                nav.getPreviousBackStackEntry()
+                        .getSavedStateHandle()
+                        .set(KEY_MAP_FOCUS_REQUEST, focusRequest);
+                nav.popBackStack();
+            } else {
+                Bundle args = new Bundle();
+                args.putInt("roomId", room.roomId);
+                args.putString("roomName", room.getDisplayName());
+                nav.navigate(R.id.action_roomList_to_roomDetail, args);
+            }
         });
         adapter.setOnActionClickListener(room -> {
             etSearch.setText(room.getDisplayName());
@@ -259,6 +276,13 @@ public class RoomListFragment extends Fragment {
 
     private void updateClearButtonVisibility(CharSequence text) {
         btnClear.setVisibility(text != null && text.length() > 0 ? View.VISIBLE : View.GONE);
+    }
+
+    private boolean canOpenIndoorMap(@Nullable RoomSearchResult room) {
+        return room != null
+                && room.floorNumber > 0
+                && room.buildingCode != null
+                && BUILDING_MAIN.equalsIgnoreCase(room.buildingCode.trim());
     }
 
     private void playEntranceAnimation(View root) {
