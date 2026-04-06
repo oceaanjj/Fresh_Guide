@@ -16,6 +16,8 @@
     <color name="background_subtle">#181818</color>
     <color name="background_card">#111111</color>
     <color name="input_background">#1A1A1A</color>
+    <color name="search_bar_background">#242424</color>
+    <color name="search_bar_stroke">#2F2F2F</color>
 
     <!-- Text Colors (Dark Mode) -->
     <color name="text_primary">#E6E6E6</color>
@@ -31,13 +33,18 @@
     <color name="green">#4CAF50</color>                   <!-- Alternative green -->
     <color name="orange_accent">#FF8A3D</color>           <!-- Slightly desaturated -->
     <color name="orange_text">#FFB74D</color>             <!-- Orange text -->
-    <color name="map_orange">#FFB74D</color>              <!-- Map accent -->
+    <color name="map_orange">#7C5827</color>              <!-- Map accent -->
 
     <!-- Border & Divider Colors (Dark Mode) -->
     <color name="border_default">#3A3A3A</color>
     <color name="border_subtle">#2E2E2E</color>
     <color name="divider">#2F2F2F</color>
     <color name="chip_border">#4CAF50</color>
+    <color name="floor_chip_selected_bg">#BCCCBD</color>
+    <color name="floor_chip_unselected_bg">#0D0D0D</color>
+    <color name="floor_chip_selected_text">#0D0D0D</color>
+    <color name="floor_chip_unselected_text">#BCCCBD</color>
+    <color name="floor_chip_stroke">#BCCCBD</color>
 
     <!-- Admin-Specific Colors (Dark Mode) -->
     <color name="admin_background">#181A1B</color>

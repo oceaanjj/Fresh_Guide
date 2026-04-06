@@ -35,6 +35,10 @@ import androidx.navigation.NavOptions;
             private TextView headerTitle;
             private View headerBar;
             private boolean isAdmin;
+            private static final long NAV_ITEM_PRESS_DURATION_MS = 55L;
+            private static final long NAV_ITEM_RECOVERY_DURATION_MS = 145L;
+            private Runnable pendingNavAction;
+            private View pendingNavActionView;
 
             @Override
             protected void onCreate(Bundle savedInstanceState) {
@@ -168,16 +172,16 @@ import androidx.navigation.NavOptions;
 
             private void setupCustomNav(View navHome, View navSchedule, View navSettings, View navProfile) {
                 if (navHome != null) {
-                    navHome.setOnClickListener(v -> navigateTo(R.id.homeFragment));
+                    navHome.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.homeFragment)));
                 }
                 if (navProfile != null) {
-                    navProfile.setOnClickListener(v -> navigateTo(R.id.profileFragment));
+                    navProfile.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.profileFragment)));
                 }
                 if (navSchedule != null) {
-                    navSchedule.setOnClickListener(v -> navigateTo(R.id.scheduleFragment));
+                    navSchedule.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.scheduleFragment)));
                 }
                 if (navSettings != null) {
-                    navSettings.setOnClickListener(v -> navigateTo(R.id.settingsFragment));
+                    navSettings.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.settingsFragment)));
                 }
             }
 
@@ -242,7 +246,98 @@ import androidx.navigation.NavOptions;
             private void navigateTo(@IdRes int destinationId) {
                 if (navController.getCurrentDestination() == null) return;
                 if (navController.getCurrentDestination().getId() == destinationId) return;
-                navController.navigate(destinationId);
+
+                int currentDestinationId = navController.getCurrentDestination().getId();
+                NavOptions navOptions = buildNavigationOptions(currentDestinationId, destinationId);
+                navController.navigate(destinationId, null, navOptions);
+            }
+
+            private void animateNavTap(View view, Runnable action) {
+                if (view == null) {
+                    action.run();
+                    return;
+                }
+
+                cancelPendingNavAction();
+
+                view.animate()
+                        .cancel();
+                view.setPivotX(view.getWidth() / 2f);
+                view.setPivotY(view.getHeight() / 2f);
+                view.animate()
+                        .scaleX(0.986f)
+                        .scaleY(0.986f)
+                        .alpha(0.975f)
+                        .setDuration(NAV_ITEM_PRESS_DURATION_MS)
+                        .withEndAction(() -> {
+                            view.animate()
+                                    .scaleX(1f)
+                                    .scaleY(1f)
+                                    .alpha(1f)
+                                    .setDuration(NAV_ITEM_RECOVERY_DURATION_MS)
+                                    .start();
+                        })
+                        .start();
+                action.run();
+            }
+
+            private void cancelPendingNavAction() {
+                if (pendingNavActionView != null && pendingNavAction != null) {
+                    pendingNavActionView.removeCallbacks(pendingNavAction);
+                }
+                pendingNavAction = null;
+                pendingNavActionView = null;
+            }
+
+            private NavOptions buildNavigationOptions(@IdRes int currentDestinationId, @IdRes int destinationId) {
+                NavOptions.Builder builder = new NavOptions.Builder()
+                        .setLaunchSingleTop(true);
+
+                if (isUserTopLevelDestination(currentDestinationId) && isUserTopLevelDestination(destinationId)) {
+                    boolean movingForward = getTopLevelIndex(destinationId) > getTopLevelIndex(currentDestinationId);
+                    int startDestinationId = navController.getGraph().getStartDestinationId();
+                    boolean navigatingHome = destinationId == R.id.homeFragment;
+                    builder
+                            .setEnterAnim(navigatingHome
+                                    ? R.anim.home_tab_enter_from_left
+                                    : (movingForward ? R.anim.tab_screen_enter_from_right : R.anim.tab_screen_enter_from_left))
+                            .setExitAnim(navigatingHome
+                                    ? R.anim.home_tab_exit_to_right
+                                    : (movingForward ? R.anim.tab_screen_exit_to_left : R.anim.tab_screen_exit_to_right))
+                            .setPopEnterAnim(navigatingHome
+                                    ? R.anim.home_tab_enter_from_left
+                                    : (movingForward ? R.anim.tab_screen_enter_from_left : R.anim.tab_screen_enter_from_right))
+                            .setPopExitAnim(navigatingHome
+                                    ? R.anim.home_tab_exit_to_right
+                                    : (movingForward ? R.anim.tab_screen_exit_to_right : R.anim.tab_screen_exit_to_left))
+                            .setRestoreState(true)
+                            .setPopUpTo(startDestinationId, false, true);
+                }
+
+                return builder.build();
+            }
+
+            private boolean isUserTopLevelDestination(@IdRes int destinationId) {
+                return destinationId == R.id.homeFragment
+                        || destinationId == R.id.scheduleFragment
+                        || destinationId == R.id.settingsFragment
+                        || destinationId == R.id.profileFragment;
+            }
+
+            private int getTopLevelIndex(@IdRes int destinationId) {
+                if (destinationId == R.id.homeFragment) {
+                    return 0;
+                }
+                if (destinationId == R.id.scheduleFragment) {
+                    return 1;
+                }
+                if (destinationId == R.id.settingsFragment) {
+                    return 2;
+                }
+                if (destinationId == R.id.profileFragment) {
+                    return 3;
+                }
+                return 0;
             }
 
             private void updateNavSelection(@IdRes int destinationId) {

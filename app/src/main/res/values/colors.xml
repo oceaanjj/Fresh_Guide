@@ -10,6 +10,8 @@
     <color name="background_subtle">#F5F5F5</color>       <!-- Subtle elevation -->
     <color name="background_card">#FFFFFF</color>         <!-- Card surfaces -->
     <color name="input_background">#F8F8F8</color>        <!-- Input fields -->
+    <color name="search_bar_background">#F4F4F4</color>
+    <color name="search_bar_stroke">#00000000</color>
 
     <!-- Text Colors (Light Mode) -->
     <color name="text_primary">#1C1B1F</color>
@@ -32,6 +34,11 @@
     <color name="border_subtle">#EEEEEE</color>
     <color name="divider">#E6E6E6</color>
     <color name="chip_border">#29A829</color>
+    <color name="floor_chip_selected_bg">#12770E</color>
+    <color name="floor_chip_unselected_bg">#FFFFFF</color>
+    <color name="floor_chip_selected_text">#E7FFE7</color>
+    <color name="floor_chip_unselected_text">#12770E</color>
+    <color name="floor_chip_stroke">#12770E</color>
 
     <!-- Admin-Specific Colors (Light Mode) -->
     <color name="admin_background">#F5F5F5</color>

@@ -1,7 +1,6 @@
 package com.example.freshguide.ui.user;
 
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.util.Log;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -13,6 +12,7 @@ import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,7 +22,9 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
@@ -42,6 +44,10 @@ import java.util.concurrent.Executors;
 
 public class HomeFragment extends Fragment {
 
+    private static final String KEY_PENDING_ROOM_ID = "roomId";
+    private static final String KEY_PENDING_FLOOR_NUMBER = "floorNumber";
+    private static final String KEY_PENDING_ROOM_NAME = "roomName";
+    private static final String KEY_PENDING_BUILDING_CODE = "buildingCode";
     private static final String CODE_MAIN = "MAIN";
     private static final String CODE_REG = "REG";
     private static final String CODE_LIB = "LIB";
@@ -74,6 +80,9 @@ public class HomeFragment extends Fragment {
     private View leftFade;
     private View rightFade;
     private View overallMapContainer;
+    private Integer pendingFocusedRoomId;
+    private Integer highlightedRoomId;
+    private String pendingFocusedRoomName;
 
     @Nullable
     @Override
@@ -103,13 +112,36 @@ public class HomeFragment extends Fragment {
         setupChipFade();
         setupFab(view);
         observeSync(view);
+        observeMapFocusRequests();
 
         viewModel.sync();
     }
 
     private void setupSearch(View view, NavController nav) {
-        view.findViewById(R.id.layout_search)
-                .setOnClickListener(v -> nav.navigate(R.id.action_home_to_roomList));
+        View searchBar = view.findViewById(R.id.layout_search);
+        searchBar.setOnClickListener(v -> {
+            NavOptions options = new NavOptions.Builder()
+                    .setEnterAnim(R.anim.search_screen_enter)
+                    .setExitAnim(R.anim.home_screen_exit)
+                    .setPopEnterAnim(R.anim.home_screen_reenter)
+                    .setPopExitAnim(R.anim.search_screen_exit)
+                    .build();
+
+            v.animate()
+                    .cancel();
+            v.animate()
+                    .scaleX(0.996f)
+                    .scaleY(0.996f)
+                    .alpha(0.985f)
+                    .setDuration(120)
+                    .withEndAction(() -> {
+                        v.setScaleX(1f);
+                        v.setScaleY(1f);
+                        v.setAlpha(1f);
+                        nav.navigate(R.id.action_home_to_roomList, null, options);
+                    })
+                    .start();
+        });
     }
 
     private void setupFloorChips(View view) {
@@ -121,7 +153,11 @@ public class HomeFragment extends Fragment {
 
         floorChips = new Chip[]{chip1, chip2, chip3, chip4, chip5};
 
-        int green = requireContext().getColor(R.color.green);
+        int selectedBg = ContextCompat.getColor(requireContext(), R.color.floor_chip_selected_bg);
+        int uncheckedBg = ContextCompat.getColor(requireContext(), R.color.floor_chip_unselected_bg);
+        int selectedText = ContextCompat.getColor(requireContext(), R.color.floor_chip_selected_text);
+        int uncheckedText = ContextCompat.getColor(requireContext(), R.color.floor_chip_unselected_text);
+        int stroke = ContextCompat.getColor(requireContext(), R.color.floor_chip_stroke);
 
         ColorStateList bgColors = new ColorStateList(
                 new int[][]{
@@ -129,8 +165,8 @@ public class HomeFragment extends Fragment {
                         new int[]{}
                 },
                 new int[]{
-                        green,
-                        ContextCompat.getColor(requireContext(), R.color.background_default)
+                        selectedBg,
+                        uncheckedBg
                 }
         );
 
@@ -140,8 +176,8 @@ public class HomeFragment extends Fragment {
                         new int[]{}
                 },
                 new int[]{
-                        Color.WHITE,
-                        green
+                        selectedText,
+                        uncheckedText
                 }
         );
 
@@ -150,7 +186,8 @@ public class HomeFragment extends Fragment {
             chip.setCheckedIconVisible(false);
             chip.setChipBackgroundColor(bgColors);
             chip.setTextColor(textColors);
-            chip.setChipStrokeColor(ColorStateList.valueOf(green));
+            chip.setChipStrokeColor(ColorStateList.valueOf(stroke));
+            chip.setChipStrokeWidth(getResources().getDisplayMetrics().density * 0.5f);
         }
 
         chip1.setOnClickListener(v -> handleFloorChipClick(chip1, 1, floorChips));
@@ -181,6 +218,8 @@ public class HomeFragment extends Fragment {
     }
 
     private void showOverallMap() {
+        clearRoomHighlight();
+
         if (overallMapContainer != null) {
             overallMapContainer.setVisibility(View.VISIBLE);
         }
@@ -222,6 +261,13 @@ public class HomeFragment extends Fragment {
 
             if (layoutResId != 0) {
                 LayoutInflater.from(requireContext()).inflate(layoutResId, floorMapContainer, true);
+                floorMapContainer.setAlpha(0f);
+                floorMapContainer.setTranslationY(10f);
+                floorMapContainer.animate()
+                        .alpha(1f)
+                        .translationY(0f)
+                        .setDuration(220L)
+                        .start();
                 bindFloorData(floor);
             }
         }
@@ -326,7 +372,7 @@ public class HomeFragment extends Fragment {
 
                 if (targetFloor == null) {
                     Log.w(TAG, "No floor entity found for floorNumber=" + floorNumber);
-                    runOnUiThreadSafely(() -> clearFloorRoomViews());
+                    runOnUiThreadSafely(this::clearFloorRoomViews);
                     return;
                 }
 
@@ -408,18 +454,12 @@ public class HomeFragment extends Fragment {
                 });
                 roomBox.setOnClickListener(v -> {
                     Log.d(TAG, "Room clicked id=" + room.id + " code=" + room.code + " name=" + room.name);
-                    Bundle args = new Bundle();
-                    args.putInt("roomId", room.id);
-                    args.putString("roomName", getRoomDisplayName(room));
-                    try {
-                        navController.navigate(R.id.action_home_to_roomDetail, args);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed to open room detail", e);
-                        if (isAdded()) {
-                            Toast.makeText(requireContext(), "Unable to open room details", Toast.LENGTH_SHORT).show();
-                        }
-                    }
+                    openRoomOnMap(room, roomBox, false);
                 });
+
+                if (pendingFocusedRoomId != null && pendingFocusedRoomId == room.id) {
+                    openRoomOnMap(room, roomBox, true);
+                }
             } else {
                 Log.w(TAG, "Room view not found for index=" + i);
             }
@@ -441,8 +481,13 @@ public class HomeFragment extends Fragment {
                 roomBox.setClickable(false);
                 roomBox.setFocusable(false);
                 roomBox.setOnTouchListener(null);
+                roomBox.setScaleX(1f);
+                roomBox.setScaleY(1f);
+                roomBox.setTranslationZ(0f);
+                applyRoomHighlightState(roomBox, false);
             }
         }
+        highlightedRoomId = null;
     }
 
     private String getRoomDisplayName(RoomEntity room) {
@@ -542,6 +587,138 @@ public class HomeFragment extends Fragment {
                 Snackbar.make(view, "Sync failed: " + err, Snackbar.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void observeMapFocusRequests() {
+        NavController navController = NavHostFragment.findNavController(this);
+        navController.getCurrentBackStackEntry()
+                .getSavedStateHandle()
+                .<Bundle>getLiveData(RoomListFragment.KEY_MAP_FOCUS_REQUEST)
+                .observe(getViewLifecycleOwner(), request -> {
+                    if (request == null || !isAdded()) {
+                        return;
+                    }
+
+                    navController.getCurrentBackStackEntry()
+                            .getSavedStateHandle()
+                            .remove(RoomListFragment.KEY_MAP_FOCUS_REQUEST);
+
+                    String buildingCode = request.getString(KEY_PENDING_BUILDING_CODE, "");
+                    int floorNumber = request.getInt(KEY_PENDING_FLOOR_NUMBER, -1);
+                    int roomId = request.getInt(KEY_PENDING_ROOM_ID, -1);
+                    if (!CODE_MAIN.equalsIgnoreCase(buildingCode) || floorNumber <= 0 || roomId <= 0) {
+                        return;
+                    }
+
+                    pendingFocusedRoomId = roomId;
+                    pendingFocusedRoomName = request.getString(KEY_PENDING_ROOM_NAME, "Room");
+                    selectedFloor = floorNumber;
+                    updateSelectedFloorChip(floorNumber);
+                    showFloorMap(floorNumber);
+                });
+    }
+
+    private void updateSelectedFloorChip(int floorNumber) {
+        if (floorChips == null) {
+            return;
+        }
+        for (int i = 0; i < floorChips.length; i++) {
+            floorChips[i].setChecked((i + 1) == floorNumber);
+        }
+    }
+
+    private void openRoomOnMap(@NonNull RoomEntity room, @NonNull View roomBox, boolean animateCentering) {
+        clearRoomHighlight();
+        highlightedRoomId = room.id;
+        applyRoomHighlightState(roomBox, true);
+        roomBox.animate()
+                .scaleX(1.03f)
+                .scaleY(1.03f)
+                .setDuration(140L)
+                .withEndAction(() -> roomBox.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(120L)
+                        .start())
+                .start();
+
+        if (animateCentering) {
+            centerRoomInFloorMap(roomBox);
+        }
+
+        pendingFocusedRoomId = null;
+        pendingFocusedRoomName = null;
+        openRoomDetailSheet(room.id, getRoomDisplayName(room));
+    }
+
+    private void openRoomDetailSheet(int roomId, String roomName) {
+        Bundle args = new Bundle();
+        args.putInt("roomId", roomId);
+        args.putString("roomName", roomName);
+        try {
+            NavHostFragment.findNavController(this).navigate(R.id.action_home_to_roomDetail, args);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to open room detail", e);
+            if (isAdded()) {
+                Toast.makeText(requireContext(), "Unable to open room details", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void centerRoomInFloorMap(@NonNull View roomBox) {
+        View parent = (View) roomBox.getParent();
+        while (parent != null && !(parent instanceof ScrollView) && parent.getParent() instanceof View) {
+            parent = (View) parent.getParent();
+        }
+
+        if (parent instanceof ScrollView) {
+            ScrollView scrollView = (ScrollView) parent;
+            scrollView.post(() -> {
+                int targetY = roomBox.getTop() - (scrollView.getHeight() / 2) + (roomBox.getHeight() / 2);
+                scrollView.smoothScrollTo(0, Math.max(targetY, 0));
+            });
+        }
+    }
+
+    private void clearRoomHighlight() {
+        if (floorMapContainer == null) {
+            highlightedRoomId = null;
+            return;
+        }
+
+        for (int roomBoxId : ROOM_BOX_IDS) {
+            View roomBox = floorMapContainer.findViewById(roomBoxId);
+            if (roomBox != null) {
+                applyRoomHighlightState(roomBox, false);
+            }
+        }
+        highlightedRoomId = null;
+    }
+
+    private void applyRoomHighlightState(@NonNull View roomBox, boolean highlighted) {
+        View pin = roomBox.findViewById(R.id.room_pin);
+        boolean isLeftRoom = roomBox.getId() == R.id.room_left_1
+                || roomBox.getId() == R.id.room_left_2
+                || roomBox.getId() == R.id.room_left_3
+                || roomBox.getId() == R.id.room_left_4
+                || roomBox.getId() == R.id.room_left_5;
+
+        roomBox.setBackgroundResource(highlighted
+                ? (isLeftRoom ? R.drawable.bg_room_classroom_right_door_selected
+                : R.drawable.bg_room_classroom_left_door_selected)
+                : (isLeftRoom ? R.drawable.bg_room_classroom_right_door
+                : R.drawable.bg_room_classroom_left_door));
+        roomBox.setTranslationZ(highlighted ? 8f : 0f);
+
+        TextView label = roomBox.findViewById(R.id.room_label);
+        if (label != null) {
+            label.setTextColor(ContextCompat.getColor(requireContext(),
+                    highlighted ? R.color.green_primary : R.color.floor_room_label));
+        }
+
+        if (pin != null) {
+            pin.setVisibility(highlighted ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void runOnUiThreadSafely(Runnable task) {
