@@ -266,10 +266,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         String originText = textOf(etOrigin);
         String destinationText = textOf(etDestination);
 
-        int directOriginId = resolveOriginId(originText);
-        int directRoomId = resolveRoomId(destinationText);
-        int swappedRoomId = resolveRoomId(originText);
-        int swappedOriginId = resolveOriginId(destinationText);
+        int directOriginId = originId != -1 ? originId : resolveOriginId(originText);
+        int directRoomId = selectedRoomId != -1 ? selectedRoomId : resolveRoomId(destinationText);
+        int swappedRoomId = selectedRoomId != -1 ? selectedRoomId : resolveRoomId(originText);
+        int swappedOriginId = originId != -1 ? originId : resolveOriginId(destinationText);
 
         int routeOriginId = -1;
         int routeRoomId = -1;
@@ -775,17 +775,33 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         target.setEnabled(visible);
     }
 
+    private void autoResolveSelection(@NonNull ActiveField fieldType) {
+        if (fieldType == ActiveField.ORIGIN) {
+            originId = resolveOriginId(textOf(etOrigin));
+        } else if (fieldType == ActiveField.DESTINATION) {
+            selectedRoomId = resolveRoomId(textOf(etDestination));
+        }
+    }
+
     private int resolveOriginId(@Nullable String value) {
         String normalized = normalizeValue(value);
         if (normalized.isEmpty()) {
             return -1;
         }
+        int fuzzyMatch = -1;
+        int fuzzyCount = 0;
         for (OriginEntity origin : allOrigins) {
             if (matchesExact(normalized, origin.name, origin.code, origin.description)) {
                 return origin.id;
             }
+            if (matches(normalized, origin.name, origin.code, origin.description)) {
+                fuzzyCount++;
+            }
+            if (fuzzyMatch == -1 && matches(normalized, origin.name, origin.code, origin.description)) {
+                fuzzyMatch = origin.id;
+            }
         }
-        return -1;
+        return fuzzyCount == 1 ? fuzzyMatch : -1;
     }
 
     private int resolveRoomId(@Nullable String value) {
@@ -793,12 +809,20 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         if (normalized.isEmpty()) {
             return -1;
         }
+        int fuzzyMatch = -1;
+        int fuzzyCount = 0;
         for (RoomEntity room : allRooms) {
             if (matchesExact(normalized, room.name, room.code, room.location)) {
                 return room.id;
             }
+            if (matches(normalized, room.name, room.code, room.location)) {
+                fuzzyCount++;
+            }
+            if (fuzzyMatch == -1 && matches(normalized, room.name, room.code, room.location)) {
+                fuzzyMatch = room.id;
+            }
         }
-        return -1;
+        return fuzzyCount == 1 ? fuzzyMatch : -1;
     }
 
     private boolean matches(String query, String... values) {
@@ -905,6 +929,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         if (isClosingDropdown) return;
         activeField = fieldType;
         clearSelectedId(fieldType);
+        autoResolveSelection(fieldType);
         clearRouteFeedback(false);
         updateClearButtons();
         updateSuggestionList();
