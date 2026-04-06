@@ -16,6 +16,8 @@
     <color name="background_subtle">#181818</color>
     <color name="background_card">#111111</color>
     <color name="input_background">#1A1A1A</color>
+    <color name="search_bar_background">#242424</color>
+    <color name="search_bar_stroke">#2F2F2F</color>
 
     <!-- Text Colors (Dark Mode) -->
     <color name="text_primary">#E6E6E6</color>

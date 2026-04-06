@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 
 import com.example.freshguide.R;
@@ -107,8 +108,30 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupSearch(View view, NavController nav) {
-        view.findViewById(R.id.layout_search)
-                .setOnClickListener(v -> nav.navigate(R.id.action_home_to_roomList));
+        View searchBar = view.findViewById(R.id.layout_search);
+        searchBar.setOnClickListener(v -> {
+            NavOptions options = new NavOptions.Builder()
+                    .setEnterAnim(R.anim.search_screen_enter)
+                    .setExitAnim(R.anim.home_screen_exit)
+                    .setPopEnterAnim(R.anim.home_screen_reenter)
+                    .setPopExitAnim(R.anim.search_screen_exit)
+                    .build();
+
+            v.animate()
+                    .cancel();
+            v.animate()
+                    .scaleX(0.996f)
+                    .scaleY(0.996f)
+                    .alpha(0.985f)
+                    .setDuration(120)
+                    .withEndAction(() -> {
+                        v.setScaleX(1f);
+                        v.setScaleY(1f);
+                        v.setAlpha(1f);
+                        nav.navigate(R.id.action_home_to_roomList, null, options);
+                    })
+                    .start();
+        });
     }
 
     private void setupFloorChips(View view) {

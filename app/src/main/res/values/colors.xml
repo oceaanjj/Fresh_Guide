@@ -10,6 +10,8 @@
     <color name="background_subtle">#F5F5F5</color>       <!-- Subtle elevation -->
     <color name="background_card">#FFFFFF</color>         <!-- Card surfaces -->
     <color name="input_background">#F8F8F8</color>        <!-- Input fields -->
+    <color name="search_bar_background">#F4F4F4</color>
+    <color name="search_bar_stroke">#00000000</color>
 
     <!-- Text Colors (Light Mode) -->
     <color name="text_primary">#1C1B1F</color>

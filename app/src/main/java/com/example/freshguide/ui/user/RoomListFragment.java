@@ -88,12 +88,27 @@ public class RoomListFragment extends Fragment {
             etSearch.setSelection(etSearch.getText().length());
         });
 
-        view.findViewById(R.id.btn_back).setOnClickListener(v -> nav.navigateUp());
+        view.findViewById(R.id.btn_back).setOnClickListener(v -> {
+            v.animate().cancel();
+            v.animate()
+                    .alpha(0.9f)
+                    .scaleX(0.96f)
+                    .scaleY(0.96f)
+                    .setDuration(90)
+                    .withEndAction(() -> {
+                        v.setAlpha(1f);
+                        v.setScaleX(1f);
+                        v.setScaleY(1f);
+                        nav.navigateUp();
+                    })
+                    .start();
+        });
         btnClear.setOnClickListener(v -> etSearch.setText(""));
         btnClearHistory.setOnClickListener(v -> {
             clearRecentRooms();
             renderState();
         });
+        playEntranceAnimation(view);
 
         Bundle args = getArguments();
         if (args != null) {
@@ -244,5 +259,46 @@ public class RoomListFragment extends Fragment {
 
     private void updateClearButtonVisibility(CharSequence text) {
         btnClear.setVisibility(text != null && text.length() > 0 ? View.VISIBLE : View.GONE);
+    }
+
+    private void playEntranceAnimation(View root) {
+        View searchBar = root.findViewById(R.id.search_bar_container);
+
+        searchBar.setAlpha(0f);
+        searchBar.setTranslationY(-3f);
+        searchBar.setScaleX(0.996f);
+        searchBar.setScaleY(0.996f);
+        searchBar.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(320)
+                .start();
+
+        recyclerView.setAlpha(0f);
+        recyclerView.setTranslationY(4f);
+        recyclerView.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setStartDelay(70)
+                .setDuration(280)
+                .start();
+
+        sectionHeader.setAlpha(0f);
+        sectionHeader.setTranslationY(2f);
+        sectionHeader.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setStartDelay(45)
+                .setDuration(260)
+                .start();
+
+        emptyState.setAlpha(0f);
+        emptyState.animate()
+                .alpha(1f)
+                .setStartDelay(70)
+                .setDuration(280)
+                .start();
     }
 }
