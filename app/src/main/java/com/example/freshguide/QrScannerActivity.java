@@ -282,6 +282,7 @@ public class QrScannerActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
+    @androidx.camera.core.ExperimentalGetImage
     private void bindCameraUseCases() {
         if (cameraProvider == null) return;
 

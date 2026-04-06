@@ -300,7 +300,7 @@
                         android:layout_marginEnd="14dp"
                         android:contentDescription="Clear room search"
                         android:src="@android:drawable/ic_menu_close_clear_cancel"
-                        android:tint="@color/text_hint"
+                        app:tint="@color/text_hint"
                         android:visibility="gone" />
                 </FrameLayout>
 
@@ -383,7 +383,7 @@
                     android:contentDescription="Add another schedule"
                     android:padding="8dp"
                     android:src="@drawable/ic_schedule_add"
-                    android:tint="@color/green_dark" />
+                    app:tint="@color/green_dark" />
             </FrameLayout>
 
             <TextView

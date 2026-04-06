@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Suppress experimental Camera API warnings - these are intentionally used -->
+    <issue id="UnsafeOptInUsageError" severity="warning" />
+
+    <!-- Suppress ContentDescription warnings for decorative images -->
+    <issue id="ContentDescription" severity="warning" />
+</lint>

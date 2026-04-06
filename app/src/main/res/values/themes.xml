@@ -22,7 +22,6 @@
         <item name="android:statusBarColor">@color/background_default</item>
         <item name="android:navigationBarColor">@color/background_default</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
     </style>
 
     <style name="Theme.FreshGuide" parent="Base.Theme.FreshGuide" />

@@ -2,6 +2,7 @@ package com.example.freshguide.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
@@ -51,8 +52,12 @@ public class SessionManager {
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             );
         } catch (GeneralSecurityException | IOException e) {
-            // Fallback to plain prefs if encryption fails (should not happen on normal devices)
-            temp = context.getSharedPreferences(PREFS_FILE + "_plain", Context.MODE_PRIVATE);
+            Log.e("SessionManager", "EncryptedSharedPreferences initialization failed. Secure storage unavailable.", e);
+            // Clear any existing plaintext preferences for security
+            SharedPreferences plainPrefs = context.getSharedPreferences(PREFS_FILE + "_plain", Context.MODE_PRIVATE);
+            plainPrefs.edit().clear().apply();
+
+            throw new SecurityException("Secure storage unavailable. Please reinstall the app or contact support.", e);
         }
         prefs = temp;
     }

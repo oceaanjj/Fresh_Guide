@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Dark Theme -->
+    <!-- Dark Theme for API 27+ -->
     <style name="Base.Theme.FreshGuide" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary colors -->
         <item name="colorPrimary">@color/green_primary</item>
@@ -26,13 +26,6 @@
         <item name="android:statusBarColor">@color/background_default</item>
         <item name="android:navigationBarColor">@color/background_default</item>
         <item name="android:windowLightStatusBar">false</item>
-    </style>
-
-    <style name="Theme.FreshGuide" parent="Base.Theme.FreshGuide" />
-
-    <style name="Theme.FreshGuide.Splash" parent="Base.Theme.FreshGuide">
-        <item name="android:windowBackground">@color/background_default</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 </resources>

@@ -21,7 +21,9 @@ public class ApiClient {
         SessionManager session = SessionManager.getInstance(context);
 
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+        logging.setLevel(BuildConfig.DEBUG
+            ? HttpLoggingInterceptor.Level.BODY
+            : HttpLoggingInterceptor.Level.NONE);
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new AuthInterceptor(session))

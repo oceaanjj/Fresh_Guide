@@ -79,7 +79,7 @@
                     android:contentDescription="Change photo"
                     android:padding="10dp"
                     android:src="@drawable/ic_camera"
-                    android:tint="@android:color/white" />
+                    app:tint="@android:color/white" />
             </FrameLayout>
 
             <TextView

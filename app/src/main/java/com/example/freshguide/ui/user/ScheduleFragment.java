@@ -272,6 +272,14 @@ public class ScheduleFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Clean up all handler callbacks to prevent memory leaks
+        summaryRefreshHandler.removeCallbacksAndMessages(null);
+        unregisterScheduleNetworkCallback();
+    }
+
     private void hideScheduleContentUntilResolved() {
         if (cardSummary != null) {
             cardSummary.setVisibility(View.INVISIBLE);

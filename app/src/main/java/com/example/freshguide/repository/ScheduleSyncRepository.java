@@ -3,6 +3,7 @@ package com.example.freshguide.repository;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
@@ -33,6 +34,8 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 public class ScheduleSyncRepository {
+
+    private static final String TAG = "ScheduleSyncRepository";
 
     public interface RoomsCallback {
         void onResult(List<RoomEntity> rooms);
@@ -195,8 +198,9 @@ public class ScheduleSyncRepository {
                         if (isSuccess(response) || response.code() == 404) {
                             db.scheduleDao().delete(entry);
                         }
-                    } catch (Exception ignored) {
-                        // keep pending
+                    } catch (Exception e) {
+                        Log.w(TAG, "Failed to delete schedule remotely: " + entry.id, e);
+                        // keep pending for retry
                     }
                 } else {
                     db.scheduleDao().delete(entry);
@@ -219,7 +223,8 @@ public class ScheduleSyncRepository {
                         upsertFromRemote(ownerKey, response.body().getData(), true);
                     }
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to sync schedule entry: " + entry.id, e);
                 // keep dirty and retry later
             }
         }
