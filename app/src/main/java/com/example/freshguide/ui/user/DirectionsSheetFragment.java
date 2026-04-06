@@ -202,13 +202,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void setupInputs() {
-        // -----------------------------------------------------------------------
-        // FIX: sheetRoot must be focusable in touch mode so that requestFocus()
-        // on it actually wins the focus race when we clear field focus.
-        // Without this, Android's default focus traversal hands focus back to one
-        // of the EditTexts, which re-triggers handleFieldFocusChanged(true) and
-        // re-opens the dropdown.
-        // -----------------------------------------------------------------------
+
         if (sheetRoot != null) {
             sheetRoot.setFocusable(true);
             sheetRoot.setFocusableInTouchMode(true);
@@ -223,76 +217,41 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             return false;
         });
 
-        // -----------------------------------------------------------------------
-        // FIX: Remove the empty click listeners on originResults / destinationResults.
-        // Those empty lambdas marked the panels as clickable even when GONE,
-        // which meant the touch-slop system could treat them as hit targets in
-        // z-order even after setVisibility(GONE).  We handle panel-interior
-        // touches via the RecyclerView items themselves; the scrim handles
-        // everything outside.  If you still need to stop scrim clicks from
-        // leaking through the panel while it is VISIBLE, set clickable=true via
-        // setDropdownVisibility() — which already does that — instead of a
-        // static empty listener.
-        // -----------------------------------------------------------------------
 
         bindFieldInteractions(ActiveField.ORIGIN);
         bindFieldInteractions(ActiveField.DESTINATION);
     }
 
-    // ---------------------------------------------------------------------------
-    // FIX: Central suggestion-pick handler.
-    //
-    // Original order:                   Fixed order:
-    //   applySuggestionSelection()        1. Set activeField = NONE immediately
-    //   closeDropdown()                   2. Apply selection (sets text, suppressed watcher)
-    //   updateClearButtons()              3. Force-hide all panels and scrim
-    //   updateSuggestionList()  ← re-showed dropdown via showActiveResults()
-    //   updateStartState()                4. Clear focus with guard flag ON
-    //                                     5. updateClearButtons / updateStartState
-    //                                     (NO updateSuggestionList call here –
-    //                                      it would call showActiveResults which
-    //                                      could re-show if focus was still live)
-    // ---------------------------------------------------------------------------
     private void onSuggestionPicked(DirectionSearchAdapter.SuggestionItem item) {
-        // 1. Lock state before any focus side-effects.
+
         activeField = ActiveField.NONE;
         dropdownVisible = false;
 
-        // 2. Apply selection (text watcher suppressed internally).
+
         if (item.isOrigin) {
             applySuggestionSelection(ActiveField.ORIGIN, item.id, item.title);
         } else {
             applySuggestionSelection(ActiveField.DESTINATION, item.id, item.title);
         }
 
-        // 3. Hide all dropdown UI immediately, before touching focus.
+
         forceHideAllDropdowns();
 
-        // 4. Strip focus from both fields under the guard flag so that
-        //    handleFieldFocusChanged cannot re-open the dropdown.
+
         clearAllFieldFocus();
 
-        // 5. Housekeeping — no updateSuggestionList() here.
+
         updateClearButtons();
         updateStartState();
     }
 
-    // ---------------------------------------------------------------------------
-    // FIX: Hard-hide every dropdown panel and the scrim unconditionally.
-    // Called before we manipulate focus so there is no visual flicker.
-    // ---------------------------------------------------------------------------
+
     private void forceHideAllDropdowns() {
         setDropdownVisibility(originResults, false);
         setDropdownVisibility(destinationResults, false);
         setDropdownVisibility(resultsScrim, false);
     }
 
-    // ---------------------------------------------------------------------------
-    // FIX: Clear focus under the isClosingDropdown guard so that
-    // handleFieldFocusChanged() becomes a no-op during teardown.
-    // sheetRoot.requestFocus() is called AFTER both clearFocus() calls so that
-    // Android's traversal cannot sneak focus back into an EditText in between.
-    // ---------------------------------------------------------------------------
     private void clearAllFieldFocus() {
         isClosingDropdown = true;
         try {
@@ -401,10 +360,6 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private void showActiveResults() {
         if (originResults == null || destinationResults == null) return;
 
-        // -----------------------------------------------------------------------
-        // FIX: Never show results while we are closing the dropdown, regardless
-        // of what hasFocus() reports at this instant.
-        // -----------------------------------------------------------------------
         if (isClosingDropdown) {
             return;
         }
@@ -452,9 +407,6 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             return;
         }
 
-        // -----------------------------------------------------------------------
-        // FIX: Do not react to focus requests while the dropdown is being closed.
-        // -----------------------------------------------------------------------
         if (isClosingDropdown) return;
 
         EditText field = getFieldInput(fieldType);
@@ -622,13 +574,6 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void handleFieldFocusChanged(ActiveField fieldType, boolean hasFocus) {
-        // -----------------------------------------------------------------------
-        // FIX: If we are in the middle of programmatically closing the dropdown,
-        // do not let focus events re-open it.  This is the primary guard that
-        // stops Android's focus traversal from handing focus back to an EditText
-        // between our two clearFocus() calls, which previously caused the panel
-        // to re-appear.
-        // -----------------------------------------------------------------------
         if (isClosingDropdown) return;
 
         if (hasFocus) {
