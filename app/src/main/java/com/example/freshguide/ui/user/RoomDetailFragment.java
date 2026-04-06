@@ -55,6 +55,9 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
     private RoomImageGalleryAdapter galleryAdapter;
     private View galleryFadeLeft;
     private View galleryFadeRight;
+    private View singleImageCard;
+    private ImageView singleImageView;
+    private TextView singleImagePlaceholder;
 
     @Override
     public int getTheme() {
@@ -80,6 +83,7 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
             View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (sheet != null) {
                 sheet.setBackgroundResource(R.drawable.bg_room_detail_sheet);
+                sheet.setElevation(dpToPx(22));
                 BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(sheet);
                 ViewGroup.LayoutParams params = sheet.getLayoutParams();
                 if (params != null) {
@@ -118,6 +122,9 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         RecyclerView galleryRecycler = view.findViewById(R.id.recycler_room_gallery);
         galleryFadeLeft = view.findViewById(R.id.gallery_fade_left);
         galleryFadeRight = view.findViewById(R.id.gallery_fade_right);
+        singleImageCard = view.findViewById(R.id.single_image_card);
+        singleImageView = view.findViewById(R.id.iv_room_image);
+        singleImagePlaceholder = view.findViewById(R.id.tv_image_placeholder);
         NavController nav = NavHostFragment.findNavController(this);
 
         galleryAdapter = new RoomImageGalleryAdapter();
@@ -221,15 +228,14 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
     private void loadRoomImages(String cachedImagePath, String imageUrl, RecyclerView galleryRecycler) {
         List<RoomImageGalleryAdapter.GalleryItem> placeholders = new ArrayList<>();
         placeholders.add(new RoomImageGalleryAdapter.GalleryItem(null, "No room image"));
-        galleryAdapter.submitList(placeholders);
-        updateGalleryFades(galleryRecycler);
+        showSingleImage(null);
 
         if (cachedImagePath != null && !cachedImagePath.trim().isEmpty()) {
             File cachedFile = new File(cachedImagePath);
             if (cachedFile.exists()) {
                 Bitmap cachedBitmap = BitmapFactory.decodeFile(cachedFile.getAbsolutePath());
                 if (cachedBitmap != null) {
-                    submitGalleryBitmaps(buildGalleryItems(cachedBitmap), galleryRecycler);
+                    showSingleImage(cachedBitmap);
                     return;
                 }
             }
@@ -294,26 +300,34 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
                 if (latestImageUrl == null || !latestImageUrl.equals(imageUrl)) return;
 
                 if (finalBitmap != null) {
-                    submitGalleryBitmaps(buildGalleryItems(finalBitmap), galleryRecycler);
+                    showSingleImage(finalBitmap);
                 } else {
-                    List<RoomImageGalleryAdapter.GalleryItem> emptyItems = new ArrayList<>();
-                    emptyItems.add(new RoomImageGalleryAdapter.GalleryItem(null, "No room image"));
-                    galleryAdapter.submitList(emptyItems);
-                    updateGalleryFades(galleryRecycler);
+                    showSingleImage(null);
                 }
             });
         });
     }
 
-    private List<RoomImageGalleryAdapter.GalleryItem> buildGalleryItems(@NonNull Bitmap bitmap) {
-        List<RoomImageGalleryAdapter.GalleryItem> items = new ArrayList<>();
-        items.add(new RoomImageGalleryAdapter.GalleryItem(bitmap, null));
-        return items;
-    }
-
-    private void submitGalleryBitmaps(List<RoomImageGalleryAdapter.GalleryItem> items, RecyclerView galleryRecycler) {
-        galleryAdapter.submitList(items);
-        galleryRecycler.post(() -> updateGalleryFades(galleryRecycler));
+    private void showSingleImage(@Nullable Bitmap bitmap) {
+        if (singleImageCard == null || singleImageView == null || singleImagePlaceholder == null) {
+            return;
+        }
+        singleImageCard.setVisibility(View.VISIBLE);
+        if (bitmap != null) {
+            singleImageView.setImageBitmap(bitmap);
+            singleImageView.setVisibility(View.VISIBLE);
+            singleImagePlaceholder.setVisibility(View.GONE);
+        } else {
+            singleImageView.setImageDrawable(null);
+            singleImageView.setVisibility(View.VISIBLE);
+            singleImagePlaceholder.setVisibility(View.VISIBLE);
+        }
+        if (galleryFadeLeft != null) {
+            galleryFadeLeft.setVisibility(View.GONE);
+        }
+        if (galleryFadeRight != null) {
+            galleryFadeRight.setVisibility(View.GONE);
+        }
     }
 
     private void updateGalleryFades(@NonNull RecyclerView galleryRecycler) {

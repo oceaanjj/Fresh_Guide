@@ -47,6 +47,25 @@ public class RoomImageGalleryAdapter extends RecyclerView.Adapter<RoomImageGalle
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        ViewGroup.LayoutParams layoutParams = holder.itemView.getLayoutParams();
+        View parent = (View) holder.itemView.getParent();
+        if (layoutParams instanceof RecyclerView.LayoutParams && parent != null && parent.getWidth() > 0) {
+            RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) layoutParams;
+            if (items.size() <= 1) {
+                params.width = parent.getWidth() - holder.itemView.getContext()
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.room_gallery_single_spacing);
+                params.rightMargin = 0;
+            } else {
+                params.width = holder.itemView.getContext()
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.room_gallery_card_width);
+                params.rightMargin = holder.itemView.getContext()
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.room_gallery_card_spacing);
+            }
+            holder.itemView.setLayoutParams(params);
+        }
         holder.bind(items.get(position));
     }
 

@@ -40,7 +40,7 @@
                     android:id="@+id/tv_room_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/instrument_regular"
+                    android:fontFamily="@font/inter_medium"
                     android:textColor="@color/room_detail_heading"
                     android:textSize="21sp"
                     android:textStyle="bold" />
@@ -104,10 +104,35 @@
             app:strokeWidth="1dp" />
 
         <FrameLayout
-            android:id="@+id/gallery_container"
+            android:id="@+id/image_card"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:layout_marginTop="20dp">
+
+            <FrameLayout
+                android:id="@+id/single_image_card"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_room_media_placeholder"
+                android:clipToOutline="true">
+
+                <ImageView
+                    android:id="@+id/iv_room_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Room image"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    android:id="@+id/tv_image_placeholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fontFamily="@font/inter_regular"
+                    android:gravity="center"
+                    android:text="No room image"
+                    android:textColor="@color/room_detail_placeholder"
+                    android:textSize="14sp" />
+            </FrameLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler_room_gallery"
@@ -116,7 +141,8 @@
                 android:clipToPadding="false"
                 android:overScrollMode="never"
                 android:paddingStart="4dp"
-                android:paddingEnd="4dp" />
+                android:paddingEnd="4dp"
+                android:visibility="gone" />
 
             <View
                 android:id="@+id/gallery_fade_left"
@@ -138,7 +164,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:fontFamily="@font/instrument_regular"
+            android:fontFamily="@font/inter_medium"
             android:text="Description"
             android:textColor="@color/room_detail_heading"
             android:textSize="19sp"

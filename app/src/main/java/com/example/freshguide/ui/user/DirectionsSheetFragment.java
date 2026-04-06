@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -48,14 +48,19 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private final List<OriginEntity> allOrigins = new ArrayList<>();
     private final List<RoomEntity> allRooms = new ArrayList<>();
 
-    private DirectionSearchAdapter searchAdapter;
+    private DirectionSearchAdapter originAdapter;
+    private DirectionSearchAdapter destinationAdapter;
 
     private EditText etOrigin;
     private EditText etDestination;
     private ImageButton btnClearOrigin;
     private ImageButton btnClearDestination;
-    private TextView tvSearchContext;
-    private TextView tvRoomsEmpty;
+    private LinearLayout originResults;
+    private LinearLayout destinationResults;
+    private RecyclerView originRecycler;
+    private RecyclerView destinationRecycler;
+    private View originEmpty;
+    private View destinationEmpty;
     private MaterialButton btnStart;
 
     private int originId = -1;
@@ -84,14 +89,36 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             }
             View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (sheet != null) {
+                ViewGroup.LayoutParams params = sheet.getLayoutParams();
+                if (params != null) {
+                    params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                    sheet.setLayoutParams(params);
+                }
+                sheet.setElevation(dpToPx(22));
                 BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(sheet);
                 behavior.setFitToContents(false);
-                behavior.setExpandedOffset(dpToPx(18));
-                behavior.setHalfExpandedRatio(0.62f);
+                behavior.setExpandedOffset(dpToPx(12));
+                behavior.setHalfExpandedRatio(0.56f);
                 behavior.setSkipCollapsed(true);
                 behavior.setHideable(false);
                 behavior.setDraggable(true);
                 behavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                    @Override
+                    public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                        if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                            setResultPanelHeight(dpToPx(280));
+                        } else if (newState == BottomSheetBehavior.STATE_HALF_EXPANDED
+                                || newState == BottomSheetBehavior.STATE_COLLAPSED
+                                || newState == BottomSheetBehavior.STATE_SETTLING) {
+                            setResultPanelHeight(dpToPx(168));
+                        }
+                    }
+
+                    @Override
+                    public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                    }
+                });
             }
         }
     }
@@ -112,16 +139,25 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         etDestination = view.findViewById(R.id.et_destination_search);
         btnClearOrigin = view.findViewById(R.id.btn_clear_origin);
         btnClearDestination = view.findViewById(R.id.btn_clear_destination);
-        tvSearchContext = view.findViewById(R.id.tv_search_context);
-        tvRoomsEmpty = view.findViewById(R.id.tv_rooms_empty);
+        originResults = view.findViewById(R.id.layout_origin_results);
+        destinationResults = view.findViewById(R.id.layout_destination_results);
+        originEmpty = view.findViewById(R.id.tv_origin_empty);
+        destinationEmpty = view.findViewById(R.id.tv_destination_empty);
         btnStart = view.findViewById(R.id.btn_start_directions);
 
-        searchAdapter = new DirectionSearchAdapter(this::onSuggestionPicked);
-        RecyclerView roomRecycler = view.findViewById(R.id.recycler_rooms);
-        roomRecycler.setLayoutManager(new LinearLayoutManager(activity));
-        roomRecycler.setAdapter(searchAdapter);
+        originAdapter = new DirectionSearchAdapter(this::onSuggestionPicked);
+        destinationAdapter = new DirectionSearchAdapter(this::onSuggestionPicked);
+
+        originRecycler = view.findViewById(R.id.recycler_origin_results);
+        originRecycler.setLayoutManager(new LinearLayoutManager(activity));
+        originRecycler.setAdapter(originAdapter);
+
+        destinationRecycler = view.findViewById(R.id.recycler_destination_results);
+        destinationRecycler.setLayoutManager(new LinearLayoutManager(activity));
+        destinationRecycler.setAdapter(destinationAdapter);
 
         setupInputs();
+        setResultPanelHeight(dpToPx(168));
 
         btnStart.setOnClickListener(v -> {
             if (originId == -1) {
@@ -185,6 +221,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             originId = -1;
             etOrigin.setText("");
             etOrigin.requestFocus();
+            showActiveResults();
             updateStartState();
         });
 
@@ -193,6 +230,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             selectedRoomId = -1;
             etDestination.setText("");
             etDestination.requestFocus();
+            showActiveResults();
             updateStartState();
         });
     }
@@ -247,6 +285,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
                 applyPreselectedRoom();
                 updateSuggestionList();
+                showActiveResults();
                 updateStartState();
             });
         });
@@ -273,46 +312,71 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void updateSuggestionList() {
+        originAdapter.submitList(buildOriginSuggestions(textOf(etOrigin)));
+        destinationAdapter.submitList(buildDestinationSuggestions(textOf(etDestination)));
+        originEmpty.setVisibility(originAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+        destinationEmpty.setVisibility(destinationAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+        showActiveResults();
+    }
+
+    private List<DirectionSearchAdapter.SuggestionItem> buildOriginSuggestions(String query) {
         List<DirectionSearchAdapter.SuggestionItem> suggestions = new ArrayList<>();
-        String query = activeField == ActiveField.ORIGIN
-                ? textOf(etOrigin)
-                : textOf(etDestination);
-
-        if (activeField == ActiveField.ORIGIN) {
-            tvSearchContext.setText("Select origin");
-            for (OriginEntity origin : allOrigins) {
-                if (!matches(query, origin.name, origin.code, origin.description)) {
-                    continue;
-                }
-                suggestions.add(new DirectionSearchAdapter.SuggestionItem(
-                        origin.id,
-                        safe(origin.name, "Origin"),
-                        safe(origin.description, safe(origin.code, "Campus origin")),
-                        R.drawable.ic_directions,
-                        true
-                ));
+        for (OriginEntity origin : allOrigins) {
+            if (!matches(query, origin.name, origin.code, origin.description)) {
+                continue;
             }
-        } else {
-            tvSearchContext.setText("Select destination");
-            for (RoomEntity room : allRooms) {
-                if (!matches(query, room.name, room.code, room.location)) {
-                    continue;
-                }
-                suggestions.add(new DirectionSearchAdapter.SuggestionItem(
-                        room.id,
-                        safe(room.name, "Room"),
-                        buildRoomSubtitle(room),
-                        R.drawable.ic_search_pin,
-                        false
-                ));
-            }
+            suggestions.add(new DirectionSearchAdapter.SuggestionItem(
+                    origin.id,
+                    safe(origin.name, "Origin"),
+                    safe(origin.description, safe(origin.code, "Campus origin")),
+                    R.drawable.ic_directions,
+                    true
+            ));
         }
+        return suggestions;
+    }
 
-        searchAdapter.submitList(suggestions);
-        tvRoomsEmpty.setVisibility(suggestions.isEmpty() ? View.VISIBLE : View.GONE);
-        tvRoomsEmpty.setText(activeField == ActiveField.ORIGIN
-                ? "No origins found"
-                : getString(R.string.label_no_rooms));
+    private List<DirectionSearchAdapter.SuggestionItem> buildDestinationSuggestions(String query) {
+        List<DirectionSearchAdapter.SuggestionItem> suggestions = new ArrayList<>();
+        for (RoomEntity room : allRooms) {
+            if (!matches(query, room.name, room.code, room.location)) {
+                continue;
+            }
+            suggestions.add(new DirectionSearchAdapter.SuggestionItem(
+                    room.id,
+                    safe(room.name, "Room"),
+                    buildRoomSubtitle(room),
+                    R.drawable.ic_search_pin,
+                    false
+            ));
+        }
+        return suggestions;
+    }
+
+    private void showActiveResults() {
+        if (originResults == null || destinationResults == null) {
+            return;
+        }
+        boolean showOrigin = activeField == ActiveField.ORIGIN;
+        originResults.setVisibility(showOrigin ? View.VISIBLE : View.GONE);
+        destinationResults.setVisibility(showOrigin ? View.GONE : View.VISIBLE);
+    }
+
+    private void setResultPanelHeight(int heightPx) {
+        setHeight(originResults, heightPx);
+        setHeight(destinationResults, heightPx);
+    }
+
+    private void setHeight(@Nullable View target, int heightPx) {
+        if (target == null) {
+            return;
+        }
+        ViewGroup.LayoutParams params = target.getLayoutParams();
+        if (params == null) {
+            return;
+        }
+        params.height = heightPx;
+        target.setLayoutParams(params);
     }
 
     private boolean matches(String query, String... values) {
