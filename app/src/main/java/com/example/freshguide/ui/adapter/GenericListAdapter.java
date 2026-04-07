@@ -6,17 +6,17 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.freshguide.R;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Generic two-line list adapter for admin list screens (buildings, floors, origins, etc.)
+ * Now using DiffUtil for efficient updates instead of notifyDataSetChanged.
  */
-public class GenericListAdapter extends RecyclerView.Adapter<GenericListAdapter.ViewHolder> {
+public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, GenericListAdapter.ViewHolder> {
 
     public interface OnActionListener {
         void onEdit(int position, int id);
@@ -33,15 +33,47 @@ public class GenericListAdapter extends RecyclerView.Adapter<GenericListAdapter.
             this.title = title;
             this.subtitle = subtitle;
         }
+
+        // Override equals and hashCode for DiffUtil
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Item item = (Item) o;
+            return id == item.id;
+        }
+
+        @Override
+        public int hashCode() {
+            return id;
+        }
     }
 
-    private List<Item> items = new ArrayList<>();
+    private static final DiffUtil.ItemCallback<Item> DIFF_CALLBACK = new DiffUtil.ItemCallback<Item>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
+            return oldItem.id == newItem.id;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
+            return oldItem.id == newItem.id
+                    && (oldItem.title != null ? oldItem.title.equals(newItem.title) : newItem.title == null)
+                    && (oldItem.subtitle != null ? oldItem.subtitle.equals(newItem.subtitle) : newItem.subtitle == null);
+        }
+    };
+
     private OnActionListener listener;
     private boolean actionsEnabled = true;
 
-    public void setItems(List<Item> items) {
-        this.items = items != null ? items : new ArrayList<>();
-        notifyDataSetChanged();
+    public GenericListAdapter() {
+        super(DIFF_CALLBACK);
+    }
+
+    // Renamed from setItems to submitList (ListAdapter convention)
+    // Old code can still call setItems, we'll redirect to submitList
+    public void setItems(java.util.List<Item> items) {
+        submitList(items);
     }
 
     public void setOnActionListener(OnActionListener l) {
@@ -49,8 +81,10 @@ public class GenericListAdapter extends RecyclerView.Adapter<GenericListAdapter.
     }
 
     public void setActionsEnabled(boolean enabled) {
-        actionsEnabled = enabled;
-        notifyDataSetChanged();
+        if (actionsEnabled != enabled) {
+            actionsEnabled = enabled;
+            notifyDataSetChanged(); // Only notify when actions visibility changes
+        }
     }
 
     @NonNull
@@ -63,7 +97,7 @@ public class GenericListAdapter extends RecyclerView.Adapter<GenericListAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Item item = items.get(position);
+        Item item = getItem(position); // Use getItem() from ListAdapter instead of items.get()
         holder.bind(item);
 
         int actionVisibility = actionsEnabled ? View.VISIBLE : View.GONE;
@@ -82,9 +116,6 @@ public class GenericListAdapter extends RecyclerView.Adapter<GenericListAdapter.
             holder.btnDelete.setOnClickListener(null);
         }
     }
-
-    @Override
-    public int getItemCount() { return items.size(); }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvSubtitle, btnEdit, btnDelete;

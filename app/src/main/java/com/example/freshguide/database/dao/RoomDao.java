@@ -32,6 +32,14 @@ public interface RoomDao {
     @Query("SELECT * FROM rooms WHERE floor_id = :floorId ORDER BY name ASC")
     List<RoomEntity> getByFloorSync(int floorId);
 
+    // Optimized query: Get rooms by building code and floor number in single JOIN
+    @Query("SELECT r.* FROM rooms r " +
+           "JOIN floors f ON r.floor_id = f.id " +
+           "JOIN buildings b ON f.building_id = b.id " +
+           "WHERE b.code = :buildingCode AND f.number = :floorNumber " +
+           "ORDER BY r.name ASC")
+    List<RoomEntity> getRoomsByBuildingAndFloorSync(String buildingCode, int floorNumber);
+
     @Query("SELECT * FROM rooms WHERE name LIKE '%' || :query || '%' OR code LIKE '%' || :query || '%' ORDER BY name ASC")
     LiveData<List<RoomEntity>> search(String query);
 

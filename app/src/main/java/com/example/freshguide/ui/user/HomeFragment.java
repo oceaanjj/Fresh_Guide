@@ -336,39 +336,19 @@ public class HomeFragment extends Fragment {
         ioExecutor.execute(() -> {
             try {
                 AppDatabase db = AppDatabase.getInstance(requireContext());
-                BuildingEntity building = db.buildingDao().getByCodeSync(CODE_MAIN);
 
-                if (building == null) {
-                    Log.w(TAG, "Building with code MAIN not found");
-                    runOnUiThreadSafely(() -> {
-                        if (isAdded()) {
-                            Toast.makeText(requireContext(), "Main building not found in database", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                    return;
-                }
+                // Optimized: Single JOIN query instead of 3 sequential queries
+                List<RoomEntity> rooms = db.roomDao().getRoomsByBuildingAndFloorSync(CODE_MAIN, floorNumber);
 
-                List<FloorEntity> floors = db.floorDao().getByBuildingSync(building.id);
-                FloorEntity targetFloor = null;
-
-                for (FloorEntity floor : floors) {
-                    if (floor.number == floorNumber) {
-                        targetFloor = floor;
-                        break;
-                    }
-                }
-
-                if (targetFloor == null) {
-                    Log.w(TAG, "No floor entity found for floorNumber=" + floorNumber);
+                if (rooms == null || rooms.isEmpty()) {
+                    Log.w(TAG, "No rooms found for building=" + CODE_MAIN + ", floor=" + floorNumber);
                     runOnUiThreadSafely(this::clearFloorRoomViews);
                     return;
                 }
 
-                List<RoomEntity> rooms = db.roomDao().getByFloorSync(targetFloor.id);
-                if (rooms != null) {
-                    rooms.sort(Comparator.comparingInt(r -> r.id));
-                }
-                Log.d(TAG, "Binding floor=" + floorNumber + " with rooms=" + (rooms == null ? 0 : rooms.size()));
+                // Sort by ID for consistent ordering
+                rooms.sort(Comparator.comparingInt(r -> r.id));
+                Log.d(TAG, "Binding floor=" + floorNumber + " with rooms=" + rooms.size());
 
                 runOnUiThreadSafely(() -> applyRoomsToCurrentFloorLayout(rooms));
 
@@ -717,5 +697,14 @@ public class HomeFragment extends Fragment {
                 task.run();
             }
         });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Shutdown executor to prevent thread leaks
+        if (ioExecutor instanceof java.util.concurrent.ExecutorService) {
+            ((java.util.concurrent.ExecutorService) ioExecutor).shutdown();
+        }
     }
 }

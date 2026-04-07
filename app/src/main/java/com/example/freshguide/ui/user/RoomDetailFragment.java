@@ -344,4 +344,12 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Shutdown executor to prevent thread leaks
+        if (imageExecutor != null && !imageExecutor.isShutdown()) {
+            imageExecutor.shutdown();
+        }
+    }
 }
