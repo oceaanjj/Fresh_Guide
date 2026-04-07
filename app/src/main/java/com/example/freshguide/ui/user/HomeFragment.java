@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HomeFragment extends Fragment {
@@ -69,7 +70,7 @@ public class HomeFragment extends Fragment {
             R.id.room_right_5
     };
 
-    private final Executor ioExecutor = Executors.newSingleThreadExecutor();
+    private ExecutorService ioExecutor;
 
     private Integer selectedFloor = null;
 
@@ -95,6 +96,9 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Initialize executor for this view lifecycle
+        ioExecutor = Executors.newSingleThreadExecutor();
 
         viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
 
@@ -703,8 +707,8 @@ public class HomeFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         // Shutdown executor to prevent thread leaks
-        if (ioExecutor instanceof java.util.concurrent.ExecutorService) {
-            ((java.util.concurrent.ExecutorService) ioExecutor).shutdown();
+        if (ioExecutor != null && !ioExecutor.isShutdown()) {
+            ioExecutor.shutdown();
         }
     }
 }
