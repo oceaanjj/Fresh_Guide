@@ -30,9 +30,11 @@
     <color name="green_dark">#12770E</color>            <!-- Darker variant -->
     <color name="green_light">#81C784</color>             <!-- Light green accent -->
     <color name="green_pill">#A91B4D1F</color>              <!-- Dark pill background -->
+    <color name="green_pill_pressed">#C2285B2B</color>
     <color name="green">#4CAF50</color>                   <!-- Alternative green -->
     <color name="orange_accent">#FF8A3D</color>           <!-- Slightly desaturated -->
     <color name="orange_text">#FFB74D</color>             <!-- Orange text -->
+    <color name="orange_surface">#332A170A</color>
     <color name="map_orange">#7C5827</color>              <!-- Map accent -->
 
     <!-- Border & Divider Colors (Dark Mode) -->

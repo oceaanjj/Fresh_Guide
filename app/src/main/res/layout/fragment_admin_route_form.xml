@@ -164,13 +164,10 @@
 
                     <Button
                         android:id="@+id/btn_add_step"
+                        style="@style/Style.FreshGuide.Button.Admin"
                         android:layout_width="wrap_content"
                         android:layout_height="40dp"
-                        android:background="@drawable/bg_form_primary_button"
-                        android:fontFamily="@font/inter_bold"
                         android:text="+ Add step"
-                        android:textAllCaps="false"
-                        android:textColor="@color/green_primary"
                         android:textSize="12sp" />
                 </LinearLayout>
 
@@ -203,14 +200,11 @@
 
         <Button
             android:id="@+id/btn_save"
+            style="@style/Style.FreshGuide.Button.Admin.Primary"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="18dp"
-            android:background="@drawable/bg_btn_primary"
-            android:fontFamily="@font/inter_bold"
             android:text="Save Route"
-            android:textAllCaps="false"
-            android:textColor="@color/surface_white"
             android:textSize="14sp" />
 
         <ProgressBar

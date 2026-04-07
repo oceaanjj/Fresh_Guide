@@ -17,7 +17,6 @@ import com.example.freshguide.R;
 import com.example.freshguide.model.dto.BuildingDto;
 import com.example.freshguide.ui.adapter.GenericListAdapter;
 import com.example.freshguide.viewmodel.AdminViewModel;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
@@ -50,7 +49,7 @@ public class AdminBuildingListFragment extends Fragment {
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         recycler.setAdapter(adapter);
 
-        FloatingActionButton fab = view.findViewById(R.id.fab_add);
+        View fab = view.findViewById(R.id.fab_add);
         fab.setVisibility(View.GONE);
 
         Snackbar.make(view, "Building records are view-only to protect home visuals.", Snackbar.LENGTH_LONG).show();

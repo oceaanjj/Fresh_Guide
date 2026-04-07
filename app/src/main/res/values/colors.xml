@@ -24,9 +24,11 @@
     <color name="green_dark">#12770E</color>
     <color name="green_light">#A5D6A7</color>
     <color name="green_pill">#DFF5DF</color>
+    <color name="green_pill_pressed">#D0F0D0</color>
     <color name="green">#1AA514</color>
     <color name="orange_accent">#FF6D00</color>
     <color name="orange_text">#FFA500</color>
+    <color name="orange_surface">#FFF3E0</color>
     <color name="map_orange">#F4A340</color>
 
     <!-- Border & Divider Colors (Light Mode) -->

@@ -19,7 +19,6 @@ import com.example.freshguide.R;
 import com.example.freshguide.model.dto.RouteDto;
 import com.example.freshguide.ui.adapter.GenericListAdapter;
 import com.example.freshguide.viewmodel.AdminViewModel;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
@@ -71,7 +70,7 @@ public class AdminRouteListFragment extends Fragment {
             }
         });
 
-        FloatingActionButton fab = view.findViewById(R.id.fab_add);
+        View fab = view.findViewById(R.id.fab_add);
         fab.setOnClickListener(v ->
                 Navigation.findNavController(view)
                         .navigate(R.id.action_adminRouteList_to_adminRouteForm));

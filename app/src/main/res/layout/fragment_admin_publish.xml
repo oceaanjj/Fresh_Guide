@@ -108,14 +108,11 @@
 
         <Button
             android:id="@+id/btn_publish"
+            style="@style/Style.FreshGuide.Button.Admin.Primary"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="18dp"
-            android:background="@drawable/bg_btn_primary"
-            android:fontFamily="@font/inter_bold"
             android:text="Publish Now"
-            android:textAllCaps="false"
-            android:textColor="@color/surface_white"
             android:textSize="14sp" />
     </LinearLayout>
 </ScrollView>

@@ -116,9 +116,7 @@ import androidx.navigation.NavOptions;
                 }
 
                 navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-                    if (!isAdmin) {
-                        updateNavSelection(destination.getId());
-                    }
+                    updateNavSelection(destination.getId());
                     updateHeader(destination);
                 });
                 updateHeader(navController.getCurrentDestination());
