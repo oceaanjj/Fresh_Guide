@@ -1,27 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Shared layout for all admin list screens -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_default">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_items"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="80dp"
-        android:clipToPadding="false" />
+        android:orientation="vertical"
+        android:paddingStart="@dimen/screen_horizontal_gutter"
+        android:paddingTop="16dp"
+        android:paddingEnd="@dimen/screen_horizontal_gutter">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <TextView
+            android:id="@+id/tv_admin_page_title"
+            style="@style/Style.FreshGuide.Text.AdminPageTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Admin List" />
+
+        <TextView
+            android:id="@+id/tv_admin_page_subtitle"
+            style="@style/Style.FreshGuide.Text.AdminPageSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Browse and manage records using the same structure students rely on." />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_items"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="14dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingBottom="@dimen/bottom_nav_content_clearance" />
+    </LinearLayout>
+
+    <ImageButton
         android:id="@+id/fab_add"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/Style.FreshGuide.Button.Admin.Circle"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:contentDescription="Add"
-        android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/green_primary"
-        app:tint="@color/surface_white" />
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="@dimen/bottom_nav_fab_clearance"
+        android:contentDescription="@string/admin_list_add_item"
+        android:src="@drawable/ic_schedule_add"
+        app:tint="@color/green_primary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

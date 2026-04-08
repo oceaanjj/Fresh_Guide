@@ -1,6 +1,5 @@
 package com.example.freshguide.ui.admin;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,11 +13,13 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
-import com.example.freshguide.LoginActivity;
 import com.example.freshguide.R;
-import com.example.freshguide.repository.AuthRepository;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.viewmodel.AdminViewModel;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class AdminDashboardFragment extends Fragment {
 
@@ -41,6 +42,10 @@ public class AdminDashboardFragment extends Fragment {
         TextView tvFloors = view.findViewById(R.id.tv_floor_count);
         TextView tvRoutes = view.findViewById(R.id.tv_route_count);
         TextView tvSyncVersion = view.findViewById(R.id.tv_admin_sync_version);
+        TextView tvDashboardDate = view.findViewById(R.id.tv_admin_dashboard_date);
+
+        tvDashboardDate.setText(new SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
+                .format(new Date()));
 
         SessionManager sessionManager = SessionManager.getInstance(requireContext());
         int syncVersion = sessionManager.getSyncVersion();
@@ -82,14 +87,5 @@ public class AdminDashboardFragment extends Fragment {
                 nav.navigate(R.id.action_adminDashboard_to_adminRouteList));
         view.findViewById(R.id.btn_publish).setOnClickListener(v ->
                 nav.navigate(R.id.action_adminDashboard_to_adminPublish));
-        view.findViewById(R.id.btn_admin_settings).setOnClickListener(v ->
-                nav.navigate(R.id.settingsFragment));
-        view.findViewById(R.id.btn_admin_logout).setOnClickListener(v -> {
-            new AuthRepository(requireContext()).logout();
-            Intent intent = new Intent(requireActivity(), LoginActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            requireActivity().finish();
-        });
     }
 }

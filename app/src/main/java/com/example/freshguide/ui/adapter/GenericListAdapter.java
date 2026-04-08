@@ -65,6 +65,8 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
 
     private OnActionListener listener;
     private boolean actionsEnabled = true;
+    private boolean editEnabled = true;
+    private boolean deleteEnabled = true;
 
     public GenericListAdapter() {
         super(DIFF_CALLBACK);
@@ -87,6 +89,16 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
         }
     }
 
+    public void setEditEnabled(boolean enabled) {
+        editEnabled = enabled;
+        notifyDataSetChanged();
+    }
+
+    public void setDeleteEnabled(boolean enabled) {
+        deleteEnabled = enabled;
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -100,19 +112,22 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
         Item item = getItem(position); // Use getItem() from ListAdapter instead of items.get()
         holder.bind(item);
 
-        int actionVisibility = actionsEnabled ? View.VISIBLE : View.GONE;
-        holder.btnEdit.setVisibility(actionVisibility);
-        holder.btnDelete.setVisibility(actionVisibility);
+        holder.btnEdit.setVisibility(actionsEnabled && editEnabled ? View.VISIBLE : View.GONE);
+        holder.btnDelete.setVisibility(actionsEnabled && deleteEnabled ? View.VISIBLE : View.GONE);
 
-        if (actionsEnabled) {
+        if (actionsEnabled && editEnabled) {
             holder.btnEdit.setOnClickListener(v -> {
                 if (listener != null) listener.onEdit(position, item.id);
             });
+        } else {
+            holder.btnEdit.setOnClickListener(null);
+        }
+
+        if (actionsEnabled && deleteEnabled) {
             holder.btnDelete.setOnClickListener(v -> {
                 if (listener != null) listener.onDelete(position, item.id);
             });
         } else {
-            holder.btnEdit.setOnClickListener(null);
             holder.btnDelete.setOnClickListener(null);
         }
     }

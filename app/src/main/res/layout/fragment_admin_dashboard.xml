@@ -4,373 +4,293 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_default"
-    android:clipToPadding="false">
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingStart="16dp"
-        android:paddingTop="10dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="20dp">
+        android:paddingStart="@dimen/screen_horizontal_gutter"
+        android:paddingTop="20dp"
+        android:paddingEnd="@dimen/screen_horizontal_gutter"
+        android:paddingBottom="36dp">
 
-        <com.google.android.material.card.MaterialCardView
+        <TextView
+            android:id="@+id/tv_admin_dashboard_title"
+            style="@style/Style.FreshGuide.Text.AdminPageTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/admin_card_bg"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/admin_card_stroke"
-            app:strokeWidth="1dp">
+            android:text="Welcome, Admin" />
+
+        <TextView
+            android:id="@+id/tv_admin_dashboard_date"
+            style="@style/Style.FreshGuide.Text.AdminPageSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="Monday, February 26" />
+
+        <TextView
+            style="@style/Style.FreshGuide.Text.AdminSectionLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:text="@string/admin_section_overview" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_rooms_overview"
+            style="@style/Style.FreshGuide.Card.AdminSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Admin Dashboard"
-                        android:textColor="@color/admin_text_primary"
-                        android:textSize="22sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_chip_orange_outline"
-                        android:paddingStart="8dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="8dp"
-                        android:paddingBottom="3dp"
-                        android:text="ADMIN"
-                        android:textColor="@color/orange_accent"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                android:gravity="center_vertical"
+                android:minHeight="80dp"
+                android:orientation="horizontal"
+                android:paddingStart="28dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="40dp"
+                android:paddingBottom="14dp">
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:id="@+id/tv_room_count"
+                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                    android:layout_width="62dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="Manage campus data and publish updates for students."
-                    android:textColor="@color/admin_text_secondary"
-                    android:textSize="12sp" />
+                    android:gravity="center"
+                    android:text="0" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
+                    android:layout_width="162dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="Total&#10;Rooms" />
+
+                <ImageView
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:contentDescription="@string/admin_summary_rooms_image"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/total_rooms" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_buildings_overview"
+            style="@style/Style.FreshGuide.Card.AdminSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="80dp"
+                android:orientation="horizontal"
+                android:paddingStart="28dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="40dp"
+                android:paddingBottom="14dp">
+
+                <TextView
+                    android:id="@+id/tv_building_count"
+                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                    android:layout_width="52dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="0" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="Total&#10;Buildings"/>
+
+                <ImageView
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:contentDescription="@string/admin_summary_buildings_image"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/total_buildings" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_floors_overview"
+            style="@style/Style.FreshGuide.Card.AdminSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="80dp"
+                android:orientation="horizontal"
+                android:paddingStart="28dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="40dp"
+                android:paddingBottom="14dp">
+
+                <TextView
+                    android:id="@+id/tv_floor_count"
+                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                    android:layout_width="52dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="0" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="Total&#10;Floors" />
+
+                <ImageView
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:contentDescription="@string/admin_summary_floors_image"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/total_floors" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_routes_overview"
+            style="@style/Style.FreshGuide.Card.AdminSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="80dp"
+                android:orientation="horizontal"
+                android:paddingStart="28dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="40dp"
+                android:paddingBottom="14dp">
+
+                <TextView
+                    android:id="@+id/tv_route_count"
+                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                    android:layout_width="52dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="0" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="Total&#10;Routes" />
+
+                <ImageView
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:contentDescription="@string/admin_summary_routes_image"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/total_routes" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
+            style="@style/Style.FreshGuide.Text.AdminSectionLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            android:text="Overview"
-            android:textColor="@color/admin_text_secondary"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_rooms_overview"
-                android:layout_width="0dp"
-                android:layout_height="88dp"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@color/admin_card_secondary"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/admin_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tv_room_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textColor="@color/green_primary"
-                        android:textSize="24sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Rooms"
-                        android:textColor="@color/admin_text_tertiary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_buildings_overview"
-                android:layout_width="0dp"
-                android:layout_height="88dp"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@color/admin_card_secondary"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/admin_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tv_building_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textColor="@color/orange_accent"
-                        android:textSize="24sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Buildings"
-                        android:textColor="@color/admin_text_tertiary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:orientation="horizontal">
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_floors_overview"
-                android:layout_width="0dp"
-                android:layout_height="88dp"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@color/admin_card_secondary"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/admin_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tv_floor_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textColor="@color/admin_overview_teal"
-                        android:textSize="24sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Floors"
-                        android:textColor="@color/admin_text_tertiary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_routes_overview"
-                android:layout_width="0dp"
-                android:layout_height="88dp"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@color/admin_card_secondary"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/admin_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tv_route_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textColor="@color/admin_overview_blue"
-                        android:textSize="24sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Routes"
-                        android:textColor="@color/admin_text_tertiary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
+            android:layout_marginTop="24dp"
+            android:text="@string/admin_section_management" />
 
         <com.google.android.material.card.MaterialCardView
+            style="@style/Style.FreshGuide.Card.Section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            app:cardBackgroundColor="@color/admin_card_secondary"
-            app:cardCornerRadius="14dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/admin_card_stroke"
-            app:strokeWidth="1dp">
+            android:layout_marginTop="10dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:paddingStart="20dp"
+                android:paddingTop="18dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="18dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    style="@style/Style.FreshGuide.Text.CardTitle"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Campus"
-                    android:textColor="@color/admin_text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:text="Campus Structure"
+                    android:textSize="17sp" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    style="@style/Style.FreshGuide.Text.CardBody"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Building and room structure"
-                    android:textColor="@color/admin_text_secondary"
-                    android:textSize="11sp" />
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="Main buildings, floors, rooms, and mapped campus areas without drifting from the student experience."
+                    android:textSize="13sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="16dp"
                     android:orientation="horizontal">
 
-                    <Button
+                    <TextView
                         android:id="@+id/btn_manage_buildings"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
-                        android:layout_marginEnd="5dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="6dp"
                         android:layout_weight="1"
-                        android:backgroundTint="@color/admin_button_bg"
-                        android:text="Buildings"
-                        android:textColor="@color/admin_text_primary"
-                        android:textSize="12sp" />
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="BUILDINGS" />
 
-                    <Button
+                    <TextView
                         android:id="@+id/btn_manage_floors"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
-                        android:layout_marginStart="5dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="6dp"
                         android:layout_weight="1"
-                        android:backgroundTint="@color/admin_button_bg"
-                        android:text="Floors"
-                        android:textColor="@color/admin_text_primary"
-                        android:textSize="12sp" />
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="FLOORS" />
                 </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/btn_manage_rooms"
-                        android:layout_width="0dp"
-                        android:layout_height="44dp"
-                        android:layout_marginEnd="5dp"
-                        android:layout_weight="1"
-                        android:backgroundTint="@color/admin_button_bg"
-                        android:text="Rooms"
-                        android:textColor="@color/admin_text_primary"
-                        android:textSize="12sp" />
-
-                    <Button
-                        android:id="@+id/btn_manage_campus_areas"
-                        android:layout_width="0dp"
-                        android:layout_height="44dp"
-                        android:layout_marginStart="5dp"
-                        android:layout_weight="1"
-                        android:backgroundTint="@color/admin_button_bg"
-                        android:text="Campus Areas"
-                        android:textColor="@color/admin_text_primary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:cardBackgroundColor="@color/admin_card_secondary"
-            app:cardCornerRadius="14dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/admin_card_stroke"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="14dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Navigation"
-                    android:textColor="@color/admin_text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Facilities and route guidance data"
-                    android:textColor="@color/admin_text_secondary"
-                    android:textSize="11sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -378,122 +298,159 @@
                     android:layout_marginTop="10dp"
                     android:orientation="horizontal">
 
-                    <Button
-                        android:id="@+id/btn_manage_facilities"
+                    <TextView
+                        android:id="@+id/btn_manage_rooms"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
-                        android:layout_marginEnd="5dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="6dp"
                         android:layout_weight="1"
-                        android:backgroundTint="@color/admin_button_bg"
-                        android:text="Facilities"
-                        android:textColor="@color/admin_text_primary"
-                        android:textSize="12sp" />
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="ROOMS" />
 
-                    <Button
-                        android:id="@+id/btn_manage_origins"
+                    <TextView
+                        android:id="@+id/btn_manage_campus_areas"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
-                        android:layout_marginStart="5dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="6dp"
                         android:layout_weight="1"
-                        android:backgroundTint="@color/admin_button_bg"
-                        android:text="Origins"
-                        android:textColor="@color/admin_text_primary"
-                        android:textSize="12sp" />
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="CAMPUS AREA" />
                 </LinearLayout>
-
-                <Button
-                    android:id="@+id/btn_manage_routes"
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="8dp"
-                    android:backgroundTint="@color/admin_button_bg"
-                    android:text="Routes"
-                    android:textColor="@color/admin_text_primary"
-                    android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
+            style="@style/Style.FreshGuide.Card.Section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:cardBackgroundColor="@color/admin_card_secondary"
-            app:cardCornerRadius="14dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/admin_card_stroke"
-            app:strokeWidth="1dp">
+            android:layout_marginTop="12dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:paddingStart="20dp"
+                android:paddingTop="18dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="18dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    style="@style/Style.FreshGuide.Text.CardTitle"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Release"
-                    android:textColor="@color/admin_text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:text="Navigation Data"
+                    android:textSize="17sp" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.CardBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="Facilities, origins, and routes that extend the current student directions experience."
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btn_manage_facilities"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="FACILITIES" />
+
+                    <TextView
+                        android:id="@+id/btn_manage_origins"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="ORIGINS" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/btn_manage_routes"
+                    style="@style/Style.FreshGuide.Text.AdminDashboardAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_admin_dashboard_action"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="ROUTES" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Style.FreshGuide.Card.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingTop="18dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="18dp">
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.CardTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Release Pipeline"
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/tv_admin_sync_version"
-                    android:layout_width="wrap_content"
+                    style="@style/Style.FreshGuide.Text.CardBody"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="8dp"
                     android:text="Current data version: Not synced"
-                    android:textColor="@color/admin_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="13sp" />
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="Publish latest local data so students can sync updates."
-                    android:textColor="@color/admin_text_secondary"
-                    android:textSize="11sp" />
-
-                <Button
-                    android:id="@+id/btn_publish"
+                    style="@style/Style.FreshGuide.Text.CardBody"
                     android:layout_width="match_parent"
-                    android:layout_height="46dp"
-                    android:layout_marginTop="10dp"
-                    android:backgroundTint="@color/orange_accent"
-                    android:text="Publish to Students"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="Publish the latest local data so students can sync a consistent, up-to-date campus guide."
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/btn_publish"
+                    style="@style/Style.FreshGuide.Text.AdminDashboardAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_admin_dashboard_action"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="PUBLISH TO STUDENTS" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btn_admin_settings"
-                android:layout_width="0dp"
-                android:layout_height="46dp"
-                android:layout_marginEnd="5dp"
-                android:layout_weight="1"
-                android:backgroundTint="#2D3133"
-                android:text="Basic Settings"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp" />
-
-            <Button
-                android:id="@+id/btn_admin_logout"
-                android:layout_width="0dp"
-                android:layout_height="46dp"
-                android:layout_marginStart="5dp"
-                android:layout_weight="1"
-                android:backgroundTint="#C62828"
-                android:text="Logout"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp" />
-        </LinearLayout>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

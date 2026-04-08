@@ -4,10 +4,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -39,7 +39,12 @@ public class AdminOriginListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(AdminViewModel.class);
 
+        ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Origins");
+        ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))
+                .setText("Manage route starting points using the same wayfinding structure students use.");
+
         adapter = new GenericListAdapter();
+        adapter.setEditEnabled(false);
         RecyclerView recycler = view.findViewById(R.id.recycler_items);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         recycler.setAdapter(adapter);
@@ -55,12 +60,13 @@ public class AdminOriginListFragment extends Fragment {
 
             @Override
             public void onDelete(int position, int id) {
-                new AlertDialog.Builder(requireContext())
-                        .setTitle("Delete Origin")
-                        .setMessage("Are you sure?")
-                        .setPositiveButton("Delete", (d, w) -> viewModel.deleteOrigin(id))
-                        .setNegativeButton("Cancel", null)
-                        .show();
+                AdminDialogUtils.showDestructiveConfirmation(
+                        AdminOriginListFragment.this,
+                        "Delete Origin",
+                        "Are you sure?",
+                        "Delete",
+                        () -> viewModel.deleteOrigin(id)
+                );
             }
         });
 

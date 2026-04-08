@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,7 +17,6 @@ import com.example.freshguide.R;
 import com.example.freshguide.model.dto.BuildingDto;
 import com.example.freshguide.ui.adapter.GenericListAdapter;
 import com.example.freshguide.viewmodel.AdminViewModel;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
@@ -39,13 +39,17 @@ public class AdminBuildingListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(AdminViewModel.class);
 
+        ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Buildings");
+        ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))
+                .setText("Reference structures mirrored on the home map and search experience.");
+
         adapter = new GenericListAdapter();
         adapter.setActionsEnabled(false);
         RecyclerView recycler = view.findViewById(R.id.recycler_items);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         recycler.setAdapter(adapter);
 
-        FloatingActionButton fab = view.findViewById(R.id.fab_add);
+        View fab = view.findViewById(R.id.fab_add);
         fab.setVisibility(View.GONE);
 
         Snackbar.make(view, "Building records are view-only to protect home visuals.", Snackbar.LENGTH_LONG).show();
