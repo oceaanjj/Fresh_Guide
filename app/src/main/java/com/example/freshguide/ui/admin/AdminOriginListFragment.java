@@ -8,7 +8,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -61,12 +60,13 @@ public class AdminOriginListFragment extends Fragment {
 
             @Override
             public void onDelete(int position, int id) {
-                new AlertDialog.Builder(requireContext())
-                        .setTitle("Delete Origin")
-                        .setMessage("Are you sure?")
-                        .setPositiveButton("Delete", (d, w) -> viewModel.deleteOrigin(id))
-                        .setNegativeButton("Cancel", null)
-                        .show();
+                AdminDialogUtils.showDestructiveConfirmation(
+                        AdminOriginListFragment.this,
+                        "Delete Origin",
+                        "Are you sure?",
+                        "Delete",
+                        () -> viewModel.deleteOrigin(id)
+                );
             }
         });
 

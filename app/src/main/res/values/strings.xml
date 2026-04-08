@@ -108,4 +108,9 @@
     <string name="admin_section_management">Management</string>
     <string name="admin_section_release">Release</string>
     <string name="admin_status_published">Latest publish status</string>
+    <string name="admin_bottom_sheet_dismiss">Dismiss admin form</string>
+    <string name="admin_summary_rooms_image">Total rooms overview image</string>
+    <string name="admin_summary_buildings_image">Total buildings overview image</string>
+    <string name="admin_summary_floors_image">Total floors overview image</string>
+    <string name="admin_summary_routes_image">Total routes overview image</string>
 </resources>

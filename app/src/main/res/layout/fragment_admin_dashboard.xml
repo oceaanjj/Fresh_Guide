@@ -19,241 +19,216 @@
 
         <TextView
             android:id="@+id/tv_admin_dashboard_title"
+            style="@style/Style.FreshGuide.Text.AdminPageTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/playfair_bold"
-            android:text="Welcome, Admin"
-            android:textColor="@color/green_primary"
-            android:textSize="34sp"
-            android:textStyle="italic" />
+            android:text="Welcome, Admin" />
 
         <TextView
             android:id="@+id/tv_admin_dashboard_date"
-            style="@style/Style.FreshGuide.Text.PageSubtitle"
+            style="@style/Style.FreshGuide.Text.AdminPageSubtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="3dp"
             android:text="Monday, February 26" />
 
         <TextView
-            style="@style/Style.FreshGuide.Text.FieldLabel"
+            style="@style/Style.FreshGuide.Text.AdminSectionLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/admin_section_overview"
-            android:textColor="@color/green_primary" />
+            android:layout_marginTop="26dp"
+            android:text="@string/admin_section_overview" />
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_rooms_overview"
-            style="@style/Style.FreshGuide.Card.Section"
+            style="@style/Style.FreshGuide.Card.AdminSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackground">
+            android:foreground="?attr/selectableItemBackgroundBorderless">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:minHeight="78dp"
+                android:minHeight="70dp"
                 android:orientation="horizontal"
                 android:paddingStart="22dp"
-                android:paddingTop="16dp"
+                android:paddingTop="14dp"
                 android:paddingEnd="22dp"
-                android:paddingBottom="16dp">
+                android:paddingBottom="14dp">
 
                 <TextView
                     android:id="@+id/tv_room_count"
-                    android:layout_width="56dp"
+                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                    android:layout_width="52dp"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/inter_bold"
                     android:gravity="center"
-                    android:text="0"
-                    android:textColor="@color/green"
-                    android:textSize="26sp" />
+                    android:text="0" />
 
                 <TextView
+                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="10dp"
                     android:layout_weight="1"
-                    android:fontFamily="@font/inter_bold"
-                    android:lineSpacingExtra="1dp"
-                    android:text="Total\nRooms"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
+                    android:text="Total&#10;Rooms" />
 
                 <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_find_room"
-                    app:tint="@color/text_secondary" />
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:contentDescription="@string/admin_summary_rooms_image"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/total_rooms" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_buildings_overview"
-            style="@style/Style.FreshGuide.Card.Section"
+            style="@style/Style.FreshGuide.Card.AdminSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackground">
+            android:foreground="?attr/selectableItemBackgroundBorderless">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:minHeight="78dp"
+                android:minHeight="70dp"
                 android:orientation="horizontal"
                 android:paddingStart="22dp"
-                android:paddingTop="16dp"
+                android:paddingTop="14dp"
                 android:paddingEnd="22dp"
-                android:paddingBottom="16dp">
+                android:paddingBottom="14dp">
 
                 <TextView
                     android:id="@+id/tv_building_count"
-                    android:layout_width="56dp"
+                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                    android:layout_width="52dp"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/inter_bold"
                     android:gravity="center"
-                    android:text="0"
-                    android:textColor="@color/green"
-                    android:textSize="26sp" />
+                    android:text="0" />
 
                 <TextView
+                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="10dp"
                     android:layout_weight="1"
-                    android:fontFamily="@font/inter_bold"
-                    android:lineSpacingExtra="1dp"
-                    android:text="Total\nBuildings"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
+                    android:text="Total&#10;Buildings" />
 
                 <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_department"
-                    app:tint="@color/text_secondary" />
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:contentDescription="@string/admin_summary_buildings_image"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/total_buildings" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_floors_overview"
-            style="@style/Style.FreshGuide.Card.Section"
+            style="@style/Style.FreshGuide.Card.AdminSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackground">
+            android:foreground="?attr/selectableItemBackgroundBorderless">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:minHeight="78dp"
+                android:minHeight="70dp"
                 android:orientation="horizontal"
                 android:paddingStart="22dp"
-                android:paddingTop="16dp"
+                android:paddingTop="14dp"
                 android:paddingEnd="22dp"
-                android:paddingBottom="16dp">
+                android:paddingBottom="14dp">
 
                 <TextView
                     android:id="@+id/tv_floor_count"
-                    android:layout_width="56dp"
+                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                    android:layout_width="52dp"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/inter_bold"
                     android:gravity="center"
-                    android:text="0"
-                    android:textColor="@color/green"
-                    android:textSize="26sp" />
+                    android:text="0" />
 
                 <TextView
+                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="10dp"
                     android:layout_weight="1"
-                    android:fontFamily="@font/inter_bold"
-                    android:lineSpacingExtra="1dp"
-                    android:text="Total\nFloors"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
+                    android:text="Total&#10;Floors" />
 
                 <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_admin_floors"
-                    app:tint="@color/text_secondary" />
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:contentDescription="@string/admin_summary_floors_image"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/total_floors" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_routes_overview"
-            style="@style/Style.FreshGuide.Card.Section"
+            style="@style/Style.FreshGuide.Card.AdminSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackground">
+            android:foreground="?attr/selectableItemBackgroundBorderless">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:minHeight="78dp"
+                android:minHeight="70dp"
                 android:orientation="horizontal"
                 android:paddingStart="22dp"
-                android:paddingTop="16dp"
+                android:paddingTop="14dp"
                 android:paddingEnd="22dp"
-                android:paddingBottom="16dp">
+                android:paddingBottom="14dp">
 
                 <TextView
                     android:id="@+id/tv_route_count"
-                    android:layout_width="56dp"
+                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                    android:layout_width="52dp"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/inter_bold"
                     android:gravity="center"
-                    android:text="0"
-                    android:textColor="@color/green"
-                    android:textSize="26sp" />
+                    android:text="0" />
 
                 <TextView
+                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="10dp"
                     android:layout_weight="1"
-                    android:fontFamily="@font/inter_bold"
-                    android:lineSpacingExtra="1dp"
-                    android:text="Total\nRoutes"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
+                    android:text="Total&#10;Routes" />
 
                 <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_directions"
-                    app:tint="@color/text_secondary" />
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:contentDescription="@string/admin_summary_routes_image"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/total_routes" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
-            style="@style/Style.FreshGuide.Text.FieldLabel"
+            style="@style/Style.FreshGuide.Text.AdminSectionLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="@string/admin_section_management"
-            android:textColor="@color/green_primary" />
+            android:text="@string/admin_section_management" />
 
         <com.google.android.material.card.MaterialCardView
             style="@style/Style.FreshGuide.Card.Section"
@@ -268,45 +243,53 @@
                 android:paddingStart="20dp"
                 android:paddingTop="18dp"
                 android:paddingEnd="20dp"
-                android:paddingBottom="20dp">
+                android:paddingBottom="18dp">
 
                 <TextView
                     style="@style/Style.FreshGuide.Text.CardTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Campus Structure" />
+                    android:text="Campus Structure"
+                    android:textSize="17sp" />
 
                 <TextView
                     style="@style/Style.FreshGuide.Text.CardBody"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="8dp"
                     android:lineSpacingExtra="2dp"
-                    android:text="Main buildings, floors, rooms, and mapped campus areas without drifting from the student experience." />
+                    android:text="Main buildings, floors, rooms, and mapped campus areas without drifting from the student experience."
+                    android:textSize="13sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="16dp"
                     android:orientation="horizontal">
 
-                    <Button
+                    <TextView
                         android:id="@+id/btn_manage_buildings"
-                        style="@style/Style.FreshGuide.Button.Admin"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
+                        android:layout_height="40dp"
                         android:layout_marginEnd="6dp"
                         android:layout_weight="1"
-                        android:text="Buildings" />
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="BUILDINGS" />
 
-                    <Button
+                    <TextView
                         android:id="@+id/btn_manage_floors"
-                        style="@style/Style.FreshGuide.Button.Admin"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="6dp"
                         android:layout_weight="1"
-                        android:text="Floors" />
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="FLOORS" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -315,23 +298,29 @@
                     android:layout_marginTop="10dp"
                     android:orientation="horizontal">
 
-                    <Button
+                    <TextView
                         android:id="@+id/btn_manage_rooms"
-                        style="@style/Style.FreshGuide.Button.Admin"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
+                        android:layout_height="40dp"
                         android:layout_marginEnd="6dp"
                         android:layout_weight="1"
-                        android:text="Rooms" />
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="ROOMS" />
 
-                    <Button
+                    <TextView
                         android:id="@+id/btn_manage_campus_areas"
-                        style="@style/Style.FreshGuide.Button.Admin"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="6dp"
                         android:layout_weight="1"
-                        android:text="Campus Area" />
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="CAMPUS AREA" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -349,54 +338,65 @@
                 android:paddingStart="20dp"
                 android:paddingTop="18dp"
                 android:paddingEnd="20dp"
-                android:paddingBottom="20dp">
+                android:paddingBottom="18dp">
 
                 <TextView
                     style="@style/Style.FreshGuide.Text.CardTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Navigation Data" />
+                    android:text="Navigation Data"
+                    android:textSize="17sp" />
 
                 <TextView
                     style="@style/Style.FreshGuide.Text.CardBody"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="8dp"
                     android:lineSpacingExtra="2dp"
-                    android:text="Facilities, origins, and routes that extend the current student directions experience." />
+                    android:text="Facilities, origins, and routes that extend the current student directions experience."
+                    android:textSize="13sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="16dp"
                     android:orientation="horizontal">
 
-                    <Button
+                    <TextView
                         android:id="@+id/btn_manage_facilities"
-                        style="@style/Style.FreshGuide.Button.Admin"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
+                        android:layout_height="40dp"
                         android:layout_marginEnd="6dp"
                         android:layout_weight="1"
-                        android:text="Facilities" />
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="FACILITIES" />
 
-                    <Button
+                    <TextView
                         android:id="@+id/btn_manage_origins"
-                        style="@style/Style.FreshGuide.Button.Admin"
+                        style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
+                        android:layout_height="40dp"
                         android:layout_marginStart="6dp"
                         android:layout_weight="1"
-                        android:text="Origins" />
+                        android:background="@drawable/bg_admin_dashboard_action"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="ORIGINS" />
                 </LinearLayout>
 
-                <Button
+                <TextView
                     android:id="@+id/btn_manage_routes"
-                    style="@style/Style.FreshGuide.Button.Admin"
+                    style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                     android:layout_width="match_parent"
-                    android:layout_height="44dp"
+                    android:layout_height="40dp"
                     android:layout_marginTop="10dp"
-                    android:text="Routes" />
+                    android:background="@drawable/bg_admin_dashboard_action"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="ROUTES" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -413,37 +413,43 @@
                 android:paddingStart="20dp"
                 android:paddingTop="18dp"
                 android:paddingEnd="20dp"
-                android:paddingBottom="20dp">
+                android:paddingBottom="18dp">
 
                 <TextView
                     style="@style/Style.FreshGuide.Text.CardTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Release Pipeline" />
+                    android:text="Release Pipeline"
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/tv_admin_sync_version"
                     style="@style/Style.FreshGuide.Text.CardBody"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="Current data version: Not synced" />
+                    android:layout_marginTop="8dp"
+                    android:text="Current data version: Not synced"
+                    android:textSize="13sp" />
 
                 <TextView
                     style="@style/Style.FreshGuide.Text.CardBody"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="8dp"
                     android:lineSpacingExtra="2dp"
-                    android:text="Publish the latest local data so students can sync a consistent, up-to-date campus guide." />
+                    android:text="Publish the latest local data so students can sync a consistent, up-to-date campus guide."
+                    android:textSize="13sp" />
 
-                <Button
+                <TextView
                     android:id="@+id/btn_publish"
-                    style="@style/Style.FreshGuide.Button.Admin.Primary"
+                    style="@style/Style.FreshGuide.Text.AdminDashboardAction"
                     android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="14dp"
-                    android:text="Publish to Students" />
+                    android:layout_height="40dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_admin_dashboard_action"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="PUBLISH TO STUDENTS" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>

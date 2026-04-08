@@ -21,7 +21,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.freshguide.R;
@@ -52,7 +51,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class AdminRoomFormFragment extends Fragment {
+public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
 
     // Image handling components
     private ImageView ivRoomPreview;

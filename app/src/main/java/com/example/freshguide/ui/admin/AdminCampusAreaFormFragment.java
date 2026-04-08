@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.freshguide.R;
@@ -28,7 +27,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class AdminCampusAreaFormFragment extends Fragment {
+public class AdminCampusAreaFormFragment extends BaseAdminBottomSheetFragment {
 
     private static final String LABEL_FACILITIES = "Facilities";
     private static final String LABEL_HOURS = "Hours";

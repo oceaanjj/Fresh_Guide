@@ -17,9 +17,9 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="16dp"
-        android:paddingTop="16dp"
+        android:paddingTop="14dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="16dp">
+        android:paddingBottom="14dp">
 
         <TextView
             android:id="@+id/tv_step_number"
@@ -94,15 +94,15 @@
             android:src="@drawable/ic_edit"
             app:tint="@color/green_primary" />
 
-        <ImageButton
-            android:id="@+id/btn_delete_step"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="@drawable/bg_admin_icon_button"
-            android:contentDescription="Delete step"
-            android:padding="6dp"
-            android:src="@android:drawable/ic_menu_delete"
-            app:tint="@color/orange_accent" />
+            <ImageButton
+                android:id="@+id/btn_delete_step"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_admin_icon_button_danger"
+                android:contentDescription="Delete step"
+                android:padding="6dp"
+                android:src="@android:drawable/ic_menu_delete"
+                app:tint="@color/red_accent" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

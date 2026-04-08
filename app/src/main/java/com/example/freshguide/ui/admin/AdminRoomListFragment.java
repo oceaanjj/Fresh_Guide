@@ -8,7 +8,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -70,12 +69,13 @@ public class AdminRoomListFragment extends Fragment {
 
             @Override
             public void onDelete(int position, int id) {
-                new AlertDialog.Builder(requireContext())
-                        .setTitle("Delete Room")
-                        .setMessage("Are you sure?")
-                        .setPositiveButton("Delete", (d, w) -> deleteRoom(id, view))
-                        .setNegativeButton("Cancel", null)
-                        .show();
+                AdminDialogUtils.showDestructiveConfirmation(
+                        AdminRoomListFragment.this,
+                        "Delete Room",
+                        "Are you sure?",
+                        "Delete",
+                        () -> deleteRoom(id, view)
+                );
             }
         });
 

@@ -182,7 +182,7 @@
             app:destination="@id/adminBuildingFormFragment" />
     </fragment>
 
-    <fragment
+    <dialog
         android:id="@+id/adminBuildingFormFragment"
         android:name="com.example.freshguide.ui.admin.AdminBuildingFormFragment"
         android:label="Building Form"
@@ -191,7 +191,7 @@
             android:name="buildingId"
             app:argType="integer"
             android:defaultValue="-1" />
-    </fragment>
+    </dialog>
 
     <fragment
         android:id="@+id/adminFloorListFragment"
@@ -203,7 +203,7 @@
             app:destination="@id/adminFloorFormFragment" />
     </fragment>
 
-    <fragment
+    <dialog
         android:id="@+id/adminFloorFormFragment"
         android:name="com.example.freshguide.ui.admin.AdminFloorFormFragment"
         android:label="Floor Form"
@@ -212,7 +212,7 @@
             android:name="floorId"
             app:argType="integer"
             android:defaultValue="-1" />
-    </fragment>
+    </dialog>
 
     <fragment
         android:id="@+id/adminRoomListFragment"
@@ -224,7 +224,7 @@
             app:destination="@id/adminRoomFormFragment" />
     </fragment>
 
-    <fragment
+    <dialog
         android:id="@+id/adminRoomFormFragment"
         android:name="com.example.freshguide.ui.admin.AdminRoomFormFragment"
         android:label="Room Form"
@@ -233,7 +233,7 @@
             android:name="roomId"
             app:argType="integer"
             android:defaultValue="-1" />
-    </fragment>
+    </dialog>
 
     <fragment
         android:id="@+id/adminFacilityListFragment"
@@ -257,7 +257,7 @@
             app:destination="@id/adminRouteFormFragment" />
     </fragment>
 
-    <fragment
+    <dialog
         android:id="@+id/adminRouteFormFragment"
         android:name="com.example.freshguide.ui.admin.AdminRouteFormFragment"
         android:label="Route Form"
@@ -266,7 +266,7 @@
             android:name="routeId"
             app:argType="integer"
             android:defaultValue="-1" />
-    </fragment>
+    </dialog>
 
     <fragment
         android:id="@+id/adminPublishFragment"
@@ -284,7 +284,7 @@
             app:destination="@id/adminCampusAreaFormFragment" />
     </fragment>
 
-    <fragment
+    <dialog
         android:id="@+id/adminCampusAreaFormFragment"
         android:name="com.example.freshguide.ui.admin.AdminCampusAreaFormFragment"
         android:label="Campus Area Form"
@@ -293,6 +293,6 @@
             android:name="roomId"
             app:argType="integer"
             android:defaultValue="-1" />
-    </fragment>
+    </dialog>
 
 </navigation>

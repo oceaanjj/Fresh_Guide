@@ -15,8 +15,6 @@ import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -32,6 +30,8 @@ import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.repository.RouteRepository;
 import com.example.freshguide.ui.adapter.RouteStepEditAdapter;
 import com.example.freshguide.viewmodel.AdminViewModel;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -44,7 +44,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-public class AdminRouteFormFragment extends Fragment {
+public class AdminRouteFormFragment extends BaseAdminBottomSheetFragment {
 
     private AdminViewModel viewModel;
 
@@ -149,15 +149,16 @@ public class AdminRouteFormFragment extends Fragment {
                     return;
                 }
 
-                new AlertDialog.Builder(requireContext())
-                        .setTitle("Unsaved changes")
-                        .setMessage("Discard your route updates?")
-                        .setPositiveButton("Discard", (dialog, which) -> {
+                AdminDialogUtils.showDestructiveConfirmation(
+                        AdminRouteFormFragment.this,
+                        "Unsaved changes",
+                        "Discard your route updates?",
+                        "Discard",
+                        () -> {
                             allowExitWithoutPrompt = true;
                             navigateBackSilently();
-                        })
-                        .setNegativeButton("Cancel", null)
-                        .show();
+                        }
+                );
             }
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), backPressedCallback);
@@ -183,10 +184,12 @@ public class AdminRouteFormFragment extends Fragment {
 
             @Override
             public void onDelete(int position) {
-                new AlertDialog.Builder(requireContext())
-                        .setTitle("Delete step")
-                        .setMessage("Remove this step?")
-                        .setPositiveButton("Delete", (dialog, which) -> {
+                AdminDialogUtils.showDestructiveConfirmation(
+                        AdminRouteFormFragment.this,
+                        "Delete step",
+                        "Remove this step?",
+                        "Delete",
+                        () -> {
                             if (position < 0 || position >= steps.size()) {
                                 return;
                             }
@@ -195,9 +198,8 @@ public class AdminRouteFormFragment extends Fragment {
                             stepsAdapter.notifyItemRemoved(position);
                             stepsAdapter.notifyItemRangeChanged(position, steps.size() - position);
                             updateStepListVisibility();
-                        })
-                        .setNegativeButton("Cancel", null)
-                        .show();
+                        }
+                );
             }
 
             @Override
@@ -502,12 +504,14 @@ public class AdminRouteFormFragment extends Fragment {
         boolean isNewStep = editPosition < 0;
         RouteStepDto currentStep = (!isNewStep && editPosition < steps.size()) ? steps.get(editPosition) : null;
 
-        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_route_step, null);
-        TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.bottom_sheet_admin_route_step, null);
+        TextView tvTitle = dialogView.findViewById(R.id.tv_step_sheet_title);
         TextView tvStepOrder = dialogView.findViewById(R.id.tv_step_order);
         TextInputEditText etInstruction = dialogView.findViewById(R.id.et_instruction);
         AutoCompleteTextView spinnerDirection = dialogView.findViewById(R.id.spinner_direction);
         TextInputEditText etLandmark = dialogView.findViewById(R.id.et_landmark);
+        View btnCancel = dialogView.findViewById(R.id.btn_step_cancel);
+        View btnSaveStep = dialogView.findViewById(R.id.btn_step_save);
 
         String[] directions = new String[]{"Straight", "Left", "Right", "Up", "Down"};
         ArrayAdapter<String> directionAdapter = new ArrayAdapter<>(
@@ -530,13 +534,22 @@ public class AdminRouteFormFragment extends Fragment {
             }
         }
 
-        AlertDialog dialog = new AlertDialog.Builder(requireContext())
-                .setView(dialogView)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton(isNewStep ? "Add" : "Update", null)
-                .create();
+        ((TextView) btnSaveStep).setText(isNewStep ? "Add step" : "Update step");
 
-        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext(), R.style.ThemeOverlay_FreshGuide_BottomSheet);
+        dialog.setContentView(dialogView);
+        dialog.setOnShowListener(d -> {
+            View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (sheet != null) {
+                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(sheet);
+                behavior.setFitToContents(true);
+                behavior.setSkipCollapsed(true);
+                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            }
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnSaveStep.setOnClickListener(v -> {
             String instruction = etInstruction.getText() != null ? etInstruction.getText().toString().trim() : "";
             String direction = spinnerDirection.getText() != null ? spinnerDirection.getText().toString().trim() : "";
             String landmark = etLandmark.getText() != null ? etLandmark.getText().toString().trim() : "";
@@ -570,7 +583,7 @@ public class AdminRouteFormFragment extends Fragment {
             reorderSteps();
             updateStepListVisibility();
             dialog.dismiss();
-        }));
+        });
 
         dialog.show();
     }
@@ -638,12 +651,14 @@ public class AdminRouteFormFragment extends Fragment {
 
     private void continueSaveAfterValidation() {
         if (steps.isEmpty()) {
-            new AlertDialog.Builder(requireContext())
-                    .setTitle("No steps added")
-                    .setMessage("Save this route without steps?")
-                    .setPositiveButton("Save", (dialog, which) -> executeSave())
-                    .setNegativeButton("Cancel", (dialog, which) -> isSaving = false)
-                    .show();
+            AdminDialogUtils.showPrimaryConfirmation(
+                    this,
+                    "No steps added",
+                    "Save this route without steps?",
+                    "Save",
+                    this::executeSave,
+                    () -> isSaving = false
+            );
             return;
         }
         executeSave();

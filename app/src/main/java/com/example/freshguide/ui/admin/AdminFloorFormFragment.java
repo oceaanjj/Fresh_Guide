@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
@@ -18,7 +17,7 @@ import com.example.freshguide.R;
 import com.example.freshguide.viewmodel.AdminViewModel;
 import com.google.android.material.snackbar.Snackbar;
 
-public class AdminFloorFormFragment extends Fragment {
+public class AdminFloorFormFragment extends BaseAdminBottomSheetFragment {
 
     private AdminViewModel viewModel;
 

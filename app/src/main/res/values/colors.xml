@@ -26,15 +26,24 @@
     <color name="green_pill">#DFF5DF</color>
     <color name="green_pill_pressed">#D0F0D0</color>
     <color name="green">#1AA514</color>
+    <color name="admin_primary_fill">#178A1A</color>
+    <color name="admin_primary_fill_pressed">#127015</color>
+    <color name="admin_primary_on_fill">#F6FFF4</color>
     <color name="orange_accent">#FF6D00</color>
     <color name="orange_text">#FFA500</color>
     <color name="orange_surface">#FFF3E0</color>
+    <color name="red_accent">#D94B4B</color>
+    <color name="red_surface">#FDECEC</color>
+    <color name="red_pressed">#F8D9D9</color>
     <color name="map_orange">#F4A340</color>
 
     <!-- Border & Divider Colors (Light Mode) -->
     <color name="border_default">#E0E0E0</color>
     <color name="border_subtle">#EEEEEE</color>
     <color name="divider">#E6E6E6</color>
+    <color name="neutral_surface">#F3F4F3</color>
+    <color name="neutral_surface_pressed">#E9EBE9</color>
+    <color name="neutral_stroke">#D6DAD6</color>
     <color name="chip_border">#29A829</color>
     <color name="floor_chip_selected_bg">#12770E</color>
     <color name="floor_chip_unselected_bg">#FFFFFF</color>

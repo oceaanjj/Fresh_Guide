@@ -5,58 +5,49 @@
     android:layout_height="match_parent"
     android:background="@color/background_default">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         android:paddingStart="@dimen/screen_horizontal_gutter"
-        android:paddingTop="20dp"
+        android:paddingTop="16dp"
         android:paddingEnd="@dimen/screen_horizontal_gutter">
 
         <TextView
             android:id="@+id/tv_admin_page_title"
-            style="@style/Style.FreshGuide.Text.PageTitle"
-            android:layout_width="0dp"
+            style="@style/Style.FreshGuide.Text.AdminPageTitle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Admin List"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:text="Admin List" />
 
         <TextView
             android:id="@+id/tv_admin_page_subtitle"
-            style="@style/Style.FreshGuide.Text.PageSubtitle"
-            android:layout_width="0dp"
+            style="@style/Style.FreshGuide.Text.AdminPageSubtitle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Browse and manage records using the same structure students rely on."
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_admin_page_title" />
+            android:text="Browse and manage records using the same structure students rely on." />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_items"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:layout_marginTop="14dp"
+            android:layout_weight="1"
             android:clipToPadding="false"
             android:overScrollMode="never"
-            android:paddingTop="18dp"
-            android:paddingBottom="104dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_admin_page_subtitle" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:paddingBottom="104dp" />
+    </LinearLayout>
 
     <ImageButton
         android:id="@+id/fab_add"
+        style="@style/Style.FreshGuide.Button.Admin.Circle"
         android:layout_width="52dp"
         android:layout_height="52dp"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="20dp"
-        android:background="@drawable/bg_admin_circle_action"
         android:contentDescription="@string/admin_list_add_item"
-        android:padding="14dp"
         android:src="@drawable/ic_schedule_add"
         app:tint="@color/green_primary" />
 

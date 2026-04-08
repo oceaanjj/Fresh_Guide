@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
@@ -20,7 +19,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Locale;
 
-public class AdminBuildingFormFragment extends Fragment {
+public class AdminBuildingFormFragment extends BaseAdminBottomSheetFragment {
 
     private AdminViewModel viewModel;
 
