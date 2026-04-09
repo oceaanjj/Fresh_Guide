@@ -84,6 +84,21 @@
         <item name="android:textStyle">italic</item>
     </style>
 
+    <style name="Style.FreshGuide.Text.AdminWelcome">
+        <item name="android:fontFamily">@font/inter_bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="Style.FreshGuide.Text.AdminName">
+        <item name="android:fontFamily">@font/playfair_bold</item>
+        <item name="android:textSize">34sp</item>
+        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textStyle">italic</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
     <style name="Style.FreshGuide.Text.AdminBottomSheetTitle">
         <item name="android:fontFamily">@font/playfair_bold</item>
         <item name="android:textSize">29sp</item>
@@ -97,8 +112,8 @@
     </style>
 
     <style name="Style.FreshGuide.Text.AdminPageSubtitle">
-        <item name="android:fontFamily">@font/inter_bold</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/inter_medium</item>
+        <item name="android:textSize">13sp</item>
         <item name="android:textColor">@color/text_hint</item>
     </style>
 
@@ -137,8 +152,9 @@
 
     <style name="Style.FreshGuide.Text.AdminSummaryNumber">
         <item name="android:fontFamily">@font/inter_bold</item>
-        <item name="android:textSize">30sp</item>
+        <item name="android:textSize">40sp</item>
         <item name="android:textColor">@color/green_primary</item>
+        <item name="android:includeFontPadding">false</item>
     </style>
 
     <style name="Style.FreshGuide.Text.AdminSummaryLabel">
@@ -146,6 +162,22 @@
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/text_secondary</item>
         <item name="android:lineSpacingExtra">1dp</item>
+    </style>
+
+    <style name="Style.FreshGuide.Text.AdminSummaryLabelTop">
+        <item name="android:fontFamily">@font/inter_medium</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="Style.FreshGuide.Text.AdminSummaryLabelBottom">
+        <item name="android:fontFamily">@font/inter_bold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:includeFontPadding">false</item>
     </style>
 
     <style name="Style.FreshGuide.Text.AdminDashboardAction">
@@ -247,6 +279,14 @@
 
     <style name="Style.FreshGuide.Card.AdminSummary" parent="Style.FreshGuide.Card.Section">
         <item name="cardCornerRadius">22dp</item>
+    </style>
+
+    <style name="Style.FreshGuide.Card.AdminOverviewTile" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@android:color/transparent</item>
+        <item name="cardCornerRadius">10dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="strokeColor">@android:color/transparent</item>
     </style>
 
     <style name="Style.FreshGuide.Card.AdminDashboardAction" parent="Widget.MaterialComponents.CardView">
