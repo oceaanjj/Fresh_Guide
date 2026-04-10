@@ -1,11 +1,16 @@
 package com.example.freshguide;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewAnimationUtils;
+import android.view.ViewGroup;
 import android.view.animation.PathInterpolator;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.freshguide.ui.view.SplashArrowAnimationView;
 import com.example.freshguide.util.SessionManager;
@@ -13,12 +18,14 @@ import com.example.freshguide.util.SessionManager;
 public class SplashActivity extends AppCompatActivity {
 
     private static final boolean ENABLE_STUDENT_TEST_BYPASS = true;
-    private static final String TEST_ADMIN_TOKEN = "debug_admin_token";
-    private static final String TEST_STUDENT_TOKEN = "local_debug_student_token";
-    private static final String LEGACY_DEBUG_TOKEN = "debug_token_123";
-    private static final String TEST_STUDENT_ID = "20230372-S";
-    private static final String TEST_STUDENT_NAME = "Test Student";
-    private static final long SPLASH_EXIT_DURATION_MS = 260L;
+    private static final String TEST_ADMIN_TOKEN     = "debug_admin_token";
+    private static final String TEST_STUDENT_TOKEN   = "local_debug_student_token";
+    private static final String LEGACY_DEBUG_TOKEN   = "debug_token_123";
+    private static final String TEST_STUDENT_ID      = "20230372-S";
+    private static final String TEST_STUDENT_NAME    = "Test Student";
+
+
+    private static final long CIRCLE_REVEAL_DURATION_MS = 460L;
 
     private boolean handoffStarted = false;
     private View splashRoot;
@@ -29,10 +36,13 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        splashRoot = findViewById(R.id.splashRoot);
+        splashRoot      = findViewById(R.id.splashRoot);
         splashArrowView = findViewById(R.id.splashArrowView);
-        splashArrowView.post(() -> splashArrowView.startRevealSequence(this::finishSplash));
+
+        splashArrowView.post(() ->
+                splashArrowView.startRevealSequence(this::finishSplash));
     }
+
 
     private void finishSplash() {
         if (handoffStarted || splashRoot == null || splashArrowView == null) {
@@ -40,25 +50,41 @@ public class SplashActivity extends AppCompatActivity {
         }
         handoffStarted = true;
 
-        float exitLift = getResources().getDisplayMetrics().density * 12f;
-        PathInterpolator exitInterpolator = new PathInterpolator(0.3f, 0f, 0.2f, 1f);
+        int[] loc = new int[2];
+        splashArrowView.getLocationInWindow(loc);
+        int cx = loc[0] + splashArrowView.getWidth()  / 2;
+        int cy = loc[1] + splashArrowView.getHeight() / 2;
 
-        splashRoot.animate()
-                .alpha(0f)
-                .setDuration(SPLASH_EXIT_DURATION_MS)
-                .setInterpolator(exitInterpolator)
-                .start();
+        View revealOverlay = new View(this);
+        revealOverlay.setBackgroundColor(
+                ContextCompat.getColor(this, R.color.splash_reveal_surface));
+
+        ViewGroup decor = (ViewGroup) getWindow().getDecorView();
+        decor.addView(revealOverlay, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+
+        float maxRadius = (float) Math.hypot(decor.getWidth(), decor.getHeight());
+        Animator reveal = ViewAnimationUtils.createCircularReveal(
+                revealOverlay, cx, cy, 0f, maxRadius);
+        reveal.setDuration(CIRCLE_REVEAL_DURATION_MS);
+        reveal.setInterpolator(new PathInterpolator(0.4f, 0f, 0.2f, 1f));
 
         splashArrowView.animate()
                 .alpha(0f)
-                .translationY(-exitLift)
-                .scaleX(0.965f)
-                .scaleY(0.965f)
-                .setDuration(SPLASH_EXIT_DURATION_MS)
-                .setInterpolator(exitInterpolator)
-                .withEndAction(this::navigateFromSplash)
+                .setDuration(CIRCLE_REVEAL_DURATION_MS / 2)
                 .start();
+
+        reveal.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                navigateFromSplash();
+            }
+        });
+
+        reveal.start();
     }
+
 
     private void navigateFromSplash() {
         if (isFinishing() || isDestroyed()) {
@@ -90,7 +116,8 @@ public class SplashActivity extends AppCompatActivity {
         }
 
         startActivity(nextIntent);
-        overridePendingTransition(R.anim.splash_next_enter, R.anim.splash_current_exit);
+
+        overridePendingTransition(0, 0);
         finish();
     }
 }
