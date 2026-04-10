@@ -1,5 +1,6 @@
 package com.example.freshguide.ui.admin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,9 +14,12 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
+import com.example.freshguide.LoginActivity;
 import com.example.freshguide.R;
+import com.example.freshguide.repository.AuthRepository;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.viewmodel.AdminViewModel;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -90,5 +94,21 @@ public class AdminDashboardFragment extends Fragment {
                 nav.navigate(R.id.action_adminDashboard_to_adminRouteList));
         view.findViewById(R.id.btn_publish).setOnClickListener(v ->
                 nav.navigate(R.id.action_adminDashboard_to_adminPublish));
+
+        // Logout button with confirmation dialog
+        view.findViewById(R.id.btn_admin_logout).setOnClickListener(v -> {
+            new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Logout", (dialog, which) -> {
+                    new AuthRepository(requireContext()).logout();
+                    Intent intent = new Intent(requireActivity(), LoginActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    requireActivity().finish();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+        });
     }
 }

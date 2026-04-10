@@ -74,6 +74,11 @@ import androidx.navigation.NavOptions;
                 rootView = findViewById(R.id.main);
                 View navHostView = findViewById(R.id.nav_host_fragment);
 
+                // Initialize header views (previously stubbed)
+                headerBack = findViewById(R.id.header_back);
+                headerTitle = findViewById(R.id.header_title);
+                headerBar = findViewById(R.id.header_bar);
+
                 NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.nav_host_fragment);
                 navController = navHostFragment.getNavController();
@@ -170,7 +175,8 @@ import androidx.navigation.NavOptions;
             }
 
             private void setupCustomNav(View navHome, View navSchedule, View navSettings, View navProfile) {
-                bindNavItem(navHome, R.id.nav_icon_home, R.id.nav_text_home, this::openHomeTab);
+                bindNavItem(navHome, R.id.nav_icon_home, R.id.nav_text_home,
+                        () -> navigateTo(R.id.homeFragment));
                 bindNavItem(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule,
                         () -> navigateTo(R.id.scheduleFragment));
                 bindNavItem(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings,
@@ -301,10 +307,21 @@ import androidx.navigation.NavOptions;
                             rootPaddingBottom
                     );
 
+                    // Apply top inset to main content wrapper instead of nav host
+                    View contentWrapper = findViewById(R.id.main_content_wrapper);
+                    if (contentWrapper != null) {
+                        contentWrapper.setPadding(
+                                contentWrapper.getPaddingLeft(),
+                                hostTopInset,
+                                contentWrapper.getPaddingRight(),
+                                contentWrapper.getPaddingBottom()
+                        );
+                    }
+
                     if (navHostView != null) {
                         navHostView.setPadding(
                                 navHostPaddingLeft,
-                                navHostPaddingTop + hostTopInset,
+                                navHostPaddingTop,
                                 navHostPaddingRight,
                                 navHostPaddingBottom
                         );
