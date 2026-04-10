@@ -20,8 +20,12 @@ public class SplashActivity extends AppCompatActivity {
     private static final int STEP2_DURATION_MS  = 800;
     private static final int SPINNER_FADE_MS    = 400;
     private static final int LOADING_HOLD_MS    = 1200;
+    private static final boolean ENABLE_STUDENT_TEST_BYPASS = true;
     private static final String TEST_ADMIN_TOKEN = "debug_admin_token";
+    private static final String TEST_STUDENT_TOKEN = "local_debug_student_token";
     private static final String LEGACY_DEBUG_TOKEN = "debug_token_123";
+    private static final String TEST_STUDENT_ID = "20230372-S";
+    private static final String TEST_STUDENT_NAME = "Test Student";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,12 +73,22 @@ public class SplashActivity extends AppCompatActivity {
                         SessionManager session = SessionManager.getInstance(SplashActivity.this);
                         String token = session.getToken();
 
-                        if (TEST_ADMIN_TOKEN.equals(token) || LEGACY_DEBUG_TOKEN.equals(token)) {
+                        if (TEST_ADMIN_TOKEN.equals(token)
+                                || TEST_STUDENT_TOKEN.equals(token)
+                                || LEGACY_DEBUG_TOKEN.equals(token)) {
                             session.clearSession();
                         }
 
                         Intent nextIntent;
-                        if (session.isLoggedIn()) {
+                        if (BuildConfig.DEBUG && ENABLE_STUDENT_TEST_BYPASS) {
+                            session.saveSession(
+                                    TEST_STUDENT_TOKEN,
+                                    SessionManager.ROLE_STUDENT,
+                                    TEST_STUDENT_ID,
+                                    TEST_STUDENT_NAME
+                            );
+                            nextIntent = new Intent(SplashActivity.this, MainActivity.class);
+                        } else if (session.isLoggedIn()) {
                             nextIntent = new Intent(SplashActivity.this, MainActivity.class);
                         } else {
                             nextIntent = new Intent(SplashActivity.this, LoginActivity.class);
