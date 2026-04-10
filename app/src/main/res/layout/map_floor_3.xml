@@ -96,7 +96,7 @@
             android:background="@color/background_default"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:minHeight="760dp"
+            android:minHeight="1120dp"
             android:paddingBottom="24dp">
 
             <View
@@ -109,45 +109,43 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/faculty_room"
-                android:layout_width="70dp"
-                android:layout_height="32dp"
+                android:id="@+id/student_affairs_office"
+                android:layout_width="98dp"
+                android:layout_height="46dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_room_outline_gray"
                 android:gravity="center"
-                android:text="Faculty&#10;Room"
+                android:text="Office of&#10;Student Affairs&#10;and Services"
                 android:textColor="@color/floor_room_label"
-                android:textSize="10sp"
+                android:textSize="9sp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.43"
-                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/storage_room"
+                android:id="@+id/boy_restroom"
                 android:layout_width="82dp"
-                android:layout_height="26dp"
+                android:layout_height="24dp"
                 android:layout_marginTop="6dp"
                 android:background="@drawable/bg_room_outline_gray"
                 android:gravity="center"
-                android:text="Laboratory"
+                android:text="Boy's&#10;Restroom"
                 android:textColor="@color/floor_room_label"
-                android:textSize="10sp"
+                android:textSize="9sp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toBottomOf="@id/student_affairs_office" />
 
             <TextView
-                android:id="@+id/office_room"
+                android:id="@+id/girl_restroom"
                 android:layout_width="64dp"
-                android:layout_height="26dp"
+                android:layout_height="24dp"
                 android:layout_marginTop="4dp"
                 android:background="@drawable/bg_room_outline_gray"
                 android:gravity="center"
-                android:text="Office"
+                android:text="Girl's&#10;Restroom"
                 android:textColor="@color/floor_room_label"
-                android:textSize="10sp"
+                android:textSize="9sp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/storage_room" />
+                app:layout_constraintTop_toBottomOf="@id/boy_restroom" />
 
             <ImageView
                 android:id="@+id/stairs_top"
@@ -163,7 +161,7 @@
                 android:id="@+id/room_left_1"
                 layout="@layout/item_floor_room_left"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="34dp"
                 android:layout_marginTop="4dp"
                 android:tag="room_box_1"
                 app:layout_constraintStart_toStartOf="parent"
@@ -173,7 +171,7 @@
                 android:id="@+id/room_left_2"
                 layout="@layout/item_floor_room_left"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="34dp"
                 android:layout_marginTop="8dp"
                 android:tag="room_box_2"
                 app:layout_constraintStart_toStartOf="parent"
@@ -183,7 +181,7 @@
                 android:id="@+id/room_left_3"
                 layout="@layout/item_floor_room_left"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="96dp"
                 android:layout_marginTop="8dp"
                 android:tag="room_box_3"
                 app:layout_constraintStart_toStartOf="parent"
@@ -193,7 +191,7 @@
                 android:id="@+id/room_left_4"
                 layout="@layout/item_floor_room_left"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="96dp"
                 android:layout_marginTop="8dp"
                 android:tag="room_box_4"
                 app:layout_constraintStart_toStartOf="parent"
@@ -203,27 +201,57 @@
                 android:id="@+id/room_left_5"
                 layout="@layout/item_floor_room_left"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="52dp"
                 android:layout_marginTop="8dp"
                 android:tag="room_box_5"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/room_left_4" />
 
             <include
+                android:id="@+id/room_left_6"
+                layout="@layout/item_floor_room_left"
+                android:layout_width="98dp"
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_11"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_left_5" />
+
+            <include
+                android:id="@+id/room_left_7"
+                layout="@layout/item_floor_room_left"
+                android:layout_width="98dp"
+                android:layout_height="96dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_12"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_left_6" />
+
+            <include
+                android:id="@+id/room_left_8"
+                layout="@layout/item_floor_room_left"
+                android:layout_width="98dp"
+                android:layout_height="96dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_13"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_left_7" />
+
+            <include
                 android:id="@+id/room_right_1"
                 layout="@layout/item_floor_room_right"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="76dp"
                 android:layout_marginTop="6dp"
                 android:tag="room_box_6"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/office_room" />
+                app:layout_constraintTop_toBottomOf="@id/girl_restroom" />
 
             <include
                 android:id="@+id/room_right_2"
                 layout="@layout/item_floor_room_right"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="52dp"
                 android:layout_marginTop="8dp"
                 android:tag="room_box_7"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -233,7 +261,7 @@
                 android:id="@+id/room_right_3"
                 layout="@layout/item_floor_room_right"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="96dp"
                 android:layout_marginTop="8dp"
                 android:tag="room_box_8"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -243,7 +271,7 @@
                 android:id="@+id/room_right_4"
                 layout="@layout/item_floor_room_right"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="34dp"
                 android:layout_marginTop="8dp"
                 android:tag="room_box_9"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -253,11 +281,31 @@
                 android:id="@+id/room_right_5"
                 layout="@layout/item_floor_room_right"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="76dp"
                 android:layout_marginTop="8dp"
                 android:tag="room_box_10"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/room_right_4" />
+
+            <include
+                android:id="@+id/room_right_6"
+                layout="@layout/item_floor_room_right"
+                android:layout_width="98dp"
+                android:layout_height="76dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_14"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_right_5" />
+
+            <include
+                android:id="@+id/room_right_7"
+                layout="@layout/item_floor_room_right"
+                android:layout_width="98dp"
+                android:layout_height="96dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_15"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_right_6" />
 
             <ImageView
                 android:id="@+id/stairs_bottom"
@@ -267,7 +315,7 @@
                 android:scaleType="fitXY"
                 android:src="@drawable/stairs"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/room_left_5" />
+                app:layout_constraintTop_toBottomOf="@id/room_left_8" />
 
             <TextView
                 android:id="@+id/elevator"
@@ -280,7 +328,7 @@
                 android:textColor="@color/floor_room_label"
                 android:textSize="10sp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/room_right_5" />
+                app:layout_constraintTop_toBottomOf="@id/room_right_7" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

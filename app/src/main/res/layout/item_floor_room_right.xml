@@ -25,5 +25,5 @@
         android:tag="room_label"
         android:text="Room"
         android:textColor="@color/floor_room_label"
-        android:textSize="11sp" />
+        android:textSize="9sp" />
 </FrameLayout>
