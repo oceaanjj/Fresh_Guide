@@ -96,7 +96,7 @@ public class RoomAdapter extends ListAdapter<RoomSearchResult, RoomAdapter.ViewH
             if (displayMode == MODE_RECENT) {
                 iconRes = R.drawable.ic_search_history;
             } else if (displayMode == MODE_SAVED) {
-                iconRes = R.drawable.ic_bookmark_outline;
+                iconRes = R.drawable.ic_star_outline;
             } else {
                 iconRes = R.drawable.ic_search_pin;
             }

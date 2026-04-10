@@ -16,6 +16,7 @@ import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +47,7 @@ import com.example.freshguide.util.RoomImageUrlResolver;
 import com.example.freshguide.viewmodel.HomeViewModel;
 import com.example.freshguide.viewmodel.RoomDetailViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -141,7 +143,8 @@ public class HomeFragment extends Fragment {
     private TextView tvRoomType;
     private TextView tvRoomDescription;
     private TextView tvFacilities;
-    private View btnDirections;
+    private MaterialButton btnGoToMap;
+    private MaterialButton btnDirections;
     private ImageButton btnBookmark;
     private RoomImageGalleryAdapter galleryAdapter;
     private View galleryFadeLeft;
@@ -152,6 +155,7 @@ public class HomeFragment extends Fragment {
     private FloatingActionButton fabCompass;
     private int activeRoomId = -1;
     private boolean activeRoomIsCampusArea;
+    private RoomEntity activeRoom;
     private String latestImageUrl;
     private Runnable pendingAfterRoomSheetHidden;
 
@@ -780,7 +784,7 @@ public class HomeFragment extends Fragment {
 
     private void observeMapFocusRequests() {
         NavController navController = NavHostFragment.findNavController(this);
-        navController.getCurrentBackStackEntry()
+        navController.getBackStackEntry(navController.getGraph().getId())
                 .getSavedStateHandle()
                 .<Bundle>getLiveData(RoomListFragment.KEY_MAP_FOCUS_REQUEST)
                 .observe(getViewLifecycleOwner(), request -> {
@@ -788,7 +792,7 @@ public class HomeFragment extends Fragment {
                         return;
                     }
 
-                    navController.getCurrentBackStackEntry()
+                    navController.getBackStackEntry(navController.getGraph().getId())
                             .getSavedStateHandle()
                             .remove(RoomListFragment.KEY_MAP_FOCUS_REQUEST);
 
@@ -870,6 +874,7 @@ public class HomeFragment extends Fragment {
         roomSummaryLayout = root.findViewById(R.id.layout_room_summary);
         tvRoomDescription = root.findViewById(R.id.tv_room_description);
         tvFacilities = root.findViewById(R.id.tv_facilities);
+        btnGoToMap = root.findViewById(R.id.btn_go_to_map);
         btnDirections = root.findViewById(R.id.btn_get_directions);
         btnBookmark = root.findViewById(R.id.btn_room_bookmark);
         RecyclerView galleryRecycler = root.findViewById(R.id.recycler_room_gallery);
@@ -890,6 +895,7 @@ public class HomeFragment extends Fragment {
             }
         });
         galleryRecycler.post(() -> updateGalleryFades(galleryRecycler));
+        configureActionButtons(false);
 
         roomDetailSheetBehavior = BottomSheetBehavior.from(roomDetailSheet);
         roomDetailSheetBehavior.setFitToContents(false);
@@ -972,6 +978,7 @@ public class HomeFragment extends Fragment {
                 return;
             }
 
+            activeRoom = room;
             tvRoomName.setText(room.name);
             tvRoomSubtitle.setText(buildSubtitle(room.code, room.location));
 
@@ -1028,6 +1035,42 @@ public class HomeFragment extends Fragment {
                 saved -> updateBookmarkState(Boolean.TRUE.equals(saved)));
     }
 
+    private void configureActionButtons(boolean shouldShowGoTo) {
+        if (btnGoToMap == null || btnDirections == null) {
+            return;
+        }
+
+        LinearLayout.LayoutParams goToParams = (LinearLayout.LayoutParams) btnGoToMap.getLayoutParams();
+        LinearLayout.LayoutParams directionsParams = (LinearLayout.LayoutParams) btnDirections.getLayoutParams();
+
+        if (shouldShowGoTo) {
+            btnGoToMap.setVisibility(View.VISIBLE);
+            goToParams.width = 0;
+            goToParams.weight = 1f;
+            goToParams.setMarginEnd(dpToPx(6));
+            btnGoToMap.setLayoutParams(goToParams);
+
+            directionsParams.width = 0;
+            directionsParams.weight = 1f;
+            directionsParams.setMarginStart(dpToPx(6));
+            btnDirections.setLayoutParams(directionsParams);
+            btnDirections.setText(R.string.room_detail_directions);
+            return;
+        }
+
+        btnGoToMap.setVisibility(View.GONE);
+        goToParams.width = 0;
+        goToParams.weight = 0f;
+        goToParams.setMarginEnd(0);
+        btnGoToMap.setLayoutParams(goToParams);
+
+        directionsParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        directionsParams.weight = 0f;
+        directionsParams.setMarginStart(0);
+        btnDirections.setLayoutParams(directionsParams);
+        btnDirections.setText("DIRECTIONS");
+    }
+
     private void showRoomDetailSheet(int roomId, @Nullable String roomName, boolean campusArea) {
         if (roomDetailSheet == null || roomDetailSheetBehavior == null || roomId <= 0) {
             return;
@@ -1035,6 +1078,7 @@ public class HomeFragment extends Fragment {
 
         activeRoomId = roomId;
         activeRoomIsCampusArea = campusArea;
+        activeRoom = null;
         latestImageUrl = null;
         roomDetailSheet.setVisibility(View.VISIBLE);
         setBottomNavVisible(false);
@@ -1107,7 +1151,7 @@ public class HomeFragment extends Fragment {
         }
         btnBookmark.setImageDrawable(AppCompatResources.getDrawable(
                 requireContext(),
-                isSaved ? R.drawable.ic_bookmark_filled : R.drawable.ic_bookmark_outline
+                isSaved ? R.drawable.ic_star_filled : R.drawable.ic_star_outline
         ));
         btnBookmark.setContentDescription(getString(
                 isSaved ? R.string.saved_location_remove : R.string.saved_location_add

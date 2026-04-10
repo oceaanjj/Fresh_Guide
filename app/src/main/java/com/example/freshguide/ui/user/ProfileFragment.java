@@ -88,6 +88,7 @@ public class ProfileFragment extends Fragment {
             Bundle args = new Bundle();
             args.putInt("roomId", room.roomId);
             args.putString("roomName", room.getDisplayName());
+            args.putBoolean("showGoTo", true);
             navController.navigate(R.id.roomDetailFragment, args);
         });
         recyclerSavedLocations.setLayoutManager(new LinearLayoutManager(requireContext()));
