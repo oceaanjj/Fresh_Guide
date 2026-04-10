@@ -16,6 +16,7 @@ import com.example.freshguide.model.dto.FacilityDto;
 import com.example.freshguide.model.dto.FloorDto;
 import com.example.freshguide.model.dto.OriginDto;
 import com.example.freshguide.model.dto.RouteDto;
+import com.example.freshguide.model.dto.RoomDto;
 import com.example.freshguide.model.entity.OriginEntity;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.network.ApiClient;
@@ -23,9 +24,12 @@ import com.example.freshguide.network.ApiService;
 import com.example.freshguide.repository.BuildingRepository;
 import com.example.freshguide.repository.RouteRepository;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -34,6 +38,15 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class AdminViewModel extends AndroidViewModel {
+
+    private static final Set<String> EXCLUDED_DASHBOARD_ROOM_CODES = new HashSet<>(Arrays.asList(
+            "COURT",
+            "ENT",
+            "EXIT",
+            "MAIN-3-STUDENT-AFFAIRS",
+            "MAIN-4-STUDENT-LOUNGE",
+            "MAIN-5-AUDIT"
+    ));
 
     private final MutableLiveData<Integer> roomCount = new MutableLiveData<>(0);
     private final MutableLiveData<Integer> buildingCount = new MutableLiveData<>(0);
@@ -86,7 +99,7 @@ public class AdminViewModel extends AndroidViewModel {
 
     public void loadDashboardCounts() {
         executor.execute(() -> {
-            int rooms = db.roomDao().count();
+            int rooms = countVisibleRooms(db.roomDao().getAllRoomsSync());
             int bldgs = db.buildingDao().count();
             int floorsLocal = db.floorDao().count();
             int routesLocal = db.routeDao().count();
@@ -97,6 +110,111 @@ public class AdminViewModel extends AndroidViewModel {
                 routeCount.setValue(routesLocal);
             });
         });
+
+        // Refresh with live admin API counts to avoid stale local cache values.
+        apiService.adminGetRooms().enqueue(new Callback<ApiResponse<List<RoomDto>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<RoomDto>>> call,
+                                   Response<ApiResponse<List<RoomDto>>> response) {
+                if (!response.isSuccessful() || response.body() == null || !response.body().isSuccess()) {
+                    return;
+                }
+                roomCount.setValue(countVisibleRoomDtos(response.body().getData()));
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<RoomDto>>> call, Throwable t) {
+                // Keep local fallback count when network call fails.
+            }
+        });
+
+        apiService.adminGetBuildings().enqueue(new Callback<ApiResponse<List<BuildingDto>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<BuildingDto>>> call,
+                                   Response<ApiResponse<List<BuildingDto>>> response) {
+                if (!response.isSuccessful() || response.body() == null || !response.body().isSuccess()) {
+                    return;
+                }
+                List<BuildingDto> data = response.body().getData();
+                buildingCount.setValue(data != null ? data.size() : 0);
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<BuildingDto>>> call, Throwable t) {
+                // Keep local fallback count when network call fails.
+            }
+        });
+
+        apiService.adminGetFloors().enqueue(new Callback<ApiResponse<List<FloorDto>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<FloorDto>>> call,
+                                   Response<ApiResponse<List<FloorDto>>> response) {
+                if (!response.isSuccessful() || response.body() == null || !response.body().isSuccess()) {
+                    return;
+                }
+                List<FloorDto> data = response.body().getData();
+                floorCount.setValue(data != null ? data.size() : 0);
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<FloorDto>>> call, Throwable t) {
+                // Keep local fallback count when network call fails.
+            }
+        });
+
+        apiService.adminGetRoutes().enqueue(new Callback<ApiResponse<List<RouteDto>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<RouteDto>>> call,
+                                   Response<ApiResponse<List<RouteDto>>> response) {
+                if (!response.isSuccessful() || response.body() == null || !response.body().isSuccess()) {
+                    return;
+                }
+                List<RouteDto> data = response.body().getData();
+                routeCount.setValue(data != null ? data.size() : 0);
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<RouteDto>>> call, Throwable t) {
+                // Keep local fallback count when network call fails.
+            }
+        });
+    }
+
+    private int countVisibleRooms(List<RoomEntity> rooms) {
+        if (rooms == null || rooms.isEmpty()) {
+            return 0;
+        }
+
+        int count = 0;
+        for (RoomEntity room : rooms) {
+            if (room == null || isExcludedFromDashboardRoomCount(room.code)) {
+                continue;
+            }
+            count++;
+        }
+        return count;
+    }
+
+    private int countVisibleRoomDtos(List<RoomDto> rooms) {
+        if (rooms == null || rooms.isEmpty()) {
+            return 0;
+        }
+
+        int count = 0;
+        for (RoomDto room : rooms) {
+            if (room == null || isExcludedFromDashboardRoomCount(room.code)) {
+                continue;
+            }
+            count++;
+        }
+        return count;
+    }
+
+    private boolean isExcludedFromDashboardRoomCount(String code) {
+        if (code == null) {
+            return false;
+        }
+        return EXCLUDED_DASHBOARD_ROOM_CODES.contains(code.trim().toUpperCase());
     }
 
     // ── Buildings ─────────────────────────────────────────────────────────────
