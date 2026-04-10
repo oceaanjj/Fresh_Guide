@@ -3,7 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background_subtle">
+    android:background="@color/background_subtle"
+    android:paddingStart="@dimen/screen_horizontal_gutter"
+    android:paddingEnd="@dimen/screen_horizontal_gutter">
 
     <TextView
         android:layout_width="wrap_content"
@@ -19,8 +21,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
         android:clipToPadding="false" />
 
 </LinearLayout>

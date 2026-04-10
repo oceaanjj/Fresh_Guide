@@ -32,9 +32,6 @@ import androidx.navigation.NavOptions;
 
             private NavController navController;
             private View rootView;
-            private View headerBack;
-            private TextView headerTitle;
-            private View headerBar;
             private boolean isAdmin;
             private static final long NAV_ITEM_PRESS_DURATION_MS = 55L;
             private static final long NAV_ITEM_RECOVERY_DURATION_MS = 145L;
@@ -76,11 +73,6 @@ import androidx.navigation.NavOptions;
                 rootView = findViewById(R.id.main);
                 View navHostView = findViewById(R.id.nav_host_fragment);
 
-                // Initialize header views (previously stubbed)
-                headerBack = findViewById(R.id.header_back);
-                headerTitle = findViewById(R.id.header_title);
-                headerBar = findViewById(R.id.header_bar);
-
                 NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.nav_host_fragment);
                 navController = navHostFragment.getNavController();
@@ -119,60 +111,12 @@ import androidx.navigation.NavOptions;
 
                 applySystemBarInsets(rootView, navHostView, navContainer);
 
-                if (headerBack != null) {
-                    headerBack.setOnClickListener(v -> handleBackTap());
-                }
-
                 navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                     updateNavSelection(destination.getId());
-                    updateHeader(destination);
                 });
-                updateHeader(navController.getCurrentDestination());
 
                 // Network change receiver (checklist 3.2)
                 NetworkChangeReceiver.setListener(this);
-            }
-
-            private void handleBackTap() {
-                if (navController == null || navController.getCurrentDestination() == null) return;
-                if (navController.popBackStack()) return;
-
-                if (isAdmin) {
-                    navigateTo(R.id.adminDashboardFragment);
-                } else {
-                    navigateTo(R.id.homeFragment);
-                }
-            }
-
-            private void updateHeader(NavDestination destination) {
-                if (destination == null) return;
-
-                boolean hideHeader = isTopLevelDestination(destination.getId());
-
-                if (headerBar != null) {
-                    headerBar.setVisibility(hideHeader ? View.GONE : View.VISIBLE);
-                }
-
-                if (headerTitle != null) {
-                    if (destination.getId() == R.id.homeFragment) {
-                        headerTitle.setText(R.string.dashboard_header);
-                    } else if (destination.getLabel() != null && destination.getLabel().length() > 0) {
-                        headerTitle.setText(destination.getLabel());
-                    } else {
-                        headerTitle.setText(R.string.app_name);
-                    }
-                }
-
-                if (headerBack != null) {
-                    headerBack.setVisibility(isTopLevelDestination(destination.getId()) ? View.GONE : View.VISIBLE);
-                }
-            }
-
-            private boolean isTopLevelDestination(@IdRes int destinationId) {
-                if (isAdmin) {
-                    return isAdminTopLevelDestination(destinationId);
-                }
-                return isUserTopLevelDestination(destinationId);
             }
 
             private void setupCustomNav(View navHome, View navSchedule, View navSettings, View navProfile) {
@@ -299,25 +243,14 @@ import androidx.navigation.NavOptions;
 
                 ViewCompat.setOnApplyWindowInsetsListener(root, (v, windowInsets) -> {
                     Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    int hostTopInset = systemBars.top + extraTopMargin;
+                    int rootTopInset = systemBars.top + extraTopMargin;
 
                     v.setPadding(
                             rootPaddingLeft,
-                            rootPaddingTop,
+                            rootPaddingTop + rootTopInset,
                             rootPaddingRight,
                             rootPaddingBottom
                     );
-
-                    // Apply top inset to main content wrapper instead of nav host
-                    View contentWrapper = findViewById(R.id.main_content_wrapper);
-                    if (contentWrapper != null) {
-                        contentWrapper.setPadding(
-                                contentWrapper.getPaddingLeft(),
-                                hostTopInset,
-                                contentWrapper.getPaddingRight(),
-                                contentWrapper.getPaddingBottom()
-                        );
-                    }
 
                     if (navHostView != null) {
                         navHostView.setPadding(
