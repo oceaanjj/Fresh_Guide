@@ -1,7 +1,6 @@
 package com.example.freshguide.ui.user;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -18,9 +17,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.freshguide.R;
+import com.example.freshguide.util.ProfilePhotoLoader;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-
-import java.io.File;
 
 public class EditProfileBottomSheet extends BottomSheetDialogFragment {
 
@@ -157,20 +155,13 @@ public class EditProfileBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void bindPhotoState(boolean showError) {
-        if (!TextUtils.isEmpty(selectedPhotoUri)) {
-            try {
-                Uri previewUri = resolvePhotoUri(selectedPhotoUri);
-                if (previewUri != null) {
-                    imgEditProfilePhoto.setImageDrawable(null);
-                    imgEditProfilePhoto.setImageURI(previewUri);
-                    imgEditProfilePhoto.setVisibility(View.VISIBLE);
-                    tvEditProfileInitial.setVisibility(View.GONE);
-                    return;
-                }
-            } catch (Exception e) {
-                // Fall through to initial avatar below.
-            }
+        if (ProfilePhotoLoader.loadInto(requireContext(), imgEditProfilePhoto, selectedPhotoUri)) {
+            imgEditProfilePhoto.setVisibility(View.VISIBLE);
+            tvEditProfileInitial.setVisibility(View.GONE);
+            return;
+        }
 
+        if (!TextUtils.isEmpty(selectedPhotoUri)) {
             if (showError && isAdded()) {
                 Toast.makeText(requireContext(), "Unable to use that photo. Please try another image.", Toast.LENGTH_SHORT).show();
             }
@@ -179,29 +170,6 @@ public class EditProfileBottomSheet extends BottomSheetDialogFragment {
         imgEditProfilePhoto.setImageDrawable(null);
         imgEditProfilePhoto.setVisibility(View.GONE);
         tvEditProfileInitial.setVisibility(View.VISIBLE);
-    }
-
-    @Nullable
-    private Uri resolvePhotoUri(@NonNull String photoRef) {
-        String trimmed = photoRef.trim();
-        if (trimmed.isEmpty()) {
-            return null;
-        }
-
-        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-            return null;
-        }
-
-        if (trimmed.startsWith("content://") || trimmed.startsWith("file://")) {
-            return Uri.parse(trimmed);
-        }
-
-        File file = new File(trimmed);
-        if (file.exists()) {
-            return Uri.fromFile(file);
-        }
-
-        return null;
     }
 
     private String getText(EditText editText) {

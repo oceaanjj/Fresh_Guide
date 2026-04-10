@@ -28,11 +28,11 @@ import com.example.freshguide.R;
 import com.example.freshguide.model.entity.UserProfileEntity;
 import com.example.freshguide.repository.AuthRepository;
 import com.example.freshguide.ui.adapter.RoomAdapter;
+import com.example.freshguide.util.ProfilePhotoLoader;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.viewmodel.ProfileViewModel;
 import com.example.freshguide.viewmodel.SavedRoomsViewModel;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -211,48 +211,16 @@ public class ProfileFragment extends Fragment {
     }
 
     private void updateProfilePhoto(@Nullable String photoRef, String displayName) {
-        if (!TextUtils.isEmpty(photoRef)) {
-            try {
-                Uri uri = resolvePhotoUri(photoRef);
-                if (uri != null) {
-                    imgProfilePhoto.setImageDrawable(null);
-                    imgProfilePhoto.setImageURI(uri);
-                    imgProfilePhoto.setVisibility(View.VISIBLE);
-                    tvProfileInitial.setVisibility(View.GONE);
-                    return;
-                }
-            } catch (Exception ignored) {
-                // Fallback to initial avatar.
-            }
+        if (ProfilePhotoLoader.loadInto(requireContext(), imgProfilePhoto, photoRef)) {
+            imgProfilePhoto.setVisibility(View.VISIBLE);
+            tvProfileInitial.setVisibility(View.GONE);
+            return;
         }
 
         imgProfilePhoto.setImageDrawable(null);
         imgProfilePhoto.setVisibility(View.GONE);
         tvProfileInitial.setVisibility(View.VISIBLE);
         updateProfileInitial(displayName);
-    }
-
-    @Nullable
-    private Uri resolvePhotoUri(@NonNull String photoRef) {
-        String trimmed = photoRef.trim();
-        if (trimmed.isEmpty()) {
-            return null;
-        }
-
-        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-            return null;
-        }
-
-        if (trimmed.startsWith("content://") || trimmed.startsWith("file://")) {
-            return Uri.parse(trimmed);
-        }
-
-        File file = new File(trimmed);
-        if (file.exists()) {
-            return Uri.fromFile(file);
-        }
-
-        return null;
     }
 
     private void setCurrentDate() {

@@ -1,6 +1,5 @@
 package com.example.freshguide.ui.user;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -19,12 +18,11 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.freshguide.BuildConfig;
 import com.example.freshguide.R;
 import com.example.freshguide.model.entity.UserProfileEntity;
+import com.example.freshguide.util.ProfilePhotoLoader;
 import com.example.freshguide.util.ScheduleReminderHelper;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.util.ThemePreferenceManager;
 import com.example.freshguide.viewmodel.ProfileViewModel;
-
-import java.io.File;
 
 public class SettingsFragment extends Fragment {
 
@@ -229,47 +227,16 @@ public class SettingsFragment extends Fragment {
     }
 
     private void updateProfilePhoto(@Nullable String photoRef, String displayName) {
-        if (!TextUtils.isEmpty(photoRef)) {
-            try {
-                Uri uri = resolvePhotoUri(photoRef);
-                if (uri != null) {
-                    imgProfilePhoto.setImageDrawable(null);
-                    imgProfilePhoto.setImageURI(uri);
-                    cardProfilePhoto.setVisibility(View.VISIBLE);
-                    tvProfileInitial.setVisibility(View.GONE);
-                    return;
-                }
-            } catch (Exception ignored) {
-                // Fallback to initial avatar.
-            }
+        if (ProfilePhotoLoader.loadInto(requireContext(), imgProfilePhoto, photoRef)) {
+            cardProfilePhoto.setVisibility(View.VISIBLE);
+            tvProfileInitial.setVisibility(View.GONE);
+            return;
         }
 
         imgProfilePhoto.setImageDrawable(null);
         cardProfilePhoto.setVisibility(View.GONE);
         tvProfileInitial.setVisibility(View.VISIBLE);
         tvProfileInitial.setText(getInitial(displayName));
-    }
-
-    @Nullable
-    private Uri resolvePhotoUri(@NonNull String photoRef) {
-        String trimmed = photoRef.trim();
-        if (trimmed.isEmpty()) {
-            return null;
-        }
-
-        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-            return null;
-        }
-
-        if (trimmed.startsWith("content://") || trimmed.startsWith("file://")) {
-            return Uri.parse(trimmed);
-        }
-
-        File file = new File(trimmed);
-        if (file.exists()) {
-            return Uri.fromFile(file);
-        }
-        return null;
     }
 
     private void setupAboutSection() {
