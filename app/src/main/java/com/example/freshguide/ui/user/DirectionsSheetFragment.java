@@ -314,7 +314,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             activeRouteOriginRoomId = -1;
         } else if (directOriginRoomId != -1 && directRoomId != -1) {
             hideResultsAndClearFocus();
-            expandRouteSheet();
+            presentStartedRouteSheet();
             activeRouteOriginId = -1;
             activeRouteOriginRoomId = directOriginRoomId;
             activeRouteRoomId = directRoomId;
@@ -340,7 +340,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
         hideResultsAndClearFocus();
         showRouteLoadingState();
-        expandRouteSheet();
+        presentStartedRouteSheet();
         activeRouteOriginId = routeOriginId;
         activeRouteOriginRoomId = -1;
         activeRouteRoomId = routeRoomId;
@@ -469,11 +469,11 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         }
     }
 
-    private void expandRouteSheet() {
+    private void presentStartedRouteSheet() {
         if (bottomSheetBehavior == null) return;
         sheetRoot.post(() -> {
             if (bottomSheetBehavior != null) {
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
     }

@@ -120,6 +120,52 @@ public class HomeFragment extends Fragment {
             R.id.room_right_7,
             R.id.room_right_8
     };
+    private static final int[] FLOOR2_ROOM_BOX_IDS = {
+            R.id.room_left_1,
+            R.id.room_left_2,
+            R.id.room_left_3,
+            R.id.room_left_4,
+            R.id.room_left_5,
+            R.id.room_left_6,
+            R.id.room_right_1,
+            R.id.room_right_2,
+            R.id.room_right_3,
+            R.id.room_right_4,
+            R.id.room_right_5,
+            R.id.room_right_6
+    };
+    private static final int[] FLOOR3_ROOM_BOX_IDS = {
+            R.id.room_left_1,
+            R.id.room_left_2,
+            R.id.room_left_3,
+            R.id.room_left_4,
+            R.id.room_left_5,
+            R.id.room_left_6,
+            R.id.room_left_7,
+            R.id.room_left_8,
+            R.id.room_right_1,
+            R.id.room_right_2,
+            R.id.room_right_3,
+            R.id.room_right_4,
+            R.id.room_right_5,
+            R.id.room_right_6,
+            R.id.room_right_7
+    };
+    private static final int[] FLOOR4_ROOM_BOX_IDS = {
+            R.id.room_left_1,
+            R.id.room_left_2,
+            R.id.room_left_3,
+            R.id.room_left_4,
+            R.id.room_left_5,
+            R.id.room_left_6,
+            R.id.room_right_1,
+            R.id.room_right_2,
+            R.id.room_right_3,
+            R.id.room_right_4,
+            R.id.room_right_5,
+            R.id.room_right_6,
+            R.id.room_right_7
+    };
     private static final int[] FLOOR5_ROOM_BOX_IDS = {
             R.id.room_left_1,
             R.id.room_left_2,
@@ -130,6 +176,9 @@ public class HomeFragment extends Fragment {
             R.id.room_auditorium
     };
     private static final Map<String, Integer> FLOOR1_ROOM_SLOTS = createFloor1RoomSlots();
+    private static final Map<String, Integer> FLOOR2_ROOM_SLOTS = createFloor2RoomSlots();
+    private static final Map<String, Integer> FLOOR3_ROOM_SLOTS = createFloor3RoomSlots();
+    private static final Map<String, Integer> FLOOR4_ROOM_SLOTS = createFloor4RoomSlots();
 
     private ExecutorService ioExecutor;
 
@@ -196,6 +245,70 @@ public class HomeFragment extends Fragment {
         map.put("PHOTO_LAB", R.id.room_right_6);
         map.put("CRIMINOLOGY", R.id.room_right_7);
         map.put("101", R.id.room_right_8);
+        return Collections.unmodifiableMap(map);
+    }
+
+    private static Map<String, Integer> createFloor2RoomSlots() {
+        LinkedHashMap<String, Integer> map = new LinkedHashMap<>();
+        // Left column
+        map.put("MAIN-2-LR211", R.id.room_left_1);
+        map.put("MAIN-2-LR209", R.id.room_left_2);
+        map.put("MAIN-2-LR207", R.id.room_left_3);
+        map.put("MAIN-2-LR205", R.id.room_left_4);
+        map.put("MAIN-2-LR203", R.id.room_left_5);
+        map.put("MAIN-2-LR201", R.id.room_left_6);
+
+        // Right column
+        map.put("MAIN-2-LR212", R.id.room_right_1);
+        map.put("MAIN-2-LR210", R.id.room_right_2);
+        map.put("MAIN-2-LR208", R.id.room_right_3);
+        map.put("MAIN-2-LR206", R.id.room_right_4);
+        map.put("MAIN-2-LR204", R.id.room_right_5);
+        map.put("MAIN-2-LR202", R.id.room_right_6);
+        return Collections.unmodifiableMap(map);
+    }
+
+    private static Map<String, Integer> createFloor3RoomSlots() {
+        LinkedHashMap<String, Integer> map = new LinkedHashMap<>();
+        // Left column
+        map.put("MAIN-3-CBA-COORD", R.id.room_left_1);
+        map.put("MAIN-3-CBA-DEAN", R.id.room_left_2);
+        map.put("MAIN-3-LR310", R.id.room_left_3);
+        map.put("MAIN-3-LR308", R.id.room_left_4);
+        map.put("MAIN-3-CLAS-COORD", R.id.room_left_5);
+        map.put("MAIN-3-SOUND-LAB", R.id.room_left_6);
+        map.put("MAIN-3-LR304", R.id.room_left_7);
+        map.put("MAIN-3-LR302", R.id.room_left_8);
+
+        // Right column
+        map.put("MAIN-3-MIS-DATA", R.id.room_right_1);
+        map.put("MAIN-3-CS-DEPT", R.id.room_right_2);
+        map.put("MAIN-3-MULTIMEDIA", R.id.room_right_3);
+        map.put("MAIN-3-LABTECH", R.id.room_right_4);
+        map.put("MAIN-3-COMPLAB1", R.id.room_right_5);
+        map.put("MAIN-3-COMPLAB2", R.id.room_right_6);
+        map.put("MAIN-3-COMPLAB3", R.id.room_right_7);
+        return Collections.unmodifiableMap(map);
+    }
+
+    private static Map<String, Integer> createFloor4RoomSlots() {
+        LinkedHashMap<String, Integer> map = new LinkedHashMap<>();
+        // Left column
+        map.put("MAIN-4-LR411", R.id.room_left_1);
+        map.put("MAIN-4-EARLY-CHILD", R.id.room_left_2);
+        map.put("MAIN-4-LR408", R.id.room_left_3);
+        map.put("MAIN-4-PHYSICS-LAB", R.id.room_left_4);
+        map.put("MAIN-4-LR404", R.id.room_left_5);
+        map.put("MAIN-4-LR402", R.id.room_left_6);
+
+        // Right column
+        map.put("MAIN-4-COE-COUNCIL", R.id.room_right_1);
+        map.put("MAIN-4-EDTECH-LAB", R.id.room_right_2);
+        map.put("MAIN-4-BIO-LAB", R.id.room_right_3);
+        map.put("MAIN-4-CHEM-LAB", R.id.room_right_4);
+        map.put("MAIN-4-LAW-OFFICE", R.id.room_right_5);
+        map.put("MAIN-4-LR401", R.id.room_right_6);
+        map.put("MAIN-4-COE", R.id.room_right_7);
         return Collections.unmodifiableMap(map);
     }
 
@@ -513,6 +626,27 @@ public class HomeFragment extends Fragment {
             applyFloorOneRoomsByCode(floorRooms);
             return;
         }
+        if (isFloorTwoSelected()) {
+            if (floorRooms.isEmpty()) {
+                Log.w(TAG, "No Floor 2 rooms found for static slot mapping");
+            }
+            applyFloorTwoRoomsByCode(floorRooms);
+            return;
+        }
+        if (isFloorThreeSelected()) {
+            if (floorRooms.isEmpty()) {
+                Log.w(TAG, "No Floor 3 rooms found for static slot mapping");
+            }
+            applyFloorThreeRoomsByCode(floorRooms);
+            return;
+        }
+        if (isFloorFourSelected()) {
+            if (floorRooms.isEmpty()) {
+                Log.w(TAG, "No Floor 4 rooms found for static slot mapping");
+            }
+            applyFloorFourRoomsByCode(floorRooms);
+            return;
+        }
         if (isFloorFiveSelected()) {
             applyFloorFiveStaticLayout(floorRooms);
             return;
@@ -558,34 +692,106 @@ public class HomeFragment extends Fragment {
     }
 
     private void applyFloorFiveStaticLayout(@NonNull List<RoomEntity> floorRooms) {
-        bindStaticRoomLabel(R.id.room_left_1, "V-48");
-        bindStaticRoomLabel(R.id.room_left_2, "V-46");
-        bindStaticRoomLabel(R.id.room_left_3, "Industrial\nArts\nLaboratory");
-        bindStaticRoomLabel(R.id.room_right_1, "Speech\nLaboratory");
-        bindStaticRoomLabel(R.id.room_right_2, "Craft /\nSewing\nLaboratory");
-        bindStaticRoomLabel(R.id.room_right_3, "Office");
-        bindStaticRoomLabel(R.id.room_auditorium, "Auditorium");
-
-        View auditoriumBox = floorMapContainer.findViewById(R.id.room_auditorium);
-        if (auditoriumBox == null) {
-            return;
+        List<RoomEntity> remainingRooms = new ArrayList<>();
+        for (RoomEntity room : floorRooms) {
+            if (room != null) {
+                remainingRooms.add(room);
+            }
         }
 
-        RoomEntity auditorium = findFloorFiveAuditorium(floorRooms);
-        if (auditorium == null) {
-            disableRoomBoxInteraction(auditoriumBox);
-            return;
+        Map<Integer, RoomEntity> slotRooms = new LinkedHashMap<>();
+        assignFloorFiveSlot(slotRooms, remainingRooms, R.id.room_left_1, "V48", "V-48");
+        assignFloorFiveSlot(slotRooms, remainingRooms, R.id.room_left_2, "V46", "V-46");
+        assignFloorFiveSlot(slotRooms, remainingRooms, R.id.room_left_3, "INDUSTRIAL", "ARTS");
+        assignFloorFiveSlot(slotRooms, remainingRooms, R.id.room_right_1, "SPEECH");
+        assignFloorFiveSlot(slotRooms, remainingRooms, R.id.room_right_2, "CRAFT", "SEWING");
+        assignFloorFiveSlot(slotRooms, remainingRooms, R.id.room_right_3, "OFFICE");
+        assignFloorFiveSlot(slotRooms, remainingRooms, R.id.room_auditorium, "AUDITORIUM", "AUDIT");
+
+        int[] fallbackSlots = {
+                R.id.room_left_1,
+                R.id.room_left_2,
+                R.id.room_left_3,
+                R.id.room_right_1,
+                R.id.room_right_2,
+                R.id.room_right_3
+        };
+        for (int slotId : fallbackSlots) {
+            if (!slotRooms.containsKey(slotId) && !remainingRooms.isEmpty()) {
+                slotRooms.put(slotId, remainingRooms.remove(0));
+            }
+        }
+        if (!slotRooms.containsKey(R.id.room_auditorium) && !remainingRooms.isEmpty()) {
+            slotRooms.put(R.id.room_auditorium, remainingRooms.remove(0));
         }
 
-        bindRoomToBox(auditoriumBox, auditorium);
-        TextView auditoriumLabel = auditoriumBox.findViewById(R.id.room_label);
-        if (auditoriumLabel != null) {
-            auditoriumLabel.setText("Auditorium");
-        }
-        if (pendingFocusedRoomId != null && pendingFocusedRoomId == auditorium.id) {
-            openRoomOnMap(auditorium, auditoriumBox, true);
-        }
+        bindFloorFiveSlot(R.id.room_left_1, "V-48", slotRooms.get(R.id.room_left_1));
+        bindFloorFiveSlot(R.id.room_left_2, "V-46", slotRooms.get(R.id.room_left_2));
+        bindFloorFiveSlot(R.id.room_left_3, "Industrial\nArts\nLaboratory", slotRooms.get(R.id.room_left_3));
+        bindFloorFiveSlot(R.id.room_right_1, "Speech\nLaboratory", slotRooms.get(R.id.room_right_1));
+        bindFloorFiveSlot(R.id.room_right_2, "Craft /\nSewing\nLaboratory", slotRooms.get(R.id.room_right_2));
+        bindFloorFiveSlot(R.id.room_right_3, "Office", slotRooms.get(R.id.room_right_3));
+        bindFloorFiveSlot(R.id.room_auditorium, "Auditorium", slotRooms.get(R.id.room_auditorium));
         floorMapContainer.post(this::renderActiveRouteOverlay);
+    }
+
+    private void assignFloorFiveSlot(@NonNull Map<Integer, RoomEntity> slotRooms,
+                                     @NonNull List<RoomEntity> remainingRooms,
+                                     int slotId,
+                                     @NonNull String... keywords) {
+        for (int i = 0; i < remainingRooms.size(); i++) {
+            RoomEntity room = remainingRooms.get(i);
+            if (!matchesFloorFiveRoom(room, keywords)) {
+                continue;
+            }
+            slotRooms.put(slotId, room);
+            remainingRooms.remove(i);
+            return;
+        }
+    }
+
+    private boolean matchesFloorFiveRoom(@Nullable RoomEntity room, @NonNull String... keywords) {
+        if (room == null) {
+            return false;
+        }
+        String haystack = normalizeSlotValue(room.name) + " "
+                + normalizeSlotValue(room.code) + " "
+                + normalizeSlotValue(room.type);
+        for (String keyword : keywords) {
+            String normalizedKeyword = normalizeSlotValue(keyword);
+            if (!normalizedKeyword.isEmpty() && haystack.contains(normalizedKeyword)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @NonNull
+    private String normalizeSlotValue(@Nullable String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.toUpperCase().replaceAll("[^A-Z0-9]", "");
+    }
+
+    private void bindFloorFiveSlot(int roomViewId, @NonNull String fallbackLabel, @Nullable RoomEntity room) {
+        if (floorMapContainer == null) {
+            return;
+        }
+        View roomBox = floorMapContainer.findViewById(roomViewId);
+        if (roomBox == null) {
+            return;
+        }
+
+        if (room == null) {
+            bindStaticRoomLabel(roomViewId, fallbackLabel);
+            return;
+        }
+
+        bindRoomToBox(roomBox, room);
+        if (pendingFocusedRoomId != null && pendingFocusedRoomId == room.id) {
+            openRoomOnMap(room, roomBox, true);
+        }
     }
 
     private void bindStaticRoomLabel(int roomViewId, @NonNull String label) {
@@ -605,25 +811,6 @@ public class HomeFragment extends Fragment {
 
         disableRoomBoxInteraction(roomBox);
         applyRoomHighlightState(roomBox, false);
-    }
-
-    private RoomEntity findFloorFiveAuditorium(@NonNull List<RoomEntity> floorRooms) {
-        RoomEntity nameMatch = null;
-        for (RoomEntity room : floorRooms) {
-            if (room == null) {
-                continue;
-            }
-
-            String code = normalizeCode(room.code);
-            if ("MAIN-5-AUDIT".equals(code)) {
-                return room;
-            }
-
-            if (room.name != null && room.name.toUpperCase().contains("AUDITORIUM")) {
-                nameMatch = room;
-            }
-        }
-        return nameMatch;
     }
 
     private void applyFloorOneRoomsByCode(@NonNull List<RoomEntity> floorRooms) {
@@ -653,6 +840,138 @@ public class HomeFragment extends Fragment {
             View roomBox = floorMapContainer.findViewById(slot.getValue());
             if (roomBox == null) {
                 Log.w(TAG, "Missing Floor 1 room view for slot code=" + slot.getKey());
+                continue;
+            }
+
+            RoomEntity room = roomByCode.get(slot.getKey());
+            if (room == null) {
+                resetRoomBox(roomBox);
+                continue;
+            }
+
+            bindRoomToBox(roomBox, room);
+            if (pendingFocusedRoomId != null && pendingFocusedRoomId == room.id) {
+                openRoomOnMap(room, roomBox, true);
+            }
+        }
+        floorMapContainer.post(this::renderActiveRouteOverlay);
+    }
+
+    private void applyFloorTwoRoomsByCode(@NonNull List<RoomEntity> floorRooms) {
+        Map<String, RoomEntity> roomByCode = new HashMap<>();
+        for (RoomEntity room : floorRooms) {
+            if (room == null) {
+                continue;
+            }
+
+            String code = normalizeCode(room.code);
+            if (code == null) {
+                continue;
+            }
+
+            if (!FLOOR2_ROOM_SLOTS.containsKey(code)) {
+                Log.w(TAG, "Floor 2 room code is not mapped to a static slot: " + code);
+                continue;
+            }
+
+            RoomEntity existing = roomByCode.putIfAbsent(code, room);
+            if (existing != null) {
+                Log.w(TAG, "Duplicate Floor 2 room code found, keeping first: " + code);
+            }
+        }
+
+        for (Map.Entry<String, Integer> slot : FLOOR2_ROOM_SLOTS.entrySet()) {
+            View roomBox = floorMapContainer.findViewById(slot.getValue());
+            if (roomBox == null) {
+                Log.w(TAG, "Missing Floor 2 room view for slot code=" + slot.getKey());
+                continue;
+            }
+
+            RoomEntity room = roomByCode.get(slot.getKey());
+            if (room == null) {
+                resetRoomBox(roomBox);
+                continue;
+            }
+
+            bindRoomToBox(roomBox, room);
+            if (pendingFocusedRoomId != null && pendingFocusedRoomId == room.id) {
+                openRoomOnMap(room, roomBox, true);
+            }
+        }
+        floorMapContainer.post(this::renderActiveRouteOverlay);
+    }
+
+    private void applyFloorThreeRoomsByCode(@NonNull List<RoomEntity> floorRooms) {
+        Map<String, RoomEntity> roomByCode = new HashMap<>();
+        for (RoomEntity room : floorRooms) {
+            if (room == null) {
+                continue;
+            }
+
+            String code = normalizeCode(room.code);
+            if (code == null) {
+                continue;
+            }
+
+            if (!FLOOR3_ROOM_SLOTS.containsKey(code)) {
+                Log.w(TAG, "Floor 3 room code is not mapped to a static slot: " + code);
+                continue;
+            }
+
+            RoomEntity existing = roomByCode.putIfAbsent(code, room);
+            if (existing != null) {
+                Log.w(TAG, "Duplicate Floor 3 room code found, keeping first: " + code);
+            }
+        }
+
+        for (Map.Entry<String, Integer> slot : FLOOR3_ROOM_SLOTS.entrySet()) {
+            View roomBox = floorMapContainer.findViewById(slot.getValue());
+            if (roomBox == null) {
+                Log.w(TAG, "Missing Floor 3 room view for slot code=" + slot.getKey());
+                continue;
+            }
+
+            RoomEntity room = roomByCode.get(slot.getKey());
+            if (room == null) {
+                resetRoomBox(roomBox);
+                continue;
+            }
+
+            bindRoomToBox(roomBox, room);
+            if (pendingFocusedRoomId != null && pendingFocusedRoomId == room.id) {
+                openRoomOnMap(room, roomBox, true);
+            }
+        }
+        floorMapContainer.post(this::renderActiveRouteOverlay);
+    }
+
+    private void applyFloorFourRoomsByCode(@NonNull List<RoomEntity> floorRooms) {
+        Map<String, RoomEntity> roomByCode = new HashMap<>();
+        for (RoomEntity room : floorRooms) {
+            if (room == null) {
+                continue;
+            }
+
+            String code = normalizeCode(room.code);
+            if (code == null) {
+                continue;
+            }
+
+            if (!FLOOR4_ROOM_SLOTS.containsKey(code)) {
+                Log.w(TAG, "Floor 4 room code is not mapped to a static slot: " + code);
+                continue;
+            }
+
+            RoomEntity existing = roomByCode.putIfAbsent(code, room);
+            if (existing != null) {
+                Log.w(TAG, "Duplicate Floor 4 room code found, keeping first: " + code);
+            }
+        }
+
+        for (Map.Entry<String, Integer> slot : FLOOR4_ROOM_SLOTS.entrySet()) {
+            View roomBox = floorMapContainer.findViewById(slot.getValue());
+            if (roomBox == null) {
+                Log.w(TAG, "Missing Floor 4 room view for slot code=" + slot.getKey());
                 continue;
             }
 
@@ -2052,6 +2371,18 @@ public class HomeFragment extends Fragment {
         return selectedFloor != null && selectedFloor == 1;
     }
 
+    private boolean isFloorTwoSelected() {
+        return selectedFloor != null && selectedFloor == 2;
+    }
+
+    private boolean isFloorThreeSelected() {
+        return selectedFloor != null && selectedFloor == 3;
+    }
+
+    private boolean isFloorFourSelected() {
+        return selectedFloor != null && selectedFloor == 4;
+    }
+
     private boolean isFloorFiveSelected() {
         return selectedFloor != null && selectedFloor == 5;
     }
@@ -2059,6 +2390,15 @@ public class HomeFragment extends Fragment {
     private int[] getActiveRoomBoxIds() {
         if (isFloorOneSelected()) {
             return FLOOR1_ROOM_BOX_IDS;
+        }
+        if (isFloorTwoSelected()) {
+            return FLOOR2_ROOM_BOX_IDS;
+        }
+        if (isFloorThreeSelected()) {
+            return FLOOR3_ROOM_BOX_IDS;
+        }
+        if (isFloorFourSelected()) {
+            return FLOOR4_ROOM_BOX_IDS;
         }
         if (isFloorFiveSelected()) {
             return FLOOR5_ROOM_BOX_IDS;
