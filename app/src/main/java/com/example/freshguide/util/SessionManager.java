@@ -2,6 +2,7 @@ package com.example.freshguide.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.security.crypto.EncryptedSharedPreferences;
@@ -38,6 +39,7 @@ public class SessionManager {
 
     private static SessionManager instance;
     private final SharedPreferences prefs;
+    private String pendingProfilePhotoRef;
 
     private SessionManager(Context context) {
         SharedPreferences temp;
@@ -108,11 +110,37 @@ public class SessionManager {
     }
 
     public void setProfilePhotoUri(String photoUri) {
-        prefs.edit().putString(KEY_PROFILE_PHOTO_URI, photoUri).apply();
+        String sanitized = sanitizePersistentProfilePhotoRef(photoUri);
+        if (sanitized == null) {
+            prefs.edit().remove(KEY_PROFILE_PHOTO_URI).apply();
+            return;
+        }
+        prefs.edit().putString(KEY_PROFILE_PHOTO_URI, sanitized).apply();
     }
 
     public String getProfilePhotoUri() {
-        return prefs.getString(KEY_PROFILE_PHOTO_URI, null);
+        String stored = prefs.getString(KEY_PROFILE_PHOTO_URI, null);
+        String sanitized = sanitizePersistentProfilePhotoRef(stored);
+        if (!TextUtils.equals(stored, sanitized)) {
+            if (sanitized == null) {
+                prefs.edit().remove(KEY_PROFILE_PHOTO_URI).apply();
+            } else {
+                prefs.edit().putString(KEY_PROFILE_PHOTO_URI, sanitized).apply();
+            }
+        }
+        return sanitized;
+    }
+
+    public void setPendingProfilePhotoRef(String photoRef) {
+        pendingProfilePhotoRef = photoRef;
+    }
+
+    public String getPendingProfilePhotoRef() {
+        return pendingProfilePhotoRef;
+    }
+
+    public void clearPendingProfilePhotoRef() {
+        pendingProfilePhotoRef = null;
     }
 
     public boolean isProfileMigrated(String studentId) {
@@ -240,5 +268,24 @@ public class SessionManager {
                 .remove(KEY_PROFILE_COURSE_SECTION)
                 .remove(KEY_PROFILE_PHOTO_URI)
                 .apply();
+        pendingProfilePhotoRef = null;
+    }
+
+    private String sanitizePersistentProfilePhotoRef(String photoRef) {
+        if (photoRef == null) {
+            return null;
+        }
+
+        String trimmed = photoRef.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+
+        // Temporary picker URIs are not safe to restore after the app restarts.
+        if (trimmed.startsWith("content://")) {
+            return null;
+        }
+
+        return trimmed;
     }
 }

@@ -18,15 +18,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.freshguide.LoginActivity;
 import com.example.freshguide.R;
 import com.example.freshguide.model.entity.UserProfileEntity;
 import com.example.freshguide.repository.AuthRepository;
+import com.example.freshguide.ui.adapter.RoomAdapter;
+import com.example.freshguide.util.ProfilePhotoLoader;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.viewmodel.ProfileViewModel;
+import com.example.freshguide.viewmodel.SavedRoomsViewModel;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -39,10 +45,14 @@ public class ProfileFragment extends Fragment {
     private TextView tvProfileDate;
     private ImageView imgProfilePhoto;
     private TextView tvProfileInitial;
+    private TextView tvSavedLocationsEmpty;
+    private RecyclerView recyclerSavedLocations;
 
     private SessionManager session;
     private ProfileViewModel profileViewModel;
+    private SavedRoomsViewModel savedRoomsViewModel;
     private UserProfileEntity currentProfile;
+    private RoomAdapter savedRoomAdapter;
 
     @Nullable
     @Override
@@ -57,6 +67,7 @@ public class ProfileFragment extends Fragment {
 
         session = SessionManager.getInstance(requireContext());
         profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
+        savedRoomsViewModel = new ViewModelProvider(this).get(SavedRoomsViewModel.class);
 
         tvName = view.findViewById(R.id.tv_name);
         tvStudentId = view.findViewById(R.id.tv_student_id);
@@ -64,9 +75,24 @@ public class ProfileFragment extends Fragment {
         tvProfileDate = view.findViewById(R.id.tv_profile_date);
         imgProfilePhoto = view.findViewById(R.id.img_profile_photo);
         tvProfileInitial = view.findViewById(R.id.tv_profile_initial);
+        tvSavedLocationsEmpty = view.findViewById(R.id.tv_saved_locations_empty);
+        recyclerSavedLocations = view.findViewById(R.id.recycler_saved_locations);
 
         ImageButton btnEditProfile = view.findViewById(R.id.btn_edit_profile);
         ImageButton btnMore = view.findViewById(R.id.btn_more);
+        NavController navController = Navigation.findNavController(view);
+
+        savedRoomAdapter = new RoomAdapter();
+        savedRoomAdapter.setDisplayMode(RoomAdapter.MODE_SAVED);
+        savedRoomAdapter.setOnItemClickListener(room -> {
+            Bundle args = new Bundle();
+            args.putInt("roomId", room.roomId);
+            args.putString("roomName", room.getDisplayName());
+            navController.navigate(R.id.roomDetailFragment, args);
+        });
+        recyclerSavedLocations.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerSavedLocations.setNestedScrollingEnabled(false);
+        recyclerSavedLocations.setAdapter(savedRoomAdapter);
 
         setCurrentDate();
         bindProfileData(null);
@@ -76,6 +102,13 @@ public class ProfileFragment extends Fragment {
             bindProfileData(profile);
         });
 
+        savedRoomsViewModel.getSavedRooms().observe(getViewLifecycleOwner(), rooms -> {
+            boolean hasSavedRooms = rooms != null && !rooms.isEmpty();
+            savedRoomAdapter.submitList(rooms);
+            recyclerSavedLocations.setVisibility(hasSavedRooms ? View.VISIBLE : View.GONE);
+            tvSavedLocationsEmpty.setVisibility(hasSavedRooms ? View.GONE : View.VISIBLE);
+        });
+
         btnEditProfile.setOnClickListener(v -> {
             String currentName = currentProfile != null
                     ? normalizeName(currentProfile.fullName)
@@ -83,6 +116,9 @@ public class ProfileFragment extends Fragment {
             String currentCourseSection = currentProfile != null
                     ? normalizeCourseSection(currentProfile.courseSection)
                     : normalizeCourseSection(session.getProfileCourseSection());
+            String previousSessionName = session.getUserName();
+            String previousSessionCourseSection = session.getProfileCourseSection();
+            String previousPendingPhotoRef = session.getPendingProfilePhotoRef();
 
             EditProfileBottomSheet bottomSheet = EditProfileBottomSheet.newInstance(
                     getStudentIdText(),
@@ -92,24 +128,37 @@ public class ProfileFragment extends Fragment {
             );
 
             bottomSheet.setOnProfileSavedListener((updatedName, updatedCourseSection, photoUri) ->
-                    profileViewModel.saveProfile(updatedName, updatedCourseSection, photoUri,
-                            new ProfileViewModel.SaveCallback() {
-                                @Override
-                                public void onSuccess(UserProfileEntity profile) {
+                    {
+                        UserProfileEntity previousProfile = currentProfile;
+                        applyOptimisticProfileUpdate(updatedName, updatedCourseSection, photoUri);
+
+                        profileViewModel.saveProfile(updatedName, updatedCourseSection, photoUri,
+                                new ProfileViewModel.SaveCallback() {
+                                    @Override
+                                    public void onSuccess(UserProfileEntity profile) {
                                     if (!isAdded()) {
                                         return;
                                     }
-                                    Toast.makeText(requireContext(), "Profile updated.", Toast.LENGTH_SHORT).show();
-                                }
+                                        session.clearPendingProfilePhotoRef();
+                                        currentProfile = profile;
+                                        bindProfileData(profile);
+                                        Toast.makeText(requireContext(), "Profile updated.", Toast.LENGTH_SHORT).show();
+                                    }
 
-                                @Override
+                                    @Override
                                 public void onError(String message) {
                                     if (!isAdded()) {
                                         return;
                                     }
+                                    session.setUserName(previousSessionName);
+                                    session.setProfileCourseSection(previousSessionCourseSection);
+                                    session.setPendingProfilePhotoRef(previousPendingPhotoRef);
+                                    currentProfile = previousProfile;
+                                    bindProfileData(previousProfile);
                                     Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
-                                }
-                            })
+                                    }
+                                });
+                    }
             );
 
             bottomSheet.show(getParentFragmentManager(), "EditProfileBottomSheet");
@@ -136,6 +185,18 @@ public class ProfileFragment extends Fragment {
         updateProfilePhoto(getPhotoRefFromProfile(profile), tvName.getText().toString());
     }
 
+    private void applyOptimisticProfileUpdate(@NonNull String updatedName,
+                                              @NonNull String updatedCourseSection,
+                                              @Nullable String photoRef) {
+        session.setUserName(updatedName);
+        session.setProfileCourseSection(updatedCourseSection);
+        session.setPendingProfilePhotoRef(photoRef);
+        tvName.setText(formatDisplayName(updatedName));
+        tvStudentId.setText(getStudentIdText());
+        tvCourseSection.setText(getCourseSectionOrFallback(updatedCourseSection));
+        updateProfilePhoto(photoRef, tvName.getText().toString());
+    }
+
     private void updateProfileInitial(String displayName) {
         String initial = "U";
 
@@ -150,47 +211,16 @@ public class ProfileFragment extends Fragment {
     }
 
     private void updateProfilePhoto(@Nullable String photoRef, String displayName) {
-        if (!TextUtils.isEmpty(photoRef)) {
-            try {
-                Uri uri = resolvePhotoUri(photoRef);
-                if (uri != null) {
-                    imgProfilePhoto.setImageURI(uri);
-                    imgProfilePhoto.setVisibility(View.VISIBLE);
-                    tvProfileInitial.setVisibility(View.GONE);
-                    return;
-                }
-            } catch (Exception ignored) {
-                // Fallback to initial avatar.
-            }
+        if (ProfilePhotoLoader.loadInto(requireContext(), imgProfilePhoto, photoRef)) {
+            imgProfilePhoto.setVisibility(View.VISIBLE);
+            tvProfileInitial.setVisibility(View.GONE);
+            return;
         }
 
         imgProfilePhoto.setImageDrawable(null);
         imgProfilePhoto.setVisibility(View.GONE);
         tvProfileInitial.setVisibility(View.VISIBLE);
         updateProfileInitial(displayName);
-    }
-
-    @Nullable
-    private Uri resolvePhotoUri(@NonNull String photoRef) {
-        String trimmed = photoRef.trim();
-        if (trimmed.isEmpty()) {
-            return null;
-        }
-
-        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-            return null;
-        }
-
-        if (trimmed.startsWith("content://") || trimmed.startsWith("file://")) {
-            return Uri.parse(trimmed);
-        }
-
-        File file = new File(trimmed);
-        if (file.exists()) {
-            return Uri.fromFile(file);
-        }
-
-        return null;
     }
 
     private void setCurrentDate() {
@@ -253,8 +283,16 @@ public class ProfileFragment extends Fragment {
 
     @Nullable
     private String getPhotoRefFromProfile(@Nullable UserProfileEntity profile) {
+        String sessionPhotoRef = session.getPendingProfilePhotoRef();
+        if (!TextUtils.isEmpty(sessionPhotoRef)) {
+            return sessionPhotoRef;
+        }
+        sessionPhotoRef = session.getProfilePhotoUri();
+        if (!TextUtils.isEmpty(sessionPhotoRef)) {
+            return sessionPhotoRef;
+        }
         if (profile == null) {
-            return session.getProfilePhotoUri();
+            return null;
         }
         if (!TextUtils.isEmpty(profile.photoLocalPath)) {
             return profile.photoLocalPath;

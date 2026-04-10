@@ -48,9 +48,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="30dp"
+            android:paddingStart="@dimen/screen_horizontal_gutter"
             android:paddingTop="14dp"
-            android:paddingEnd="30dp"
+            android:paddingEnd="@dimen/screen_horizontal_gutter"
             android:paddingBottom="24dp">
 
             <TextView

@@ -1,7 +1,6 @@
 package com.example.freshguide.ui.user;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -18,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.freshguide.R;
+import com.example.freshguide.util.ProfilePhotoLoader;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 public class EditProfileBottomSheet extends BottomSheetDialogFragment {
@@ -155,17 +155,15 @@ public class EditProfileBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void bindPhotoState(boolean showError) {
+        if (ProfilePhotoLoader.loadInto(requireContext(), imgEditProfilePhoto, selectedPhotoUri)) {
+            imgEditProfilePhoto.setVisibility(View.VISIBLE);
+            tvEditProfileInitial.setVisibility(View.GONE);
+            return;
+        }
+
         if (!TextUtils.isEmpty(selectedPhotoUri)) {
-            try {
-                imgEditProfilePhoto.setImageURI(Uri.parse(selectedPhotoUri));
-                imgEditProfilePhoto.setVisibility(View.VISIBLE);
-                tvEditProfileInitial.setVisibility(View.GONE);
-                return;
-            } catch (Exception e) {
-                selectedPhotoUri = null;
-                if (showError && isAdded()) {
-                    Toast.makeText(requireContext(), "Unable to use that photo. Please try another image.", Toast.LENGTH_SHORT).show();
-                }
+            if (showError && isAdded()) {
+                Toast.makeText(requireContext(), "Unable to use that photo. Please try another image.", Toast.LENGTH_SHORT).show();
             }
         }
 

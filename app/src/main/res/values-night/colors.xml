@@ -24,7 +24,6 @@
     <color name="text_secondary">#B8B8B8</color>
     <color name="text_tertiary">#8C8C8C</color>
     <color name="text_hint">#6B6B6B</color>
-
     <!-- Brand Colors (adjusted for dark backgrounds) -->
     <color name="green_primary">#BCCCBD</color>           <!-- Brighter for visibility -->
     <color name="green_dark">#12770E</color>            <!-- Darker variant -->
