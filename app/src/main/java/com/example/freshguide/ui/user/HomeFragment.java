@@ -75,12 +75,17 @@ public class HomeFragment extends Fragment {
     private static final String KEY_PENDING_FLOOR_NUMBER = "floorNumber";
     private static final String KEY_PENDING_ROOM_NAME = "roomName";
     private static final String KEY_PENDING_BUILDING_CODE = "buildingCode";
+    public static final String KEY_DIRECTIONS_LAUNCH_REQUEST = "directions_launch_request";
     private static final String CODE_MAIN = "MAIN";
     private static final String CODE_REG = "REG";
     private static final String CODE_LIB = "LIB";
     private static final String CODE_COURT = "COURT";
     private static final String CODE_ENT = "ENT";
     private static final String CODE_EXIT = "EXIT";
+    private static final int ROUTE_ANCHOR_AUTO = 0;
+    private static final int ROUTE_ANCHOR_STAIRS_TOP = 1;
+    private static final int ROUTE_ANCHOR_STAIRS_BOTTOM = 2;
+    private static final int ROUTE_ANCHOR_ELEVATOR = 3;
     private static final String TAG = "HomeFragment";
     private static final int[] DEFAULT_ROOM_BOX_IDS = {
             R.id.room_left_1,
@@ -222,7 +227,9 @@ public class HomeFragment extends Fragment {
         setupFab();
         observeSync(view);
         observeMapFocusRequests();
+        observeDirectionsLaunchRequests();
         observeDirectionsRouteOverlay();
+        observeDirectionsSheetVisibility();
 
         viewModel.sync();
     }
@@ -827,6 +834,35 @@ public class HomeFragment extends Fragment {
                 });
     }
 
+    private void observeDirectionsLaunchRequests() {
+        NavController navController = NavHostFragment.findNavController(this);
+        navController.getBackStackEntry(navController.getGraph().getId())
+                .getSavedStateHandle()
+                .<Bundle>getLiveData(KEY_DIRECTIONS_LAUNCH_REQUEST)
+                .observe(getViewLifecycleOwner(), request -> {
+                    if (request == null || !isAdded()) {
+                        return;
+                    }
+
+                    navController.getBackStackEntry(navController.getGraph().getId())
+                            .getSavedStateHandle()
+                            .remove(KEY_DIRECTIONS_LAUNCH_REQUEST);
+
+                    int roomId = request.getInt(KEY_PENDING_ROOM_ID, -1);
+                    String roomName = request.getString(KEY_PENDING_ROOM_NAME, "");
+                    String buildingCode = request.getString(KEY_PENDING_BUILDING_CODE, "");
+                    int floorNumber = request.getInt(KEY_PENDING_FLOOR_NUMBER, -1);
+
+                    dismissDirectionsSheetIfPresent();
+                    if (CODE_MAIN.equalsIgnoreCase(buildingCode) && floorNumber > 0) {
+                        setFloorSelection(floorNumber);
+                    } else {
+                        setFloorSelection(null);
+                    }
+                    showDirectionsSheet(roomId, roomName);
+                });
+    }
+
     private void observeDirectionsRouteOverlay() {
         getParentFragmentManager().setFragmentResultListener(
                 DirectionsSheetFragment.RESULT_ROUTE_MAP_OVERLAY,
@@ -849,7 +885,25 @@ public class HomeFragment extends Fragment {
                     boolean useStairs = result.getBoolean(DirectionsSheetFragment.KEY_ROUTE_USE_STAIRS, false);
                     boolean useElevator = result.getBoolean(DirectionsSheetFragment.KEY_ROUTE_USE_ELEVATOR, false);
                     int originRoomId = result.getInt(DirectionsSheetFragment.KEY_ROUTE_ORIGIN_ROOM_ID, -1);
-                    ioExecutor.execute(() -> resolveAndApplyRouteOverlay(destinationRoomId, originRoomId, useStairs, useElevator));
+                    int originId = result.getInt(DirectionsSheetFragment.KEY_ROUTE_ORIGIN_ID, -1);
+                    ioExecutor.execute(() -> resolveAndApplyRouteOverlay(destinationRoomId, originRoomId, originId, useStairs, useElevator));
+                });
+    }
+
+    private void observeDirectionsSheetVisibility() {
+        getParentFragmentManager().setFragmentResultListener(
+                DirectionsSheetFragment.RESULT_SHEET_VISIBILITY,
+                getViewLifecycleOwner(),
+                (requestKey, result) -> {
+                    if (!isAdded()) {
+                        return;
+                    }
+                    boolean visible = result.getBoolean(DirectionsSheetFragment.KEY_SHEET_VISIBLE, false);
+                    if (visible) {
+                        setDirectionsFabVisible(false);
+                        return;
+                    }
+                    setDirectionsFabVisible(!isRoomDetailSheetShowing());
                 });
     }
 
@@ -868,6 +922,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void openRoomOnMap(@NonNull RoomEntity room, @NonNull View roomBox, boolean animateCentering) {
+        dismissDirectionsSheetIfPresent();
         clearRoomHighlight();
         highlightedRoomId = room.id;
         applyRoomHighlightState(roomBox, true);
@@ -1139,6 +1194,32 @@ public class HomeFragment extends Fragment {
         roomDetailSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
     }
 
+    private void dismissDirectionsSheetIfPresent() {
+        androidx.fragment.app.Fragment fragment = getParentFragmentManager().findFragmentByTag("directions_sheet");
+        if (fragment instanceof DirectionsSheetFragment) {
+            ((DirectionsSheetFragment) fragment).dismissAllowingStateLoss();
+        }
+    }
+
+    private void showDirectionsSheet(int roomId, @Nullable String roomName) {
+        dismissDirectionsSheetIfPresent();
+        DirectionsSheetFragment sheet = new DirectionsSheetFragment();
+        if (roomId > 0) {
+            Bundle args = new Bundle();
+            args.putInt(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_ID, roomId);
+            args.putString(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_NAME, roomName);
+            sheet.setArguments(args);
+        }
+        sheet.show(getParentFragmentManager(), "directions_sheet");
+    }
+
+    private boolean isRoomDetailSheetShowing() {
+        return roomDetailSheetBehavior != null
+                && roomDetailSheet != null
+                && roomDetailSheet.getVisibility() == View.VISIBLE
+                && roomDetailSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN;
+    }
+
     private void setBottomNavVisible(boolean visible) {
         if (!isAdded()) {
             return;
@@ -1171,8 +1252,7 @@ public class HomeFragment extends Fragment {
             return;
         }
 
-        fabCompass.setOnClickListener(v ->
-                new DirectionsSheetFragment().show(getParentFragmentManager(), "directions_sheet"));
+        fabCompass.setOnClickListener(v -> showDirectionsSheet(-1, null));
 
         fabCompass.setOnLongClickListener(v -> {
             setFloorSelection(null);
@@ -1391,24 +1471,37 @@ public class HomeFragment extends Fragment {
         }
 
         int resolvedOriginRoomId = -1;
+        int originFloorNumber = floor.number;
         if (originRoomId > 0) {
             RoomEntity originRoom = db.roomDao().getByIdSync(originRoomId);
-            if (originRoom != null && originRoom.floorId == destinationRoom.floorId) {
-                resolvedOriginRoomId = originRoom.id;
+            if (originRoom != null) {
+                FloorEntity originFloor = db.floorDao().getByIdSync(originRoom.floorId);
+                BuildingEntity originBuilding = originFloor != null
+                        ? db.buildingDao().getByIdSync(originFloor.buildingId)
+                        : null;
+                if (originFloor != null
+                        && originBuilding != null
+                        && originBuilding.code != null
+                        && CODE_MAIN.equalsIgnoreCase(originBuilding.code.trim())) {
+                    resolvedOriginRoomId = originRoom.id;
+                    originFloorNumber = originFloor.number;
+                }
             }
         }
 
         RouteOverlayState state = new RouteOverlayState(
                 destinationRoom.id,
+                originFloorNumber,
                 floor.number,
                 resolvedOriginRoomId,
+                useElevator ? ROUTE_ANCHOR_ELEVATOR : ROUTE_ANCHOR_AUTO,
                 useStairs,
                 useElevator
         );
         runOnUiThreadSafely(() -> {
             activeRouteOverlay = state;
-            if (selectedFloor == null || selectedFloor != floor.number) {
-                setFloorSelection(floor.number);
+            if (selectedFloor == null || selectedFloor != state.currentFloorNumber) {
+                setFloorSelection(state.currentFloorNumber);
             } else {
                 renderActiveRouteOverlay();
             }
@@ -1419,13 +1512,22 @@ public class HomeFragment extends Fragment {
         if (!isAdded() || floorMapContainer == null || activeRouteOverlay == null) {
             return;
         }
-        if (selectedFloor == null || selectedFloor != activeRouteOverlay.floorNumber) {
+        if (selectedFloor == null || selectedFloor != activeRouteOverlay.currentFloorNumber) {
             clearFloorRouteOverlay();
             return;
         }
 
+        if (highlightedRoomId != null) {
+            clearRoomHighlight();
+        }
+
         ensureFloorRouteOverlayAttached();
         if (floorRouteOverlay == null) {
+            return;
+        }
+
+        if (activeRouteOverlay.isMultiFloor()) {
+            renderMultiFloorRouteOverlay(activeRouteOverlay);
             return;
         }
 
@@ -1441,17 +1543,61 @@ public class HomeFragment extends Fragment {
             return;
         }
 
-        if (highlightedRoomId != null && highlightedRoomId == activeRouteOverlay.destinationRoomId) {
-            View destinationRoomPin = destinationView.findViewById(R.id.room_pin);
-            if (destinationRoomPin != null) {
-                destinationRoomPin.setVisibility(View.GONE);
+        PointF endPoint = createRoomAnchor(destinationView);
+        PointF startPoint = resolveRouteStartAnchor(destinationView, endPoint, activeRouteOverlay);
+        clearRouteAnchorInteractions();
+        floorRouteOverlay.setRoute(startPoint, endPoint, resolveHallwayX());
+        centerRoomInFloorMap(destinationView);
+    }
+
+    private void renderMultiFloorRouteOverlay(@NonNull RouteOverlayState state) {
+        View routeAnchorView = findRouteAnchorView(state);
+        if (routeAnchorView == null) {
+            floorRouteOverlay.clearRoute();
+            return;
+        }
+
+        if (state.anchorType == ROUTE_ANCHOR_AUTO) {
+            state.anchorType = resolveAutoAnchorType(state);
+            routeAnchorView = findRouteAnchorView(state);
+            if (routeAnchorView == null) {
+                floorRouteOverlay.clearRoute();
+                return;
             }
         }
 
-        PointF endPoint = createRoomAnchor(destinationView);
-        PointF startPoint = resolveRouteStartAnchor(destinationView, endPoint, activeRouteOverlay);
+        clearRouteAnchorInteractions();
+        configureRouteAnchorInteraction(routeAnchorView, state);
+
+        PointF startPoint;
+        PointF endPoint;
+        View focalView = routeAnchorView;
+
+        if (state.currentFloorNumber == state.originFloorNumber && state.originRoomId > 0) {
+            View originView = findRoomViewByRoomId(state.originRoomId);
+            if (originView == null) {
+                floorRouteOverlay.clearRoute();
+                return;
+            }
+            startPoint = createRoomAnchor(originView);
+            endPoint = createRouteAnchor(routeAnchorView, state);
+            focalView = originView;
+        } else if (state.currentFloorNumber == state.destinationFloorNumber) {
+            View destinationView = findRoomViewByRoomId(state.destinationRoomId);
+            if (destinationView == null) {
+                floorRouteOverlay.clearRoute();
+                return;
+            }
+            startPoint = createRouteAnchor(routeAnchorView, state);
+            endPoint = createRoomAnchor(destinationView);
+            focalView = destinationView;
+        } else {
+            endPoint = createRouteAnchor(routeAnchorView, state);
+            startPoint = createIntermediateFloorStartPoint(routeAnchorView);
+        }
+
         floorRouteOverlay.setRoute(startPoint, endPoint, resolveHallwayX());
-        centerRoomInFloorMap(destinationView);
+        centerRoomInFloorMap(focalView);
     }
 
     @NonNull
@@ -1475,7 +1621,7 @@ public class HomeFragment extends Fragment {
             }
         }
 
-        if (state.useStairs || state.floorNumber > 1) {
+        if (state.useStairs || state.currentFloorNumber > 1) {
             View topStairs = floorMapContainer.findViewById(R.id.stairs_top);
             View bottomStairs = floorMapContainer.findViewById(R.id.stairs_bottom);
             View chosen = pickNearestAnchor(destinationView, topStairs, bottomStairs);
@@ -1490,6 +1636,107 @@ public class HomeFragment extends Fragment {
         }
 
         return new PointF(dpToPx(42), endPoint.y);
+    }
+
+    @Nullable
+    private View findRoomViewByRoomId(int roomId) {
+        Integer roomBoxId = currentRoomBoxIds.get(roomId);
+        return roomBoxId != null && floorMapContainer != null
+                ? floorMapContainer.findViewById(roomBoxId)
+                : null;
+    }
+
+    @Nullable
+    private View findRouteAnchorView(@NonNull RouteOverlayState state) {
+        if (floorMapContainer == null) {
+            return null;
+        }
+        int anchorViewId = resolveAnchorViewId(state.anchorType);
+        return anchorViewId != View.NO_ID ? floorMapContainer.findViewById(anchorViewId) : null;
+    }
+
+    private int resolveAutoAnchorType(@NonNull RouteOverlayState state) {
+        if (state.useElevator) {
+            return ROUTE_ANCHOR_ELEVATOR;
+        }
+        View referenceView = null;
+        if (state.currentFloorNumber == state.originFloorNumber && state.originRoomId > 0) {
+            referenceView = findRoomViewByRoomId(state.originRoomId);
+        } else if (state.currentFloorNumber == state.destinationFloorNumber) {
+            referenceView = findRoomViewByRoomId(state.destinationRoomId);
+        }
+        if (referenceView == null) {
+            return ROUTE_ANCHOR_STAIRS_TOP;
+        }
+
+        View topStairs = floorMapContainer.findViewById(R.id.stairs_top);
+        View bottomStairs = floorMapContainer.findViewById(R.id.stairs_bottom);
+        View chosen = pickNearestAnchor(referenceView, topStairs, bottomStairs);
+        if (chosen == null) {
+            return ROUTE_ANCHOR_STAIRS_TOP;
+        }
+        return chosen.getId() == R.id.stairs_bottom ? ROUTE_ANCHOR_STAIRS_BOTTOM : ROUTE_ANCHOR_STAIRS_TOP;
+    }
+
+    private int resolveAnchorViewId(int anchorType) {
+        switch (anchorType) {
+            case ROUTE_ANCHOR_STAIRS_TOP:
+                return R.id.stairs_top;
+            case ROUTE_ANCHOR_STAIRS_BOTTOM:
+                return R.id.stairs_bottom;
+            case ROUTE_ANCHOR_ELEVATOR:
+                return R.id.elevator;
+            default:
+                return View.NO_ID;
+        }
+    }
+
+    @NonNull
+    private PointF createRouteAnchor(@NonNull View anchorView, @NonNull RouteOverlayState state) {
+        return state.anchorType == ROUTE_ANCHOR_ELEVATOR
+                ? createAnchorAtTopCenter(anchorView)
+                : createAnchorAtCenter(anchorView);
+    }
+
+    @NonNull
+    private PointF createIntermediateFloorStartPoint(@NonNull View anchorView) {
+        return new PointF(resolveHallwayX(), anchorView.getY() + (anchorView.getHeight() / 2f));
+    }
+
+    private void configureRouteAnchorInteraction(@NonNull View anchorView, @NonNull RouteOverlayState state) {
+        boolean shouldAdvance = state.isMultiFloor() && state.currentFloorNumber != state.destinationFloorNumber;
+        anchorView.setClickable(shouldAdvance);
+        anchorView.setFocusable(shouldAdvance);
+        anchorView.setOnClickListener(shouldAdvance ? v -> advanceRouteToNextFloor() : null);
+    }
+
+    private void clearRouteAnchorInteractions() {
+        if (floorMapContainer == null) {
+            return;
+        }
+        int[] anchorIds = {R.id.stairs_top, R.id.stairs_bottom, R.id.elevator};
+        for (int anchorId : anchorIds) {
+            View anchorView = floorMapContainer.findViewById(anchorId);
+            if (anchorView == null) {
+                continue;
+            }
+            anchorView.setOnClickListener(null);
+            anchorView.setClickable(false);
+            anchorView.setFocusable(false);
+        }
+    }
+
+    private void advanceRouteToNextFloor() {
+        if (activeRouteOverlay == null || !activeRouteOverlay.isMultiFloor()) {
+            return;
+        }
+        if (activeRouteOverlay.currentFloorNumber == activeRouteOverlay.destinationFloorNumber) {
+            return;
+        }
+
+        int direction = activeRouteOverlay.destinationFloorNumber > activeRouteOverlay.currentFloorNumber ? 1 : -1;
+        activeRouteOverlay.currentFloorNumber += direction;
+        setFloorSelection(activeRouteOverlay.currentFloorNumber);
     }
 
     private float resolveHallwayX() {
@@ -1649,6 +1896,7 @@ public class HomeFragment extends Fragment {
         if (floorRouteOverlay != null) {
             floorRouteOverlay.clearRoute();
         }
+        clearRouteAnchorInteractions();
     }
 
     private void clearActiveRouteOverlay() {
@@ -1733,17 +1981,33 @@ public class HomeFragment extends Fragment {
 
     private static final class RouteOverlayState {
         final int destinationRoomId;
-        final int floorNumber;
+        int currentFloorNumber;
+        final int destinationFloorNumber;
+        final int originFloorNumber;
         final int originRoomId;
+        int anchorType;
         final boolean useStairs;
         final boolean useElevator;
 
-        RouteOverlayState(int destinationRoomId, int floorNumber, int originRoomId, boolean useStairs, boolean useElevator) {
+        RouteOverlayState(int destinationRoomId,
+                          int originFloorNumber,
+                          int destinationFloorNumber,
+                          int originRoomId,
+                          int anchorType,
+                          boolean useStairs,
+                          boolean useElevator) {
             this.destinationRoomId = destinationRoomId;
-            this.floorNumber = floorNumber;
+            this.currentFloorNumber = originFloorNumber;
+            this.originFloorNumber = originFloorNumber;
+            this.destinationFloorNumber = destinationFloorNumber;
             this.originRoomId = originRoomId;
+            this.anchorType = anchorType;
             this.useStairs = useStairs;
             this.useElevator = useElevator;
+        }
+
+        boolean isMultiFloor() {
+            return originFloorNumber != destinationFloorNumber;
         }
     }
 }

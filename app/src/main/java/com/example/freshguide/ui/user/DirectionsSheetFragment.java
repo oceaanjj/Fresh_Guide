@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -51,12 +52,14 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     public static final String ARG_PRESELECTED_ROOM_ID = "preselectedRoomId";
     public static final String ARG_PRESELECTED_ROOM_NAME = "preselectedRoomName";
     public static final String RESULT_ROUTE_MAP_OVERLAY = "route_map_overlay_result";
+    public static final String RESULT_SHEET_VISIBILITY = "directions_sheet_visibility_result";
     public static final String KEY_ROUTE_VISIBLE = "route_visible";
     public static final String KEY_ROUTE_ROOM_ID = "route_room_id";
     public static final String KEY_ROUTE_ORIGIN_ID = "route_origin_id";
     public static final String KEY_ROUTE_ORIGIN_ROOM_ID = "route_origin_room_id";
     public static final String KEY_ROUTE_USE_STAIRS = "route_use_stairs";
     public static final String KEY_ROUTE_USE_ELEVATOR = "route_use_elevator";
+    public static final String KEY_SHEET_VISIBLE = "sheet_visible";
 
     private enum ActiveField {
         NONE,
@@ -145,12 +148,14 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     @Override
     public void onStart() {
         super.onStart();
+        publishSheetVisibility(true);
         if (getDialog() instanceof BottomSheetDialog) {
             BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
             dialog.setCancelable(true);
             dialog.setCanceledOnTouchOutside(false);
             Window window = dialog.getWindow();
             if (window != null) {
+                window.setGravity(Gravity.BOTTOM);
                 window.setDimAmount(0.16f);
                 window.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
             }
@@ -173,6 +178,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                 sheet.post(() -> {
                     if (bottomSheetBehavior == null) return;
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                    updateWindowForSheetState(BottomSheetBehavior.STATE_HALF_EXPANDED);
                 });
                 bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                     @Override
@@ -181,12 +187,19 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                             dismissAllowingStateLoss();
                             return;
                         }
+                        updateWindowForSheetState(newState);
                         handleBottomSheetStateChanged(newState);
                         updateResultPanelHeights();
                     }
 
                     @Override
                     public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                        if (sheetDisplayState == SheetDisplayState.SMALL
+                                && slideOffset < -0.02f
+                                && bottomSheetBehavior != null) {
+                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                            return;
+                        }
                         updateResultPanelHeights();
                     }
                 });
@@ -950,6 +963,26 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         }
     }
 
+    private void updateWindowForSheetState(int state) {
+        if (!(getDialog() instanceof BottomSheetDialog)) {
+            return;
+        }
+        Window window = ((BottomSheetDialog) getDialog()).getWindow();
+        if (window == null) {
+            return;
+        }
+
+        boolean compactState = state == BottomSheetBehavior.STATE_COLLAPSED
+                || ((state == BottomSheetBehavior.STATE_DRAGGING
+                || state == BottomSheetBehavior.STATE_SETTLING)
+                && sheetDisplayState == SheetDisplayState.SMALL);
+        window.setDimAmount(compactState ? 0f : 0.16f);
+        window.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                compactState ? dpToPx(132) : ViewGroup.LayoutParams.MATCH_PARENT
+        );
+    }
+
     private void bindFieldInteractions(ActiveField fieldType) {
         View fieldContainer = getFieldContainer(fieldType);
         EditText field = getFieldInput(fieldType);
@@ -1152,7 +1185,14 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         clearRouteOverlay();
+        publishSheetVisibility(false);
         super.onDismiss(dialog);
+    }
+
+    private void publishSheetVisibility(boolean visible) {
+        Bundle result = new Bundle();
+        result.putBoolean(KEY_SHEET_VISIBLE, visible);
+        getParentFragmentManager().setFragmentResult(RESULT_SHEET_VISIBILITY, result);
     }
 
     private abstract static class SimpleWatcher implements TextWatcher {
