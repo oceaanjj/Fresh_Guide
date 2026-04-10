@@ -1,5 +1,8 @@
 package com.example.freshguide.ui.user;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -41,6 +44,7 @@ import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.entity.BuildingEntity;
 import com.example.freshguide.model.entity.FacilityEntity;
 import com.example.freshguide.model.entity.FloorEntity;
+import com.example.freshguide.model.entity.OriginEntity;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.repository.SavedRoomRepository;
 import com.example.freshguide.ui.adapter.RoomImageGalleryAdapter;
@@ -170,6 +174,10 @@ public class HomeFragment extends Fragment {
     private RoutePathOverlayView floorRouteOverlay;
     @Nullable
     private RouteOverlayState activeRouteOverlay;
+    @Nullable
+    private Animator activeRouteAnchorAnimator;
+    @Nullable
+    private View activeRouteAnchorView;
 
     private static Map<String, Integer> createFloor1RoomSlots() {
         LinkedHashMap<String, Integer> map = new LinkedHashMap<>();
@@ -329,6 +337,7 @@ public class HomeFragment extends Fragment {
 
     private void showOverallMap() {
         clearRoomHighlight();
+        clearActiveRouteAnchorCue();
 
         if (overallMapContainer != null) {
             overallMapContainer.setVisibility(View.VISIBLE);
@@ -342,6 +351,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void showFloorMap(int floor) {
+        clearActiveRouteAnchorCue();
         if (overallMapContainer != null) {
             overallMapContainer.setVisibility(View.GONE);
         }
@@ -1454,7 +1464,11 @@ public class HomeFragment extends Fragment {
         highlightedRoomId = null;
     }
 
-    private void resolveAndApplyRouteOverlay(int destinationRoomId, int originRoomId, boolean useStairs, boolean useElevator) {
+    private void resolveAndApplyRouteOverlay(int destinationRoomId,
+                                             int originRoomId,
+                                             int originId,
+                                             boolean useStairs,
+                                             boolean useElevator) {
         AppDatabase db = AppDatabase.getInstance(requireContext().getApplicationContext());
         RoomEntity destinationRoom = db.roomDao().getByIdSync(destinationRoomId);
         if (destinationRoom == null) {
@@ -1486,6 +1500,15 @@ public class HomeFragment extends Fragment {
                     resolvedOriginRoomId = originRoom.id;
                     originFloorNumber = originFloor.number;
                 }
+            }
+        } else if (originId > 0) {
+            OriginEntity origin = db.originDao().getByIdSync(originId);
+            int inferredOriginFloor = inferOriginFloorNumber(origin);
+            if (inferredOriginFloor > 0) {
+                originFloorNumber = inferredOriginFloor;
+            } else {
+                // Most admin-defined origins such as gate/entrance start from the ground floor.
+                originFloorNumber = 1;
             }
         }
 
@@ -1546,24 +1569,19 @@ public class HomeFragment extends Fragment {
         PointF endPoint = createRoomAnchor(destinationView);
         PointF startPoint = resolveRouteStartAnchor(destinationView, endPoint, activeRouteOverlay);
         clearRouteAnchorInteractions();
-        floorRouteOverlay.setRoute(startPoint, endPoint, resolveHallwayX());
+        floorRouteOverlay.setRoute(startPoint, endPoint, resolveHallwayX(), null);
         centerRoomInFloorMap(destinationView);
     }
 
     private void renderMultiFloorRouteOverlay(@NonNull RouteOverlayState state) {
+        if (state.anchorType == ROUTE_ANCHOR_AUTO) {
+            state.anchorType = resolveAutoAnchorType(state);
+        }
+
         View routeAnchorView = findRouteAnchorView(state);
         if (routeAnchorView == null) {
             floorRouteOverlay.clearRoute();
             return;
-        }
-
-        if (state.anchorType == ROUTE_ANCHOR_AUTO) {
-            state.anchorType = resolveAutoAnchorType(state);
-            routeAnchorView = findRouteAnchorView(state);
-            if (routeAnchorView == null) {
-                floorRouteOverlay.clearRoute();
-                return;
-            }
         }
 
         clearRouteAnchorInteractions();
@@ -1582,6 +1600,9 @@ public class HomeFragment extends Fragment {
             startPoint = createRoomAnchor(originView);
             endPoint = createRouteAnchor(routeAnchorView, state);
             focalView = originView;
+        } else if (state.currentFloorNumber == state.originFloorNumber) {
+            startPoint = createOriginFloorStartPoint(routeAnchorView, state);
+            endPoint = createRouteAnchor(routeAnchorView, state);
         } else if (state.currentFloorNumber == state.destinationFloorNumber) {
             View destinationView = findRoomViewByRoomId(state.destinationRoomId);
             if (destinationView == null) {
@@ -1596,7 +1617,8 @@ public class HomeFragment extends Fragment {
             startPoint = createIntermediateFloorStartPoint(routeAnchorView);
         }
 
-        floorRouteOverlay.setRoute(startPoint, endPoint, resolveHallwayX());
+        PointF interactiveAnchor = state.currentFloorNumber != state.destinationFloorNumber ? endPoint : null;
+        floorRouteOverlay.setRoute(startPoint, endPoint, resolveHallwayX(), interactiveAnchor);
         centerRoomInFloorMap(focalView);
     }
 
@@ -1703,14 +1725,97 @@ public class HomeFragment extends Fragment {
         return new PointF(resolveHallwayX(), anchorView.getY() + (anchorView.getHeight() / 2f));
     }
 
+    @NonNull
+    private PointF createOriginFloorStartPoint(@NonNull View anchorView, @NonNull RouteOverlayState state) {
+        ConstraintLayout mapContent = findCurrentMapContent();
+        if (mapContent == null || mapContent.getHeight() <= 0) {
+            return createIntermediateFloorStartPoint(anchorView);
+        }
+
+        float hallwayX = resolveHallwayX();
+        float topInset = dpToPx(72);
+        float bottomInset = dpToPx(56);
+        boolean movingUp = state.destinationFloorNumber > state.originFloorNumber;
+        float y = movingUp
+                ? mapContent.getHeight() - bottomInset
+                : topInset;
+        return new PointF(hallwayX, Math.max(topInset, Math.min(y, mapContent.getHeight() - bottomInset)));
+    }
+
+    private int inferOriginFloorNumber(@Nullable OriginEntity origin) {
+        if (origin == null) {
+            return -1;
+        }
+
+        int explicitFloor = findFloorNumber(origin.name, origin.code, origin.description);
+        if (explicitFloor > 0) {
+            return explicitFloor;
+        }
+
+        String combined = normalizeText(origin.name) + " "
+                + normalizeText(origin.code) + " "
+                + normalizeText(origin.description);
+        if (combined.contains("gate")
+                || combined.contains("entrance")
+                || combined.contains("lobby")
+                || combined.contains("ground")) {
+            return 1;
+        }
+        return -1;
+    }
+
+    private int findFloorNumber(@Nullable String... values) {
+        if (values == null) {
+            return -1;
+        }
+
+        for (int floorNumber = 1; floorNumber <= 5; floorNumber++) {
+            String ordinal = floorNumber == 1 ? "1st"
+                    : floorNumber == 2 ? "2nd"
+                    : floorNumber == 3 ? "3rd"
+                    : floorNumber + "th";
+            String word = floorNumber == 1 ? "first"
+                    : floorNumber == 2 ? "second"
+                    : floorNumber == 3 ? "third"
+                    : floorNumber == 4 ? "fourth"
+                    : "fifth";
+            String digit = String.valueOf(floorNumber);
+
+            for (String value : values) {
+                String normalized = normalizeText(value);
+                if (normalized.isEmpty()) {
+                    continue;
+                }
+                if (normalized.contains(ordinal + " floor")
+                        || normalized.contains("floor " + digit)
+                        || normalized.contains(word + " floor")
+                        || normalized.contains("level " + digit)
+                        || normalized.contains("floor-" + digit)
+                        || normalized.contains("floor_" + digit)) {
+                    return floorNumber;
+                }
+            }
+        }
+        return -1;
+    }
+
+    @NonNull
+    private String normalizeText(@Nullable String value) {
+        return value == null ? "" : value.trim().toLowerCase();
+    }
+
     private void configureRouteAnchorInteraction(@NonNull View anchorView, @NonNull RouteOverlayState state) {
         boolean shouldAdvance = state.isMultiFloor() && state.currentFloorNumber != state.destinationFloorNumber;
         anchorView.setClickable(shouldAdvance);
         anchorView.setFocusable(shouldAdvance);
         anchorView.setOnClickListener(shouldAdvance ? v -> advanceRouteToNextFloor() : null);
+        if (shouldAdvance) {
+            startRouteAnchorCue(anchorView);
+        }
     }
 
     private void clearRouteAnchorInteractions() {
+        clearActiveRouteAnchorCue();
         if (floorMapContainer == null) {
             return;
         }
@@ -1723,6 +1828,41 @@ public class HomeFragment extends Fragment {
             anchorView.setOnClickListener(null);
             anchorView.setClickable(false);
             anchorView.setFocusable(false);
+            anchorView.setScaleX(1f);
+            anchorView.setScaleY(1f);
+            anchorView.setAlpha(1f);
+            anchorView.setTranslationZ(0f);
+        }
+    }
+
+    private void startRouteAnchorCue(@NonNull View anchorView) {
+        clearActiveRouteAnchorCue();
+        activeRouteAnchorView = anchorView;
+        anchorView.setTranslationZ(dpToPx(16));
+        anchorView.setAlpha(1f);
+        ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(
+                anchorView,
+                PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.08f, 1f),
+                PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.08f, 1f),
+                PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.84f, 1f)
+        );
+        animator.setDuration(900L);
+        animator.setRepeatCount(ObjectAnimator.INFINITE);
+        activeRouteAnchorAnimator = animator;
+        animator.start();
+    }
+
+    private void clearActiveRouteAnchorCue() {
+        if (activeRouteAnchorAnimator != null) {
+            activeRouteAnchorAnimator.cancel();
+            activeRouteAnchorAnimator = null;
+        }
+        if (activeRouteAnchorView != null) {
+            activeRouteAnchorView.setScaleX(1f);
+            activeRouteAnchorView.setScaleY(1f);
+            activeRouteAnchorView.setAlpha(1f);
+            activeRouteAnchorView.setTranslationZ(0f);
+            activeRouteAnchorView = null;
         }
     }
 
