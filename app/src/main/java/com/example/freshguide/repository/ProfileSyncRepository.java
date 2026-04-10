@@ -301,12 +301,16 @@ public class ProfileSyncRepository {
             return null;
         }
 
-        File destination = new File(getProfileImageDir(), ownerKey + "_profile.jpg");
+        File destination = new File(
+                getProfileImageDir(),
+                ownerKey + "_profile_" + System.currentTimeMillis() + ".jpg"
+        );
 
         try {
             File maybeFile = new File(normalizedRef);
             if (maybeFile.exists() && maybeFile.isFile()) {
                 copyStreams(new FileInputStream(maybeFile), new FileOutputStream(destination));
+                cleanupOldProfileImages(ownerKey, destination.getAbsolutePath());
                 return destination.getAbsolutePath();
             }
 
@@ -330,6 +334,7 @@ public class ProfileSyncRepository {
             }
 
             copyStreams(input, new FileOutputStream(destination));
+            cleanupOldProfileImages(ownerKey, destination.getAbsolutePath());
             return destination.getAbsolutePath();
         } catch (Exception e) {
             Log.w(TAG, "Failed to cache profile photo", e);
@@ -352,13 +357,17 @@ public class ProfileSyncRepository {
                 return null;
             }
 
-            File target = new File(getProfileImageDir(), ownerKey + "_profile_remote.jpg");
+            File target = new File(
+                    getProfileImageDir(),
+                    ownerKey + "_profile_remote_" + System.currentTimeMillis() + ".jpg"
+            );
             InputStream input = connection.getInputStream();
             if (input == null) {
                 return null;
             }
 
             copyStreams(input, new FileOutputStream(target));
+            cleanupOldProfileImages(ownerKey, target.getAbsolutePath());
             return target.getAbsolutePath();
         } catch (Exception e) {
             Log.w(TAG, "Failed to download remote profile photo", e);
@@ -377,6 +386,29 @@ public class ProfileSyncRepository {
             dir.mkdirs();
         }
         return dir;
+    }
+
+    private void cleanupOldProfileImages(@NonNull String ownerKey, @Nullable String keepAbsolutePath) {
+        File dir = getProfileImageDir();
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return;
+        }
+
+        String prefix = ownerKey + "_profile";
+        for (File file : files) {
+            if (file == null || !file.isFile()) {
+                continue;
+            }
+            if (!file.getName().startsWith(prefix)) {
+                continue;
+            }
+            if (keepAbsolutePath != null && keepAbsolutePath.equals(file.getAbsolutePath())) {
+                continue;
+            }
+            //noinspection ResultOfMethodCallIgnored
+            file.delete();
+        }
     }
 
     private void copyStreams(@NonNull InputStream in, @NonNull FileOutputStream out) throws Exception {

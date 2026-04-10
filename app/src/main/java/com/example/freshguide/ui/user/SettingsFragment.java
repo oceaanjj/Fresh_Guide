@@ -203,7 +203,15 @@ public class SettingsFragment extends Fragment {
         tvProfileSubtitle.setText(subtitle);
 
         String photoRef = null;
-        if (profile != null) {
+        String sessionPhotoRef = sessionManager.getPendingProfilePhotoRef();
+        if (!TextUtils.isEmpty(sessionPhotoRef)) {
+            photoRef = sessionPhotoRef;
+        } else {
+            sessionPhotoRef = sessionManager.getProfilePhotoUri();
+        }
+        if (!TextUtils.isEmpty(sessionPhotoRef)) {
+            photoRef = sessionPhotoRef;
+        } else if (profile != null) {
             if (!TextUtils.isEmpty(profile.photoLocalPath)) {
                 photoRef = profile.photoLocalPath;
             } else if (!TextUtils.isEmpty(profile.photoRemoteUrl)) {
@@ -225,6 +233,7 @@ public class SettingsFragment extends Fragment {
             try {
                 Uri uri = resolvePhotoUri(photoRef);
                 if (uri != null) {
+                    imgProfilePhoto.setImageDrawable(null);
                     imgProfilePhoto.setImageURI(uri);
                     cardProfilePhoto.setVisibility(View.VISIBLE);
                     tvProfileInitial.setVisibility(View.GONE);

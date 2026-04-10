@@ -116,6 +116,9 @@ public class ProfileFragment extends Fragment {
             String currentCourseSection = currentProfile != null
                     ? normalizeCourseSection(currentProfile.courseSection)
                     : normalizeCourseSection(session.getProfileCourseSection());
+            String previousSessionName = session.getUserName();
+            String previousSessionCourseSection = session.getProfileCourseSection();
+            String previousPendingPhotoRef = session.getPendingProfilePhotoRef();
 
             EditProfileBottomSheet bottomSheet = EditProfileBottomSheet.newInstance(
                     getStudentIdText(),
@@ -125,26 +128,37 @@ public class ProfileFragment extends Fragment {
             );
 
             bottomSheet.setOnProfileSavedListener((updatedName, updatedCourseSection, photoUri) ->
-                    profileViewModel.saveProfile(updatedName, updatedCourseSection, photoUri,
-                            new ProfileViewModel.SaveCallback() {
-                                @Override
-                                public void onSuccess(UserProfileEntity profile) {
+                    {
+                        UserProfileEntity previousProfile = currentProfile;
+                        applyOptimisticProfileUpdate(updatedName, updatedCourseSection, photoUri);
+
+                        profileViewModel.saveProfile(updatedName, updatedCourseSection, photoUri,
+                                new ProfileViewModel.SaveCallback() {
+                                    @Override
+                                    public void onSuccess(UserProfileEntity profile) {
                                     if (!isAdded()) {
                                         return;
                                     }
-                                    currentProfile = profile;
-                                    bindProfileData(profile);
-                                    Toast.makeText(requireContext(), "Profile updated.", Toast.LENGTH_SHORT).show();
-                                }
+                                        session.clearPendingProfilePhotoRef();
+                                        currentProfile = profile;
+                                        bindProfileData(profile);
+                                        Toast.makeText(requireContext(), "Profile updated.", Toast.LENGTH_SHORT).show();
+                                    }
 
-                                @Override
+                                    @Override
                                 public void onError(String message) {
                                     if (!isAdded()) {
                                         return;
                                     }
+                                    session.setUserName(previousSessionName);
+                                    session.setProfileCourseSection(previousSessionCourseSection);
+                                    session.setPendingProfilePhotoRef(previousPendingPhotoRef);
+                                    currentProfile = previousProfile;
+                                    bindProfileData(previousProfile);
                                     Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
-                                }
-                            })
+                                    }
+                                });
+                    }
             );
 
             bottomSheet.show(getParentFragmentManager(), "EditProfileBottomSheet");
@@ -171,6 +185,18 @@ public class ProfileFragment extends Fragment {
         updateProfilePhoto(getPhotoRefFromProfile(profile), tvName.getText().toString());
     }
 
+    private void applyOptimisticProfileUpdate(@NonNull String updatedName,
+                                              @NonNull String updatedCourseSection,
+                                              @Nullable String photoRef) {
+        session.setUserName(updatedName);
+        session.setProfileCourseSection(updatedCourseSection);
+        session.setPendingProfilePhotoRef(photoRef);
+        tvName.setText(formatDisplayName(updatedName));
+        tvStudentId.setText(getStudentIdText());
+        tvCourseSection.setText(getCourseSectionOrFallback(updatedCourseSection));
+        updateProfilePhoto(photoRef, tvName.getText().toString());
+    }
+
     private void updateProfileInitial(String displayName) {
         String initial = "U";
 
@@ -189,6 +215,7 @@ public class ProfileFragment extends Fragment {
             try {
                 Uri uri = resolvePhotoUri(photoRef);
                 if (uri != null) {
+                    imgProfilePhoto.setImageDrawable(null);
                     imgProfilePhoto.setImageURI(uri);
                     imgProfilePhoto.setVisibility(View.VISIBLE);
                     tvProfileInitial.setVisibility(View.GONE);
@@ -288,8 +315,16 @@ public class ProfileFragment extends Fragment {
 
     @Nullable
     private String getPhotoRefFromProfile(@Nullable UserProfileEntity profile) {
+        String sessionPhotoRef = session.getPendingProfilePhotoRef();
+        if (!TextUtils.isEmpty(sessionPhotoRef)) {
+            return sessionPhotoRef;
+        }
+        sessionPhotoRef = session.getProfilePhotoUri();
+        if (!TextUtils.isEmpty(sessionPhotoRef)) {
+            return sessionPhotoRef;
+        }
         if (profile == null) {
-            return session.getProfilePhotoUri();
+            return null;
         }
         if (!TextUtils.isEmpty(profile.photoLocalPath)) {
             return profile.photoLocalPath;

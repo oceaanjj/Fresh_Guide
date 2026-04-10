@@ -38,6 +38,7 @@ public class SessionManager {
 
     private static SessionManager instance;
     private final SharedPreferences prefs;
+    private String pendingProfilePhotoRef;
 
     private SessionManager(Context context) {
         SharedPreferences temp;
@@ -113,6 +114,18 @@ public class SessionManager {
 
     public String getProfilePhotoUri() {
         return prefs.getString(KEY_PROFILE_PHOTO_URI, null);
+    }
+
+    public void setPendingProfilePhotoRef(String photoRef) {
+        pendingProfilePhotoRef = photoRef;
+    }
+
+    public String getPendingProfilePhotoRef() {
+        return pendingProfilePhotoRef;
+    }
+
+    public void clearPendingProfilePhotoRef() {
+        pendingProfilePhotoRef = null;
     }
 
     public boolean isProfileMigrated(String studentId) {
@@ -240,5 +253,6 @@ public class SessionManager {
                 .remove(KEY_PROFILE_COURSE_SECTION)
                 .remove(KEY_PROFILE_PHOTO_URI)
                 .apply();
+        pendingProfilePhotoRef = null;
     }
 }

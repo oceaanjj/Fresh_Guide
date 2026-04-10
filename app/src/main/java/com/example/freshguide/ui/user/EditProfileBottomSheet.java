@@ -161,6 +161,7 @@ public class EditProfileBottomSheet extends BottomSheetDialogFragment {
             try {
                 Uri previewUri = resolvePhotoUri(selectedPhotoUri);
                 if (previewUri != null) {
+                    imgEditProfilePhoto.setImageDrawable(null);
                     imgEditProfilePhoto.setImageURI(previewUri);
                     imgEditProfilePhoto.setVisibility(View.VISIBLE);
                     tvEditProfileInitial.setVisibility(View.GONE);
