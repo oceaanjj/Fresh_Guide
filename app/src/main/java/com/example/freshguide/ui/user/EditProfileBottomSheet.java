@@ -18,7 +18,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.freshguide.R;
-import com.example.freshguide.util.SessionManager;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 public class EditProfileBottomSheet extends BottomSheetDialogFragment {
@@ -146,16 +145,11 @@ public class EditProfileBottomSheet extends BottomSheetDialogFragment {
 
             String updatedName = buildFullName(firstName, middleInitial, lastName);
 
-            SessionManager sessionManager = SessionManager.getInstance(requireContext());
-            sessionManager.setUserName(updatedName);
-            sessionManager.setProfileCourseSection(updatedCourseSection);
-            sessionManager.setProfilePhotoUri(selectedPhotoUri);
-
             if (onProfileSavedListener != null) {
                 onProfileSavedListener.onProfileSaved(updatedName, updatedCourseSection, selectedPhotoUri);
             }
 
-            Toast.makeText(requireContext(), "Profile updated.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Profile saved.", Toast.LENGTH_SHORT).show();
             dismiss();
         });
     }

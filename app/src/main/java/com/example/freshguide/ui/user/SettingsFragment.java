@@ -14,16 +14,22 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.freshguide.BuildConfig;
 import com.example.freshguide.R;
+import com.example.freshguide.model.entity.UserProfileEntity;
 import com.example.freshguide.util.ScheduleReminderHelper;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.util.ThemePreferenceManager;
+import com.example.freshguide.viewmodel.ProfileViewModel;
+
+import java.io.File;
 
 public class SettingsFragment extends Fragment {
 
     private SessionManager sessionManager;
+    private ProfileViewModel profileViewModel;
 
     private View cardNotifications;
 
@@ -62,6 +68,7 @@ public class SettingsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         sessionManager = SessionManager.getInstance(requireContext());
+        profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
 
         cardNotifications = view.findViewById(R.id.card_settings_notifications);
 
@@ -99,7 +106,11 @@ public class SettingsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (isAdded()) {
-            setupProfileHeader();
+            if (sessionManager.isAdmin()) {
+                setupProfileHeader();
+            } else {
+                profileViewModel.refreshProfile();
+            }
         }
     }
 
@@ -151,23 +162,55 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupProfileHeader() {
+        if (sessionManager.isAdmin()) {
+            bindAdminProfileHeader();
+            return;
+        }
+
+        profileViewModel.getProfile().observe(getViewLifecycleOwner(), this::bindStudentProfileHeader);
+    }
+
+    private void bindAdminProfileHeader() {
         String displayName = sessionManager.getUserName();
         if (TextUtils.isEmpty(displayName)) {
             displayName = "User";
         }
 
-        String subtitle;
-        if (sessionManager.isAdmin()) {
-            subtitle = "Admin";
-        } else {
-            String studentId = sessionManager.getStudentId();
-            subtitle = TextUtils.isEmpty(studentId) ? "Student" : studentId;
-        }
+        String subtitle = "Admin";
 
         tvProfileName.setText(displayName);
         tvProfileInitial.setText(getInitial(displayName));
         tvProfileSubtitle.setText(subtitle);
-        updateProfilePhoto(sessionManager.getProfilePhotoUri(), displayName);
+        updateProfilePhoto(null, displayName);
+    }
+
+    private void bindStudentProfileHeader(@Nullable UserProfileEntity profile) {
+        String displayName;
+        if (profile != null && !TextUtils.isEmpty(profile.fullName)) {
+            displayName = profile.fullName;
+        } else {
+            displayName = sessionManager.getUserName();
+        }
+        if (TextUtils.isEmpty(displayName)) {
+            displayName = "User";
+        }
+
+        String studentId = sessionManager.getStudentId();
+        String subtitle = TextUtils.isEmpty(studentId) ? "Student" : studentId;
+
+        tvProfileName.setText(displayName);
+        tvProfileInitial.setText(getInitial(displayName));
+        tvProfileSubtitle.setText(subtitle);
+
+        String photoRef = null;
+        if (profile != null) {
+            if (!TextUtils.isEmpty(profile.photoLocalPath)) {
+                photoRef = profile.photoLocalPath;
+            } else if (!TextUtils.isEmpty(profile.photoRemoteUrl)) {
+                photoRef = profile.photoRemoteUrl;
+            }
+        }
+        updateProfilePhoto(photoRef, displayName);
     }
 
     private String getInitial(String name) {
@@ -177,15 +220,18 @@ public class SettingsFragment extends Fragment {
         return String.valueOf(Character.toUpperCase(name.trim().charAt(0)));
     }
 
-    private void updateProfilePhoto(@Nullable String photoUri, String displayName) {
-        if (!TextUtils.isEmpty(photoUri)) {
+    private void updateProfilePhoto(@Nullable String photoRef, String displayName) {
+        if (!TextUtils.isEmpty(photoRef)) {
             try {
-                imgProfilePhoto.setImageURI(Uri.parse(photoUri));
-                cardProfilePhoto.setVisibility(View.VISIBLE);
-                tvProfileInitial.setVisibility(View.GONE);
-                return;
+                Uri uri = resolvePhotoUri(photoRef);
+                if (uri != null) {
+                    imgProfilePhoto.setImageURI(uri);
+                    cardProfilePhoto.setVisibility(View.VISIBLE);
+                    tvProfileInitial.setVisibility(View.GONE);
+                    return;
+                }
             } catch (Exception ignored) {
-                sessionManager.setProfilePhotoUri(null);
+                // Fallback to initial avatar.
             }
         }
 
@@ -193,6 +239,28 @@ public class SettingsFragment extends Fragment {
         cardProfilePhoto.setVisibility(View.GONE);
         tvProfileInitial.setVisibility(View.VISIBLE);
         tvProfileInitial.setText(getInitial(displayName));
+    }
+
+    @Nullable
+    private Uri resolvePhotoUri(@NonNull String photoRef) {
+        String trimmed = photoRef.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return null;
+        }
+
+        if (trimmed.startsWith("content://") || trimmed.startsWith("file://")) {
+            return Uri.parse(trimmed);
+        }
+
+        File file = new File(trimmed);
+        if (file.exists()) {
+            return Uri.fromFile(file);
+        }
+        return null;
     }
 
     private void setupAboutSection() {

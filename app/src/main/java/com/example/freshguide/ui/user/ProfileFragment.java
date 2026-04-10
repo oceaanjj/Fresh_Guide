@@ -12,16 +12,21 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.freshguide.LoginActivity;
 import com.example.freshguide.R;
+import com.example.freshguide.model.entity.UserProfileEntity;
 import com.example.freshguide.repository.AuthRepository;
 import com.example.freshguide.util.SessionManager;
+import com.example.freshguide.viewmodel.ProfileViewModel;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -36,6 +41,8 @@ public class ProfileFragment extends Fragment {
     private TextView tvProfileInitial;
 
     private SessionManager session;
+    private ProfileViewModel profileViewModel;
+    private UserProfileEntity currentProfile;
 
     @Nullable
     @Override
@@ -49,6 +56,7 @@ public class ProfileFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         session = SessionManager.getInstance(requireContext());
+        profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
 
         tvName = view.findViewById(R.id.tv_name);
         tvStudentId = view.findViewById(R.id.tv_student_id);
@@ -61,21 +69,48 @@ public class ProfileFragment extends Fragment {
         ImageButton btnMore = view.findViewById(R.id.btn_more);
 
         setCurrentDate();
-        bindProfileData();
+        bindProfileData(null);
+
+        profileViewModel.getProfile().observe(getViewLifecycleOwner(), profile -> {
+            currentProfile = profile;
+            bindProfileData(profile);
+        });
 
         btnEditProfile.setOnClickListener(v -> {
+            String currentName = currentProfile != null
+                    ? normalizeName(currentProfile.fullName)
+                    : normalizeName(session.getUserName());
+            String currentCourseSection = currentProfile != null
+                    ? normalizeCourseSection(currentProfile.courseSection)
+                    : normalizeCourseSection(session.getProfileCourseSection());
+
             EditProfileBottomSheet bottomSheet = EditProfileBottomSheet.newInstance(
                     getStudentIdText(),
-                    tvName.getText().toString(),
-                    tvCourseSection.getText().toString(),
-                    session.getProfilePhotoUri()
+                    currentName,
+                    currentCourseSection,
+                    getCurrentPhotoRef()
             );
 
-            bottomSheet.setOnProfileSavedListener((updatedName, updatedCourseSection, photoUri) -> {
-                tvName.setText(formatDisplayName(updatedName));
-                tvCourseSection.setText(getCourseSectionOrFallback(updatedCourseSection));
-                updateProfilePhoto(photoUri, updatedName);
-            });
+            bottomSheet.setOnProfileSavedListener((updatedName, updatedCourseSection, photoUri) ->
+                    profileViewModel.saveProfile(updatedName, updatedCourseSection, photoUri,
+                            new ProfileViewModel.SaveCallback() {
+                                @Override
+                                public void onSuccess(UserProfileEntity profile) {
+                                    if (!isAdded()) {
+                                        return;
+                                    }
+                                    Toast.makeText(requireContext(), "Profile updated.", Toast.LENGTH_SHORT).show();
+                                }
+
+                                @Override
+                                public void onError(String message) {
+                                    if (!isAdded()) {
+                                        return;
+                                    }
+                                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                                }
+                            })
+            );
 
             bottomSheet.show(getParentFragmentManager(), "EditProfileBottomSheet");
         });
@@ -87,18 +122,18 @@ public class ProfileFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (isAdded()) {
-            bindProfileData();
+            profileViewModel.refreshProfile();
         }
     }
 
-    private void bindProfileData() {
-        String savedName = session.getUserName();
-        String courseSection = session.getProfileCourseSection();
+    private void bindProfileData(@Nullable UserProfileEntity profile) {
+        String savedName = profile != null ? profile.fullName : session.getUserName();
+        String courseSection = profile != null ? profile.courseSection : session.getProfileCourseSection();
 
         tvName.setText(formatDisplayName(savedName));
         tvStudentId.setText(getStudentIdText());
         tvCourseSection.setText(getCourseSectionOrFallback(courseSection));
-        updateProfilePhoto(session.getProfilePhotoUri(), tvName.getText().toString());
+        updateProfilePhoto(getPhotoRefFromProfile(profile), tvName.getText().toString());
     }
 
     private void updateProfileInitial(String displayName) {
@@ -114,15 +149,18 @@ public class ProfileFragment extends Fragment {
         tvProfileInitial.setText(initial);
     }
 
-    private void updateProfilePhoto(@Nullable String photoUri, String displayName) {
-        if (!TextUtils.isEmpty(photoUri)) {
+    private void updateProfilePhoto(@Nullable String photoRef, String displayName) {
+        if (!TextUtils.isEmpty(photoRef)) {
             try {
-                imgProfilePhoto.setImageURI(Uri.parse(photoUri));
-                imgProfilePhoto.setVisibility(View.VISIBLE);
-                tvProfileInitial.setVisibility(View.GONE);
-                return;
+                Uri uri = resolvePhotoUri(photoRef);
+                if (uri != null) {
+                    imgProfilePhoto.setImageURI(uri);
+                    imgProfilePhoto.setVisibility(View.VISIBLE);
+                    tvProfileInitial.setVisibility(View.GONE);
+                    return;
+                }
             } catch (Exception ignored) {
-                session.setProfilePhotoUri(null);
+                // Fallback to initial avatar.
             }
         }
 
@@ -130,6 +168,29 @@ public class ProfileFragment extends Fragment {
         imgProfilePhoto.setVisibility(View.GONE);
         tvProfileInitial.setVisibility(View.VISIBLE);
         updateProfileInitial(displayName);
+    }
+
+    @Nullable
+    private Uri resolvePhotoUri(@NonNull String photoRef) {
+        String trimmed = photoRef.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return null;
+        }
+
+        if (trimmed.startsWith("content://") || trimmed.startsWith("file://")) {
+            return Uri.parse(trimmed);
+        }
+
+        File file = new File(trimmed);
+        if (file.exists()) {
+            return Uri.fromFile(file);
+        }
+
+        return null;
     }
 
     private void setCurrentDate() {
@@ -169,16 +230,43 @@ public class ProfileFragment extends Fragment {
     }
 
     private String formatDisplayName(String rawName) {
-        if (rawName == null || rawName.trim().isEmpty()) {
-            return "TEST STUDENT";
-        }
-        return rawName.trim().toUpperCase(Locale.getDefault());
+        return normalizeName(rawName).toUpperCase(Locale.getDefault());
     }
 
     private String getCourseSectionOrFallback(String courseSection) {
+        return normalizeCourseSection(courseSection).toUpperCase(Locale.getDefault());
+    }
+
+    private String normalizeName(String rawName) {
+        if (rawName == null || rawName.trim().isEmpty()) {
+            return "TEST STUDENT";
+        }
+        return rawName.trim();
+    }
+
+    private String normalizeCourseSection(String courseSection) {
         if (courseSection == null || courseSection.trim().isEmpty()) {
             return "BSCS 3A";
         }
-        return courseSection.trim().toUpperCase(Locale.getDefault());
+        return courseSection.trim();
+    }
+
+    @Nullable
+    private String getPhotoRefFromProfile(@Nullable UserProfileEntity profile) {
+        if (profile == null) {
+            return session.getProfilePhotoUri();
+        }
+        if (!TextUtils.isEmpty(profile.photoLocalPath)) {
+            return profile.photoLocalPath;
+        }
+        if (!TextUtils.isEmpty(profile.photoRemoteUrl)) {
+            return profile.photoRemoteUrl;
+        }
+        return null;
+    }
+
+    @Nullable
+    private String getCurrentPhotoRef() {
+        return getPhotoRefFromProfile(currentProfile);
     }
 }

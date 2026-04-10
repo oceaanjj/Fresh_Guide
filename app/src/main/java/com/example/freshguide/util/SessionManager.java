@@ -19,6 +19,7 @@ public class SessionManager {
     private static final String KEY_USER_NAME = "user_name";
     private static final String KEY_PROFILE_COURSE_SECTION = "profile_course_section";
     private static final String KEY_PROFILE_PHOTO_URI = "profile_photo_uri";
+    private static final String KEY_PROFILE_MIGRATED_PREFIX = "profile_migrated_";
     private static final String KEY_SYNC_VERSION = "sync_version";
     private static final String KEY_SCHEDULE_VIEW_MODE = "schedule_view_mode";
     private static final String KEY_SCHEDULE_SELECTED_DAY = "schedule_selected_day";
@@ -112,6 +113,20 @@ public class SessionManager {
 
     public String getProfilePhotoUri() {
         return prefs.getString(KEY_PROFILE_PHOTO_URI, null);
+    }
+
+    public boolean isProfileMigrated(String studentId) {
+        if (studentId == null || studentId.trim().isEmpty()) {
+            return false;
+        }
+        return prefs.getBoolean(KEY_PROFILE_MIGRATED_PREFIX + studentId.trim(), false);
+    }
+
+    public void setProfileMigrated(String studentId, boolean migrated) {
+        if (studentId == null || studentId.trim().isEmpty()) {
+            return;
+        }
+        prefs.edit().putBoolean(KEY_PROFILE_MIGRATED_PREFIX + studentId.trim(), migrated).apply();
     }
 
     public boolean isLoggedIn() {

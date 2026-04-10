@@ -16,12 +16,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
-import androidx.navigation.NavController;
+        import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.NavOptions;
         import androidx.navigation.fragment.NavHostFragment;
         import androidx.annotation.IdRes;
 
+        import com.example.freshguide.repository.ProfileSyncRepository;
         import com.example.freshguide.receiver.NetworkChangeReceiver;
         import com.example.freshguide.util.SessionManager;
         import com.example.freshguide.util.ThemePreferenceManager;
@@ -39,6 +40,7 @@ import androidx.navigation.NavOptions;
             private static final long NAV_ITEM_RECOVERY_DURATION_MS = 145L;
             private Runnable pendingNavAction;
             private View pendingNavActionView;
+            private ProfileSyncRepository profileSyncRepository;
 
             @Override
             protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +106,7 @@ import androidx.navigation.NavOptions;
                         navController.navigate(R.id.adminDashboardFragment, null, options);
                     }
                 } else {
+                    profileSyncRepository = new ProfileSyncRepository(this);
                     setupCustomNav(navHome, navSchedule, navSettings, navProfile);
                     updateNavSelection(R.id.homeFragment);
                     if (savedInstanceState == null) {
@@ -567,8 +570,15 @@ import androidx.navigation.NavOptions;
 
             @Override
             public void onNetworkChanged(boolean isConnected) {
-                if (!isConnected && rootView != null) {
-                    Snackbar.make(rootView, "No internet connection", Snackbar.LENGTH_LONG).show();
+                if (!isConnected) {
+                    if (rootView != null) {
+                        Snackbar.make(rootView, "No internet connection", Snackbar.LENGTH_LONG).show();
+                    }
+                    return;
+                }
+
+                if (!isAdmin && profileSyncRepository != null) {
+                    profileSyncRepository.syncNow();
                 }
             }
 

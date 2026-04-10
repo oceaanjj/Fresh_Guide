@@ -178,7 +178,7 @@ Android Studio will auto-detect and sync the Gradle project.
 
 #### 6. First Login
 - **Student:** Use your UCC student ID (no password required)
-- **Admin:** Use email and password
+- **Admin (seeded local backend):** `admin@freshguide.com` / `password`
 
 ### Backend Connection
 

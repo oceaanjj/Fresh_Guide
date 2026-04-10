@@ -229,6 +229,7 @@ php artisan migrate
 
 # (Optional) Seed test data
 php artisan db:seed
+# Seeded admin (development): admin@freshguide.com / password
 
 # Start Laravel server (defaults to localhost:8000)
 php artisan serve
@@ -335,7 +336,7 @@ adb shell am start -n com.example.freshguide/.SplashActivity
 ### First Time Running
 - **Splash screen** appears (2-3 seconds)
 - **Login screen** loads
-- Enter **Student ID** or **Admin credentials**
+- Enter **Student ID** or seeded admin credentials (`admin@freshguide.com` / `password`)
 - If backend is reachable, sync begins (wait for "Synced" message)
 - **Home screen** displays campus map and quick actions
 

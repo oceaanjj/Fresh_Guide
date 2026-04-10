@@ -204,11 +204,12 @@ apiService.getRoom(roomId).enqueue(new Callback<ApiResponse<RoomDto>>() {
 #### POST /admin/login (Admin)
 **Purpose:** Admin login with credentials  
 **Auth Required:** No  
+**Local seeded credentials (development):** `admin@freshguide.com` / `password`  
 **Request:**
 ```json
 {
-  "email": "admin@ucc.edu.ph",
-  "password": "SecurePassword123!"
+  "email": "admin@freshguide.com",
+  "password": "password"
 }
 ```
 
@@ -219,8 +220,8 @@ apiService.getRoom(roomId).enqueue(new Callback<ApiResponse<RoomDto>>() {
   "message": "Admin logged in successfully",
   "data": {
     "id": 1,
-    "name": "Administrator",
-    "email": "admin@ucc.edu.ph",
+    "name": "Super Admin",
+    "email": "admin@freshguide.com",
     "token": "xyz789abc123...",
     "role": "admin"
   }

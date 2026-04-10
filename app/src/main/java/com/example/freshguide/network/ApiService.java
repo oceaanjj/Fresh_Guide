@@ -7,6 +7,7 @@ import com.example.freshguide.model.dto.FacilityDto;
 import com.example.freshguide.model.dto.FloorDto;
 import com.example.freshguide.model.dto.LoginResponse;
 import com.example.freshguide.model.dto.OriginDto;
+import com.example.freshguide.model.dto.ProfileDto;
 import com.example.freshguide.model.dto.RoomDto;
 import com.example.freshguide.model.dto.ScheduleEntryDto;
 import com.example.freshguide.model.dto.RouteDto;
@@ -39,6 +40,19 @@ public interface ApiService {
 
     @POST("logout")
     Call<ApiResponse<Void>> logout();
+
+    @GET("profile")
+    Call<ApiResponse<ProfileDto>> getProfile();
+
+    @PUT("profile")
+    Call<ApiResponse<ProfileDto>> updateProfile(@Body Map<String, String> body);
+
+    @Multipart
+    @POST("profile/photo")
+    Call<ApiResponse<ProfileDto>> uploadProfilePhoto(@Part MultipartBody.Part image);
+
+    @DELETE("profile/photo")
+    Call<ApiResponse<ProfileDto>> deleteProfilePhoto();
 
     // ── Sync ─────────────────────────────────────────────────────────────────
 

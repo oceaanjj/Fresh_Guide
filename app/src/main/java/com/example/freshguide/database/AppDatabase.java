@@ -16,6 +16,7 @@ import com.example.freshguide.database.dao.RoomDao;
 import com.example.freshguide.database.dao.RouteDao;
 import com.example.freshguide.database.dao.ScheduleDao;
 import com.example.freshguide.database.dao.SyncMetaDao;
+import com.example.freshguide.database.dao.UserProfileDao;
 import com.example.freshguide.model.entity.BuildingEntity;
 import com.example.freshguide.model.entity.FacilityEntity;
 import com.example.freshguide.model.entity.FloorEntity;
@@ -26,6 +27,7 @@ import com.example.freshguide.model.entity.RouteEntity;
 import com.example.freshguide.model.entity.RouteStepEntity;
 import com.example.freshguide.model.entity.ScheduleEntryEntity;
 import com.example.freshguide.model.entity.SyncMetaEntity;
+import com.example.freshguide.model.entity.UserProfileEntity;
 
 @Database(
     entities = {
@@ -38,9 +40,10 @@ import com.example.freshguide.model.entity.SyncMetaEntity;
         RouteEntity.class,
         RouteStepEntity.class,
         ScheduleEntryEntity.class,
-        SyncMetaEntity.class
+        SyncMetaEntity.class,
+        UserProfileEntity.class
     },
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -159,6 +162,25 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    private static final Migration MIGRATION_7_8 = new Migration(7, 8) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS user_profiles ("
+                    + "owner_student_id TEXT NOT NULL, "
+                    + "full_name TEXT, "
+                    + "course_section TEXT, "
+                    + "photo_local_path TEXT, "
+                    + "photo_remote_url TEXT, "
+                    + "sync_state INTEGER NOT NULL DEFAULT 1, "
+                    + "pending_photo_action INTEGER NOT NULL DEFAULT 0, "
+                    + "updated_at INTEGER NOT NULL DEFAULT 0, "
+                    + "last_synced_at INTEGER NOT NULL DEFAULT 0, "
+                    + "PRIMARY KEY(owner_student_id))");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_user_profiles_sync_state ON user_profiles(sync_state)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_user_profiles_updated_at ON user_profiles(updated_at)");
+        }
+    };
+
     public abstract BuildingDao buildingDao();
     public abstract FloorDao floorDao();
     public abstract RoomDao roomDao();
@@ -167,6 +189,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract RouteDao routeDao();
     public abstract ScheduleDao scheduleDao();
     public abstract SyncMetaDao syncMetaDao();
+    public abstract UserProfileDao userProfileDao();
 
     public static synchronized AppDatabase getInstance(Context context) {
         if (instance == null) {
@@ -174,7 +197,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     AppDatabase.class,
                     DB_NAME
-            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
              .build();
         }
         return instance;
