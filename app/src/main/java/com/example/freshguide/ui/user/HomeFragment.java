@@ -541,14 +541,14 @@ public class HomeFragment extends Fragment {
         setClick(view, R.id.img_pin_main, () -> openMainBuildingFloor());
         setClick(view, R.id.txt_main_building, () -> openMainBuildingFloor());
 
-        setClick(view, R.id.img_library, () -> navigateToBuildingRoomList(nav, CODE_LIB, "LIBRARY"));
-        setClick(view, R.id.img_pin_library, () -> navigateToBuildingRoomList(nav, CODE_LIB, "LIBRARY"));
-        setClick(view, R.id.txt_library, () -> navigateToBuildingRoomList(nav, CODE_LIB, "LIBRARY"));
+        setClick(view, R.id.img_library, () -> navigateToCampusAreaRoom(nav, CODE_LIB, "LIBRARY"));
+        setClick(view, R.id.img_pin_library, () -> navigateToCampusAreaRoom(nav, CODE_LIB, "LIBRARY"));
+        setClick(view, R.id.txt_library, () -> navigateToCampusAreaRoom(nav, CODE_LIB, "LIBRARY"));
 
-        setClick(view, R.id.img_registrar, () -> navigateToBuildingRoomList(nav, CODE_REG, "REGISTRAR"));
-        setClick(view, R.id.img_registrar2, () -> navigateToBuildingRoomList(nav, CODE_REG, "REGISTRAR"));
-        setClick(view, R.id.img_pin_registrar, () -> navigateToBuildingRoomList(nav, CODE_REG, "REGISTRAR"));
-        setClick(view, R.id.txt_registrar, () -> navigateToBuildingRoomList(nav, CODE_REG, "REGISTRAR"));
+        setClick(view, R.id.img_registrar, () -> navigateToCampusAreaRoom(nav, CODE_REG, "REGISTRAR"));
+        setClick(view, R.id.img_registrar2, () -> navigateToCampusAreaRoom(nav, CODE_REG, "REGISTRAR"));
+        setClick(view, R.id.img_pin_registrar, () -> navigateToCampusAreaRoom(nav, CODE_REG, "REGISTRAR"));
+        setClick(view, R.id.txt_registrar, () -> navigateToCampusAreaRoom(nav, CODE_REG, "REGISTRAR"));
 
         setClick(view, R.id.img_court, () -> navigateToCampusAreaRoom(nav, CODE_COURT, "COURT"));
         setClick(view, R.id.txt_court, () -> navigateToCampusAreaRoom(nav, CODE_COURT, "COURT"));
@@ -1088,7 +1088,11 @@ public class HomeFragment extends Fragment {
     private boolean isCampusAreaCode(String code) {
         if (code == null) return false;
         String c = code.trim().toUpperCase();
-        return CODE_COURT.equals(c) || CODE_ENT.equals(c) || CODE_EXIT.equals(c);
+        return CODE_COURT.equals(c)
+                || CODE_REG.equals(c)
+                || CODE_LIB.equals(c)
+                || CODE_ENT.equals(c)
+                || CODE_EXIT.equals(c);
     }
 
     private void setupChipFade() {
