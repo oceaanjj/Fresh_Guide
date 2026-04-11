@@ -53,6 +53,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     public static final String ARG_PRESELECTED_ROOM_NAME = "preselectedRoomName";
     public static final String RESULT_ROUTE_MAP_OVERLAY = "route_map_overlay_result";
     public static final String RESULT_SHEET_VISIBILITY = "directions_sheet_visibility_result";
+    public static final String RESULT_NAVIGATION_FOCUS = "directions_navigation_focus_result";
     public static final String KEY_ROUTE_VISIBLE = "route_visible";
     public static final String KEY_ROUTE_ROOM_ID = "route_room_id";
     public static final String KEY_ROUTE_ORIGIN_ID = "route_origin_id";
@@ -60,6 +61,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     public static final String KEY_ROUTE_USE_STAIRS = "route_use_stairs";
     public static final String KEY_ROUTE_USE_ELEVATOR = "route_use_elevator";
     public static final String KEY_SHEET_VISIBLE = "sheet_visible";
+    public static final String KEY_NAVIGATION_FOCUS_ACTIVE = "navigation_focus_active";
 
     private enum ActiveField {
         NONE,
@@ -109,8 +111,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private View originEmpty;
     private View destinationEmpty;
     private View routeEmptyState;
+    private TextView collapsedLabelText;
     private TextView collapsedOriginText;
     private TextView collapsedDestinationText;
+    private TextView collapsedHintText;
     private ProgressBar routeLoading;
     private MaterialButton btnStart;
     private BottomSheetBehavior<View> bottomSheetBehavior;
@@ -223,8 +227,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         sheetRoot = view.findViewById(R.id.sheet_root);
         titleView = view.findViewById(R.id.tv_title);
         collapsedSummary = view.findViewById(R.id.layout_collapsed_summary);
+        collapsedLabelText = view.findViewById(R.id.tv_collapsed_label);
         collapsedOriginText = view.findViewById(R.id.tv_collapsed_origin);
         collapsedDestinationText = view.findViewById(R.id.tv_collapsed_destination);
+        collapsedHintText = view.findViewById(R.id.tv_collapsed_hint);
         summaryContent = view.findViewById(R.id.layout_summary_content);
         routeContent = view.findViewById(R.id.layout_route_content);
         resultsScrim = view.findViewById(R.id.view_results_scrim);
@@ -313,6 +319,9 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             reverseCurrentRoute = false;
             activeRouteOriginRoomId = -1;
         } else if (directOriginRoomId != -1 && directRoomId != -1) {
+            publishNavigationFocusState(true);
+            contentMode = ContentMode.ROUTE;
+            updateCollapsedSummary();
             hideResultsAndClearFocus();
             presentStartedRouteSheet();
             activeRouteOriginId = -1;
@@ -338,6 +347,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             return;
         }
 
+        publishNavigationFocusState(true);
         hideResultsAndClearFocus();
         showRouteLoadingState();
         presentStartedRouteSheet();
@@ -349,6 +359,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     private void showRouteLoadingState() {
         contentMode = ContentMode.ROUTE;
+        updateCollapsedSummary();
         routeAdapter.setSteps(Collections.emptyList());
         routeContent.setVisibility(View.VISIBLE);
         routeContent.setAlpha(1f);
@@ -426,11 +437,25 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void updateCollapsedSummary() {
+        if (collapsedLabelText != null) {
+            collapsedLabelText.setText(R.string.label_destination);
+        }
         if (collapsedOriginText != null) {
-            collapsedOriginText.setText(getSummaryValue(textOf(etOrigin), getString(R.string.label_origin)));
+            String originValue = textOf(etOrigin).trim();
+            collapsedOriginText.setText(originValue.isEmpty()
+                    ? getString(R.string.directions_small_origin_placeholder)
+                    : getString(R.string.directions_small_from, originValue));
         }
         if (collapsedDestinationText != null) {
-            collapsedDestinationText.setText(getSummaryValue(textOf(etDestination), getString(R.string.label_destination)));
+            collapsedDestinationText.setText(getSummaryValue(
+                    textOf(etDestination),
+                    getString(R.string.label_select_destination)
+            ));
+        }
+        if (collapsedHintText != null) {
+            collapsedHintText.setText(contentMode == ContentMode.ROUTE
+                    ? R.string.directions_small_hint_steps
+                    : R.string.directions_small_hint_edit);
         }
     }
 
@@ -493,6 +518,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         activeRouteOriginId = -1;
         activeRouteOriginRoomId = -1;
         activeRouteRoomId = -1;
+        updateCollapsedSummary();
         if (collapseToSummary && bottomSheetBehavior != null) {
             sheetRoot.post(() -> {
                 if (bottomSheetBehavior != null) {
@@ -1139,6 +1165,12 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         getParentFragmentManager().setFragmentResult(RESULT_ROUTE_MAP_OVERLAY, result);
     }
 
+    private void publishNavigationFocusState(boolean active) {
+        Bundle result = new Bundle();
+        result.putBoolean(KEY_NAVIGATION_FOCUS_ACTIVE, active);
+        getParentFragmentManager().setFragmentResult(RESULT_NAVIGATION_FOCUS, result);
+    }
+
     private boolean shouldUseStairs(@Nullable RouteDto route) {
         String routeText = buildRouteText(route);
         return routeText.contains("stairs")
@@ -1185,6 +1217,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         clearRouteOverlay();
+        publishNavigationFocusState(false);
         publishSheetVisibility(false);
         super.onDismiss(dialog);
     }

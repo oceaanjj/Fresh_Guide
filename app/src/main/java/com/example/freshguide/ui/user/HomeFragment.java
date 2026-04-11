@@ -198,6 +198,8 @@ public class HomeFragment extends Fragment {
     private String pendingFocusedRoomName;
     private View roomDetailSheet;
     private BottomSheetBehavior<View> roomDetailSheetBehavior;
+    private View homeLogoView;
+    private View homeSearchView;
     private View roomSummaryLayout;
     private TextView tvRoomName;
     private TextView tvRoomSubtitle;
@@ -227,6 +229,7 @@ public class HomeFragment extends Fragment {
     private Animator activeRouteAnchorAnimator;
     @Nullable
     private View activeRouteAnchorView;
+    private boolean isDirectionsFocusMode;
 
     private static Map<String, Integer> createFloor1RoomSlots() {
         LinkedHashMap<String, Integer> map = new LinkedHashMap<>();
@@ -336,6 +339,8 @@ public class HomeFragment extends Fragment {
         overallMapContainer = view.findViewById(R.id.overall_map_container);
         roomDetailSheet = view.findViewById(R.id.room_detail_sheet);
         fabCompass = view.findViewById(R.id.fab_compass);
+        homeLogoView = view.findViewById(R.id.iv_home_logo);
+        homeSearchView = view.findViewById(R.id.layout_search);
 
         NavController nav = Navigation.findNavController(view);
 
@@ -351,13 +356,20 @@ public class HomeFragment extends Fragment {
         observeDirectionsLaunchRequests();
         observeDirectionsRouteOverlay();
         observeDirectionsSheetVisibility();
+        observeDirectionsFocusMode();
 
         viewModel.sync();
     }
 
     private void setupSearch(View view, NavController nav) {
-        View searchBar = view.findViewById(R.id.layout_search);
-        searchBar.setOnClickListener(v -> {
+        if (homeSearchView == null) {
+            return;
+        }
+        homeSearchView.setOnClickListener(v -> {
+            if (shouldBlockBrowsingForDirections()) {
+                return;
+            }
+
             NavOptions options = new NavOptions.Builder()
                     .setEnterAnim(R.anim.search_screen_enter)
                     .setExitAnim(R.anim.home_screen_exit)
@@ -436,10 +448,24 @@ public class HomeFragment extends Fragment {
         chip5.setOnClickListener(v -> handleFloorChipClick(chip5, 5, floorChips));
 
         setFloorSelection(selectedFloor);
+        updateFloorChipAvailability();
         updateFade();
     }
 
     private void handleFloorChipClick(Chip clickedChip, int floor, Chip[] allChips) {
+        if (isDirectionsFocusMode && selectedFloor != null && selectedFloor == floor) {
+            return;
+        }
+
+        if (activeRouteOverlay != null) {
+            if (!isFloorWithinActiveRoute(floor)) {
+                return;
+            }
+            activeRouteOverlay.currentFloorNumber = floor;
+            setFloorSelection(floor);
+            return;
+        }
+
         if (selectedFloor != null && selectedFloor == floor) {
             setFloorSelection(null);
             return;
@@ -559,7 +585,12 @@ public class HomeFragment extends Fragment {
     private void setClick(View root, int viewId, Runnable action) {
         View target = root.findViewById(viewId);
         if (target != null) {
-            target.setOnClickListener(v -> action.run());
+            target.setOnClickListener(v -> {
+                if (shouldBlockBrowsingForDirections()) {
+                    return;
+                }
+                action.run();
+            });
         }
     }
 
@@ -1014,6 +1045,9 @@ public class HomeFragment extends Fragment {
             return false;
         });
         roomBox.setOnClickListener(v -> {
+            if (shouldBlockBrowsingForDirections()) {
+                return;
+            }
             Log.d(TAG, "Room clicked id=" + room.id + " code=" + room.code + " name=" + room.name);
             openRoomOnMap(room, roomBox, true);
         });
@@ -1229,10 +1263,28 @@ public class HomeFragment extends Fragment {
                     }
                     boolean visible = result.getBoolean(DirectionsSheetFragment.KEY_SHEET_VISIBLE, false);
                     if (visible) {
+                        setBottomNavVisible(false);
                         setDirectionsFabVisible(false);
                         return;
                     }
+                    setBottomNavVisible(!isRoomDetailSheetShowing());
                     setDirectionsFabVisible(!isRoomDetailSheetShowing());
+                });
+    }
+
+    private void observeDirectionsFocusMode() {
+        getParentFragmentManager().setFragmentResultListener(
+                DirectionsSheetFragment.RESULT_NAVIGATION_FOCUS,
+                getViewLifecycleOwner(),
+                (requestKey, result) -> {
+                    if (!isAdded()) {
+                        return;
+                    }
+                    setDirectionsFocusMode(result.getBoolean(
+                            DirectionsSheetFragment.KEY_NAVIGATION_FOCUS_ACTIVE,
+                            false
+                    ));
+                    updateFloorChipAvailability();
                 });
     }
 
@@ -1243,6 +1295,7 @@ public class HomeFragment extends Fragment {
                 floorChips[i].setChecked(floorNumber != null && (i + 1) == floorNumber);
             }
         }
+        updateFloorChipAvailability();
         if (floorNumber == null) {
             showOverallMap();
             return;
@@ -1598,6 +1651,70 @@ public class HomeFragment extends Fragment {
         fabCompass.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
+    private void setDirectionsFocusMode(boolean focused) {
+        isDirectionsFocusMode = focused;
+        setHeaderViewVisibility(homeLogoView, !focused);
+        setHeaderViewVisibility(homeSearchView, !focused);
+    }
+
+    private void setHeaderViewVisibility(@Nullable View target, boolean visible) {
+        if (target == null) {
+            return;
+        }
+
+        target.animate().cancel();
+        if (visible) {
+            target.setEnabled(true);
+            target.setClickable(target.hasOnClickListeners());
+            if (target.getVisibility() != View.VISIBLE) {
+                target.setAlpha(0f);
+                target.setTranslationY(-dpToPx(10));
+                target.setVisibility(View.VISIBLE);
+            }
+            target.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(180L)
+                    .start();
+            return;
+        }
+
+        target.setEnabled(false);
+        target.setClickable(false);
+        if (target.getVisibility() != View.VISIBLE) {
+            return;
+        }
+        target.animate()
+                .alpha(0f)
+                .translationY(-dpToPx(10))
+                .setDuration(140L)
+                .withEndAction(() -> {
+                    target.setVisibility(View.GONE);
+                    target.setAlpha(1f);
+                    target.setTranslationY(0f);
+                })
+                .start();
+    }
+
+    private boolean shouldBlockBrowsingForDirections() {
+        return isDirectionsFocusMode;
+    }
+
+    private void updateFloorChipAvailability() {
+        if (floorChips == null) {
+            return;
+        }
+
+        for (int i = 0; i < floorChips.length; i++) {
+            Chip chip = floorChips[i];
+            int floorNumber = i + 1;
+            boolean enabled = activeRouteOverlay == null || isFloorWithinActiveRoute(floorNumber);
+            chip.setEnabled(enabled);
+            chip.setClickable(enabled);
+            chip.setAlpha(enabled ? 1f : 0.42f);
+        }
+    }
+
     private void updateBookmarkState(boolean isSaved) {
         if (btnBookmark == null || !isAdded()) {
             return;
@@ -1842,6 +1959,7 @@ public class HomeFragment extends Fragment {
         );
         runOnUiThreadSafely(() -> {
             activeRouteOverlay = state;
+            updateFloorChipAvailability();
             if (selectedFloor == null || selectedFloor != state.currentFloorNumber) {
                 setFloorSelection(state.currentFloorNumber);
             } else {
@@ -2198,6 +2316,15 @@ public class HomeFragment extends Fragment {
         setFloorSelection(activeRouteOverlay.currentFloorNumber);
     }
 
+    private boolean isFloorWithinActiveRoute(int floorNumber) {
+        if (activeRouteOverlay == null) {
+            return true;
+        }
+        int minFloor = Math.min(activeRouteOverlay.originFloorNumber, activeRouteOverlay.destinationFloorNumber);
+        int maxFloor = Math.max(activeRouteOverlay.originFloorNumber, activeRouteOverlay.destinationFloorNumber);
+        return floorNumber >= minFloor && floorNumber <= maxFloor;
+    }
+
     private float resolveHallwayX() {
         ConstraintLayout mapContent = findCurrentMapContent();
         if (mapContent == null || mapContent.getWidth() <= 0) {
@@ -2362,6 +2489,7 @@ public class HomeFragment extends Fragment {
         RouteOverlayState state = activeRouteOverlay;
         activeRouteOverlay = null;
         clearFloorRouteOverlay();
+        updateFloorChipAvailability();
         if (state != null && highlightedRoomId != null && highlightedRoomId == state.destinationRoomId) {
             clearRoomHighlight();
         }
@@ -2451,6 +2579,7 @@ public class HomeFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         clearActiveRouteOverlay();
+        setDirectionsFocusMode(false);
         setBottomNavVisible(true);
         setDirectionsFabVisible(true);
         // Shutdown executor to prevent thread leaks
