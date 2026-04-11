@@ -151,7 +151,7 @@ import androidx.annotation.NonNull;
                         R.drawable.ic_nav_settings, R.string.nav_admin_settings);
 
                 bindNavItem(navHome, R.id.nav_icon_home, R.id.nav_text_home,
-                        this::openAdminDashboardTab);
+                        this::openAdminHomeTab);
                 bindNavItem(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule,
                         () -> navigateTo(R.id.adminRoomListFragment));
                 bindNavItem(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings,
@@ -207,7 +207,7 @@ import androidx.annotation.NonNull;
                 navigateTo(R.id.homeFragment);
             }
 
-            private void openAdminDashboardTab() {
+            private void openAdminHomeTab() {
                 if (navController == null || navController.getCurrentDestination() == null) {
                     return;
                 }
@@ -218,7 +218,10 @@ import androidx.annotation.NonNull;
                     updateNavSelection(R.id.adminDashboardFragment);
                     return;
                 }
-                navigateTo(R.id.adminDashboardFragment);
+                NavOptions options = new NavOptions.Builder()
+                        .setLaunchSingleTop(true)
+                        .build();
+                navController.navigate(R.id.adminDashboardFragment, null, options);
             }
 
             private void applySystemBarInsets(View root, View navHostView, View navContainer) {
