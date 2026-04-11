@@ -227,6 +227,7 @@ public class HomeFragment extends Fragment {
     private MaterialButton btnExitDirectionMode;
     private boolean hasDirectionsPrompted;
     private FloatingActionButton fabCompass;
+    private FloatingActionButton fabEmergencyExit;
     private int activeRoomId = -1;
     private boolean activeRoomIsCampusArea;
     private RoomEntity activeRoom;
@@ -356,6 +357,7 @@ public class HomeFragment extends Fragment {
         overallMapContainer = view.findViewById(R.id.overall_map_container);
         roomDetailSheet = view.findViewById(R.id.room_detail_sheet);
         fabCompass = view.findViewById(R.id.fab_compass);
+        fabEmergencyExit = view.findViewById(R.id.fab_emergency_exit);
         homeLogoView = view.findViewById(R.id.iv_home_logo);
         homeSearchView = view.findViewById(R.id.layout_search);
         routeFloorControls = view.findViewById(R.id.layout_route_floor_controls);
@@ -1634,6 +1636,21 @@ public class HomeFragment extends Fragment {
         sheet.show(getParentFragmentManager(), "directions_sheet");
     }
 
+    private void startEmergencyExitRoute() {
+        dismissDirectionsSheetIfPresent();
+        hasDirectionsPrompted = true;
+        viewModel.findRoomIdByCode(CODE_EXIT, exitRoomId -> {
+            if (!isAdded()) {
+                return;
+            }
+            if (exitRoomId == null || exitRoomId <= 0) {
+                Toast.makeText(requireContext(), "Emergency exit is not available yet", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            showDirectionsSheet(exitRoomId, "EXIT");
+        });
+    }
+
     private boolean isRoomDetailSheetShowing() {
         return roomDetailSheetBehavior != null
                 && roomDetailSheet != null
@@ -1669,20 +1686,26 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupFab() {
-        if (fabCompass == null) {
+        if (fabCompass == null && fabEmergencyExit == null) {
             return;
         }
 
-        fabCompass.setOnClickListener(v -> {
-            if (!isDirectionsSheetVisible) {
-                showDirectionsSheet(-1, null);
-            }
-        });
+        if (fabCompass != null) {
+            fabCompass.setOnClickListener(v -> {
+                if (!isDirectionsSheetVisible) {
+                    showDirectionsSheet(-1, null);
+                }
+            });
 
-        fabCompass.setOnLongClickListener(v -> {
-            setFloorSelection(null);
-            return true;
-        });
+            fabCompass.setOnLongClickListener(v -> {
+                setFloorSelection(null);
+                return true;
+            });
+        }
+
+        if (fabEmergencyExit != null) {
+            fabEmergencyExit.setOnClickListener(v -> startEmergencyExitRoute());
+        }
 
         setDirectionsFabVisible(true);
     }
@@ -1720,10 +1743,15 @@ public class HomeFragment extends Fragment {
     }
 
     private void setDirectionsFabVisible(boolean visible) {
-        if (fabCompass == null) {
+        if (fabCompass == null && fabEmergencyExit == null) {
             return;
         }
-        fabCompass.setVisibility(visible ? View.VISIBLE : View.GONE);
+        if (fabCompass != null) {
+            fabCompass.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+        if (fabEmergencyExit != null) {
+            fabEmergencyExit.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
         updateExitDirectionModeButtonVisibility();
     }
 
