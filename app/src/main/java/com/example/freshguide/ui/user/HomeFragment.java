@@ -224,7 +224,6 @@ public class HomeFragment extends Fragment {
     private View routeFloorControls;
     private MaterialButton btnRoutePrevFloor;
     private MaterialButton btnRouteNextFloor;
-    private MaterialButton btnToggleDirectionsSheet;
     private MaterialButton btnExitDirectionMode;
     private boolean hasDirectionsPrompted;
     private FloatingActionButton fabCompass;
@@ -246,6 +245,8 @@ public class HomeFragment extends Fragment {
     @Nullable
     private View activeRouteAnchorView;
     private boolean isDirectionsFocusMode;
+    private boolean isDirectionsSheetVisible;
+    private int activeDirectionsSheetSessionId;
 
     private static Map<String, Integer> createFloor1RoomSlots() {
         LinkedHashMap<String, Integer> map = new LinkedHashMap<>();
@@ -357,6 +358,10 @@ public class HomeFragment extends Fragment {
         fabCompass = view.findViewById(R.id.fab_compass);
         homeLogoView = view.findViewById(R.id.iv_home_logo);
         homeSearchView = view.findViewById(R.id.layout_search);
+        routeFloorControls = view.findViewById(R.id.layout_route_floor_controls);
+        btnRoutePrevFloor = view.findViewById(R.id.btn_route_prev_floor);
+        btnRouteNextFloor = view.findViewById(R.id.btn_route_next_floor);
+        btnExitDirectionMode = view.findViewById(R.id.btn_exit_direction_mode);
 
         NavController nav = Navigation.findNavController(view);
 
@@ -367,7 +372,6 @@ public class HomeFragment extends Fragment {
         setupOverallMapClicks(view, nav);
         setupChipFade();
         setupFab();
-        setupDirectionsSheetToggleButton();
         setupExitDirectionModeButton();
         setupRouteFloorControls();
         observeSync(view);
@@ -1279,15 +1283,12 @@ public class HomeFragment extends Fragment {
                     if (!isAdded()) {
                         return;
                     }
-                    boolean visible = result.getBoolean(DirectionsSheetFragment.KEY_SHEET_VISIBLE, false);
-                    updateDirectionsSheetToggleButton(visible);
-                    if (visible) {
-                        setBottomNavVisible(false);
-                        setDirectionsFabVisible(false);
+                    int sessionId = result.getInt(DirectionsSheetFragment.KEY_SHEET_SESSION_ID, 0);
+                    if (sessionId != 0 && sessionId != activeDirectionsSheetSessionId) {
                         return;
                     }
-                    setBottomNavVisible(!isRoomDetailSheetShowing());
-                    setDirectionsFabVisible(!isRoomDetailSheetShowing());
+                    boolean visible = result.getBoolean(DirectionsSheetFragment.KEY_SHEET_VISIBLE, false);
+                    applyDirectionsSheetVisibility(visible);
                 });
     }
 
@@ -1598,25 +1599,27 @@ public class HomeFragment extends Fragment {
     }
 
     private void showDirectionsSheet(int roomId, @Nullable String roomName) {
-        dismissDirectionsSheetIfPresent();
-        hasDirectionsPrompted = true;
-        DirectionsSheetFragment sheet = new DirectionsSheetFragment();
-        if (roomId > 0) {
-            Bundle args = new Bundle();
-            args.putInt(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_ID, roomId);
-            args.putString(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_NAME, roomName);
-            sheet.setArguments(args);
-        }
-        sheet.show(getParentFragmentManager(), "directions_sheet");
-        updateDirectionsSheetToggleButton(true);
-        updateDirectionsSheetToggleButtonVisibility();
-    }
-
-    private void showDirectionsSheetForActiveRoute() {
+        int sheetSessionId = beginDirectionsSheetSession();
         dismissDirectionsSheetIfPresent();
         hasDirectionsPrompted = true;
         DirectionsSheetFragment sheet = new DirectionsSheetFragment();
         Bundle args = new Bundle();
+        args.putInt(DirectionsSheetFragment.ARG_SHEET_SESSION_ID, sheetSessionId);
+        if (roomId > 0) {
+            args.putInt(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_ID, roomId);
+            args.putString(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_NAME, roomName);
+        }
+        sheet.setArguments(args);
+        sheet.show(getParentFragmentManager(), "directions_sheet");
+    }
+
+    private void showDirectionsSheetForActiveRoute() {
+        int sheetSessionId = beginDirectionsSheetSession();
+        dismissDirectionsSheetIfPresent();
+        hasDirectionsPrompted = true;
+        DirectionsSheetFragment sheet = new DirectionsSheetFragment();
+        Bundle args = new Bundle();
+        args.putInt(DirectionsSheetFragment.ARG_SHEET_SESSION_ID, sheetSessionId);
         args.putInt(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_ID, activeRouteDestinationRoomId);
         args.putInt(DirectionsSheetFragment.ARG_PRESELECTED_ORIGIN_ID, activeRouteOriginId);
         args.putInt(DirectionsSheetFragment.ARG_PRESELECTED_ORIGIN_ROOM_ID, activeRouteOriginRoomId);
@@ -1624,8 +1627,6 @@ public class HomeFragment extends Fragment {
         args.putBoolean(DirectionsSheetFragment.ARG_KEEP_OPEN_ON_START, true);
         sheet.setArguments(args);
         sheet.show(getParentFragmentManager(), "directions_sheet");
-        updateDirectionsSheetToggleButton(true);
-        updateDirectionsSheetToggleButtonVisibility();
     }
 
     private boolean isRoomDetailSheetShowing() {
@@ -1668,7 +1669,7 @@ public class HomeFragment extends Fragment {
         }
 
         fabCompass.setOnClickListener(v -> {
-            if (!isDirectionsSheetShowing()) {
+            if (!isDirectionsSheetVisible) {
                 showDirectionsSheet(-1, null);
             }
         });
@@ -1679,15 +1680,6 @@ public class HomeFragment extends Fragment {
         });
 
         setDirectionsFabVisible(true);
-    }
-
-    private void setupDirectionsSheetToggleButton() {
-        if (btnToggleDirectionsSheet == null) {
-            return;
-        }
-        btnToggleDirectionsSheet.setOnClickListener(v -> toggleDirectionsSheet());
-        updateDirectionsSheetToggleButton(isDirectionsSheetShowing());
-        updateDirectionsSheetToggleButtonVisibility();
     }
 
     private void setupExitDirectionModeButton() {
@@ -1701,48 +1693,13 @@ public class HomeFragment extends Fragment {
         updateExitDirectionModeButtonVisibility();
     }
 
-    private void toggleDirectionsSheet() {
-        androidx.fragment.app.Fragment fragment = getParentFragmentManager().findFragmentByTag("directions_sheet");
-        if (fragment instanceof DirectionsSheetFragment) {
-            ((DirectionsSheetFragment) fragment).dismissAllowingStateLoss();
-            return;
-        }
-        if (activeRouteDestinationRoomId > 0) {
-            showDirectionsSheetForActiveRoute();
-            return;
-        }
-        showDirectionsSheet(-1, null);
-    }
-
-    private boolean isDirectionsSheetShowing() {
-        androidx.fragment.app.Fragment fragment = getParentFragmentManager().findFragmentByTag("directions_sheet");
-        return fragment instanceof DirectionsSheetFragment && fragment.isAdded() && !fragment.isRemoving();
-    }
-
-    private void updateDirectionsSheetToggleButton(boolean sheetVisible) {
-        if (btnToggleDirectionsSheet == null || !isAdded()) {
-            return;
-        }
-        btnToggleDirectionsSheet.setText("Show Sheet");
-    }
-
-    private void updateDirectionsSheetToggleButtonVisibility() {
-        if (btnToggleDirectionsSheet == null) {
-            return;
-        }
-        boolean shouldShow = hasDirectionsPrompted
-                && !isRoomDetailSheetShowing()
-                && !isDirectionsSheetShowing();
-        btnToggleDirectionsSheet.setVisibility(shouldShow ? View.VISIBLE : View.GONE);
-    }
-
     private void updateExitDirectionModeButtonVisibility() {
         if (btnExitDirectionMode == null) {
             return;
         }
         boolean shouldShow = hasDirectionsPrompted
                 && !isRoomDetailSheetShowing()
-                && !isDirectionsSheetShowing()
+                && !isDirectionsSheetVisible
                 && activeRouteOverlay != null;
         btnExitDirectionMode.setVisibility(shouldShow ? View.VISIBLE : View.GONE);
     }
@@ -1762,8 +1719,25 @@ public class HomeFragment extends Fragment {
             return;
         }
         fabCompass.setVisibility(visible ? View.VISIBLE : View.GONE);
-        updateDirectionsSheetToggleButtonVisibility();
         updateExitDirectionModeButtonVisibility();
+    }
+
+    private int beginDirectionsSheetSession() {
+        activeDirectionsSheetSessionId++;
+        applyDirectionsSheetVisibility(true);
+        return activeDirectionsSheetSessionId;
+    }
+
+    private void applyDirectionsSheetVisibility(boolean visible) {
+        isDirectionsSheetVisible = visible;
+        if (!isAdded()) {
+            return;
+        }
+        boolean showBaseChrome = !visible && !isRoomDetailSheetShowing();
+        setBottomNavVisible(showBaseChrome);
+        setDirectionsFabVisible(showBaseChrome);
+        updateExitDirectionModeButtonVisibility();
+        updateRouteFloorControls();
     }
 
     private void setDirectionsFocusMode(boolean focused) {
@@ -2647,7 +2621,9 @@ public class HomeFragment extends Fragment {
         }
 
         RouteOverlayState state = activeRouteOverlay;
-        boolean visible = state != null && (
+        boolean visible = state != null
+                && isDirectionsSheetVisible
+                && (
                 (state.campusTransitionSequence)
                         || (state.isMultiFloor() && selectedFloor != null)
         );
@@ -2661,20 +2637,8 @@ public class HomeFragment extends Fragment {
             boolean canGoPrev = state.showingCampusLeg
                     || state.currentFloorNumber < state.originFloorNumber;
             boolean canGoNext = !state.showingCampusLeg;
-            btnRoutePrevFloor.setEnabled(canGoPrev);
-            btnRoutePrevFloor.setAlpha(canGoPrev ? 1f : 0.55f);
-            btnRouteNextFloor.setEnabled(canGoNext);
-            btnRouteNextFloor.setAlpha(canGoNext ? 1f : 0.55f);
-            if (state.showingCampusLeg) {
-                btnRoutePrevFloor.setText("Back In");
-                btnRouteNextFloor.setText("Go Out");
-            } else if (state.currentFloorNumber > 1) {
-                btnRoutePrevFloor.setText("Up");
-                btnRouteNextFloor.setText("Down");
-            } else {
-                btnRoutePrevFloor.setText("Back");
-                btnRouteNextFloor.setText("Go Out");
-            }
+            setRouteFloorButtonState(btnRoutePrevFloor, canGoPrev, "Previous");
+            setRouteFloorButtonState(btnRouteNextFloor, canGoNext, "Next");
             return;
         }
 
@@ -2683,13 +2647,16 @@ public class HomeFragment extends Fragment {
         boolean canGoPrev = state.currentFloorNumber > minFloor;
         boolean canGoNext = state.currentFloorNumber < maxFloor;
 
-        btnRoutePrevFloor.setEnabled(canGoPrev);
-        btnRoutePrevFloor.setAlpha(canGoPrev ? 1f : 0.55f);
-        btnRouteNextFloor.setEnabled(canGoNext);
-        btnRouteNextFloor.setAlpha(canGoNext ? 1f : 0.55f);
+        setRouteFloorButtonState(btnRoutePrevFloor, canGoPrev, "Previous");
+        setRouteFloorButtonState(btnRouteNextFloor, canGoNext, "Next");
+    }
 
-        btnRoutePrevFloor.setText("Prev " + Math.max(minFloor, state.currentFloorNumber - 1));
-        btnRouteNextFloor.setText("Next " + Math.min(maxFloor, state.currentFloorNumber + 1));
+    private void setRouteFloorButtonState(@NonNull MaterialButton button,
+                                          boolean visible,
+                                          @NonNull String label) {
+        button.setText(label);
+        button.setEnabled(visible);
+        button.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
     private boolean isFloorWithinActiveRoute(int floorNumber) {

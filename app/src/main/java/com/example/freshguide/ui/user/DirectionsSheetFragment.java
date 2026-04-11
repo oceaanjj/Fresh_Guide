@@ -57,6 +57,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     public static final String ARG_PRESELECTED_ORIGIN_ROOM_ID = "preselectedOriginRoomId";
     public static final String ARG_AUTO_START_ROUTE = "autoStartRoute";
     public static final String ARG_KEEP_OPEN_ON_START = "keepOpenOnStart";
+    public static final String ARG_SHEET_SESSION_ID = "sheetSessionId";
     public static final String RESULT_ROUTE_MAP_OVERLAY = "route_map_overlay_result";
     public static final String RESULT_SHEET_VISIBILITY = "directions_sheet_visibility_result";
     public static final String RESULT_NAVIGATION_FOCUS = "directions_navigation_focus_result";
@@ -67,6 +68,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     public static final String KEY_ROUTE_USE_STAIRS = "route_use_stairs";
     public static final String KEY_ROUTE_USE_ELEVATOR = "route_use_elevator";
     public static final String KEY_SHEET_VISIBLE = "sheet_visible";
+    public static final String KEY_SHEET_SESSION_ID = "sheet_session_id";
     public static final String KEY_NAVIGATION_FOCUS_ACTIVE = "navigation_focus_active";
 
     private enum ActiveField {
@@ -145,8 +147,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private int activeRouteOriginId = -1;
     private int activeRouteOriginRoomId = -1;
     private int activeRouteRoomId = -1;
+    private int sheetSessionId;
     private boolean preserveOverlayOnDismiss;
     private int resultPanelMaxHeightPx;
+    private float lastSheetSlideOffset;
 
     // -----------------------------------------------------------------------
     // FIX: Guard flag that prevents focus-change listeners from re-opening
@@ -169,6 +173,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
             dialog.setCancelable(true);
             dialog.setCanceledOnTouchOutside(false);
+            dialog.setDismissWithAnimation(true);
             Window window = dialog.getWindow();
             if (window != null) {
                 window.setGravity(Gravity.BOTTOM);
@@ -211,11 +216,9 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
                     @Override
                     public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                        if (sheetDisplayState == SheetDisplayState.SMALL
-                                && slideOffset < -0.02f
-                                && bottomSheetBehavior != null) {
-                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                            return;
+                        lastSheetSlideOffset = slideOffset;
+                        if (bottomSheetBehavior != null) {
+                            updateWindowForSheetState(bottomSheetBehavior.getState());
                         }
                         updateResultPanelHeights();
                     }
@@ -236,6 +239,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             preselectedOriginRoomId = args.getInt(ARG_PRESELECTED_ORIGIN_ROOM_ID, -1);
             autoStartRoute = args.getBoolean(ARG_AUTO_START_ROUTE, false);
             keepOpenOnStart = args.getBoolean(ARG_KEEP_OPEN_ON_START, false);
+            sheetSessionId = args.getInt(ARG_SHEET_SESSION_ID, 0);
             if (keepOpenOnStart) {
                 preserveOverlayOnDismiss = true;
             }
@@ -1041,18 +1045,21 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private void handleBottomSheetStateChanged(int newState) {
         if (newState == BottomSheetBehavior.STATE_EXPANDED) {
             sheetDisplayState = SheetDisplayState.FULL;
+            lastSheetSlideOffset = 1f;
             resultPanelMaxHeightPx = dpToPx(360);
             applySheetChrome(false);
             return;
         }
         if (newState == BottomSheetBehavior.STATE_HALF_EXPANDED) {
             sheetDisplayState = SheetDisplayState.HALF;
+            lastSheetSlideOffset = 0.5f;
             resultPanelMaxHeightPx = dpToPx(200);
             applySheetChrome(false);
             return;
         }
         if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
             sheetDisplayState = SheetDisplayState.SMALL;
+            lastSheetSlideOffset = 0f;
             resultPanelMaxHeightPx = dpToPx(120);
             applySheetChrome(true);
         }
@@ -1068,14 +1075,19 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         }
 
         boolean compactState = state == BottomSheetBehavior.STATE_COLLAPSED
+                || state == BottomSheetBehavior.STATE_HIDDEN
                 || ((state == BottomSheetBehavior.STATE_DRAGGING
                 || state == BottomSheetBehavior.STATE_SETTLING)
-                && sheetDisplayState == SheetDisplayState.SMALL);
+                && shouldKeepCompactWindowDuringTransition());
         window.setDimAmount(compactState ? 0f : 0.16f);
         window.setLayout(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 compactState ? dpToPx(132) : ViewGroup.LayoutParams.MATCH_PARENT
         );
+    }
+
+    private boolean shouldKeepCompactWindowDuringTransition() {
+        return sheetDisplayState == SheetDisplayState.SMALL && lastSheetSlideOffset <= 0f;
     }
 
     private void bindFieldInteractions(ActiveField fieldType) {
@@ -1315,6 +1327,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private void publishSheetVisibility(boolean visible) {
         Bundle result = new Bundle();
         result.putBoolean(KEY_SHEET_VISIBLE, visible);
+        result.putInt(KEY_SHEET_SESSION_ID, sheetSessionId);
         getParentFragmentManager().setFragmentResult(RESULT_SHEET_VISIBILITY, result);
     }
 
