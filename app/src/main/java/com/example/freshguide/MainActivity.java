@@ -25,6 +25,7 @@ import androidx.annotation.NonNull;
 
         import com.example.freshguide.repository.ProfileSyncRepository;
         import com.example.freshguide.repository.SavedRoomRepository;
+        import com.example.freshguide.repository.SyncRepository;
         import com.example.freshguide.receiver.NetworkChangeReceiver;
         import com.example.freshguide.util.SessionManager;
         import com.example.freshguide.util.ThemePreferenceManager;
@@ -41,6 +42,7 @@ import androidx.annotation.NonNull;
             private View pendingNavActionView;
             private ProfileSyncRepository profileSyncRepository;
             private SavedRoomRepository savedRoomRepository;
+            private SyncRepository coreSyncRepository;
 
             @Override
             protected void onCreate(Bundle savedInstanceState) {
@@ -91,8 +93,10 @@ import androidx.annotation.NonNull;
                 isAdmin = session.isAdmin();
 
                 if (isAdmin) {
+                    coreSyncRepository = new SyncRepository(this);
                     setupAdminNav(navHome, navSchedule, navSettings, navProfile);
                     updateNavSelection(R.id.adminDashboardFragment);
+                    syncCoreDataIfNeeded();
                     if (savedInstanceState == null) {
                         NavOptions options = new NavOptions.Builder()
                                 .setPopUpTo(R.id.homeFragment, true)
@@ -438,6 +442,28 @@ import androidx.annotation.NonNull;
                 return 0;
             }
 
+            private void syncCoreDataIfNeeded() {
+                if (coreSyncRepository == null) {
+                    return;
+                }
+                coreSyncRepository.syncIfNeeded(new SyncRepository.SyncCallback() {
+                    @Override
+                    public void onSyncComplete() {
+                        // Local floor and room views depend on this bootstrap cache.
+                    }
+
+                    @Override
+                    public void onSyncSkipped() {
+                        // Already up to date.
+                    }
+
+                    @Override
+                    public void onSyncError(String message) {
+                        // Admin screens fall back to local data when available.
+                    }
+                });
+            }
+
             private void updateNavSelection(@IdRes int destinationId) {
                 View navHome = findViewById(R.id.nav_item_home);
                 View navSchedule = findViewById(R.id.nav_item_schedule);
@@ -550,6 +576,9 @@ import androidx.annotation.NonNull;
                 }
                 if (!isAdmin && savedRoomRepository != null) {
                     savedRoomRepository.syncNow();
+                }
+                if (isAdmin && coreSyncRepository != null) {
+                    syncCoreDataIfNeeded();
                 }
             }
 

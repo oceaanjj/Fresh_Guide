@@ -1276,6 +1276,7 @@ public class HomeFragment extends Fragment {
                         return;
                     }
                     boolean visible = result.getBoolean(DirectionsSheetFragment.KEY_SHEET_VISIBLE, false);
+                    updateDirectionsSheetToggleButton(visible);
                     if (visible) {
                         setBottomNavVisible(false);
                         setDirectionsFabVisible(false);
@@ -1718,14 +1719,16 @@ public class HomeFragment extends Fragment {
         if (btnToggleDirectionsSheet == null || !isAdded()) {
             return;
         }
-        btnToggleDirectionsSheet.setText(sheetVisible ? "Hide Sheet" : "Show Sheet");
+        btnToggleDirectionsSheet.setText("Show Sheet");
     }
 
     private void updateDirectionsSheetToggleButtonVisibility() {
         if (btnToggleDirectionsSheet == null) {
             return;
         }
-        boolean shouldShow = hasDirectionsPrompted && !isRoomDetailSheetShowing();
+        boolean shouldShow = hasDirectionsPrompted
+                && !isRoomDetailSheetShowing()
+                && !isDirectionsSheetShowing();
         btnToggleDirectionsSheet.setVisibility(shouldShow ? View.VISIBLE : View.GONE);
     }
 
@@ -1735,7 +1738,8 @@ public class HomeFragment extends Fragment {
         }
         boolean shouldShow = hasDirectionsPrompted
                 && !isRoomDetailSheetShowing()
-                && (activeRouteOverlay != null || isDirectionsSheetShowing());
+                && !isDirectionsSheetShowing()
+                && activeRouteOverlay != null;
         btnExitDirectionMode.setVisibility(shouldShow ? View.VISIBLE : View.GONE);
     }
 
