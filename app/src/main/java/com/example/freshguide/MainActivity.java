@@ -24,6 +24,7 @@ import androidx.navigation.NavOptions;
 import androidx.annotation.NonNull;
 
         import com.example.freshguide.repository.ProfileSyncRepository;
+        import com.example.freshguide.repository.SavedRoomRepository;
         import com.example.freshguide.receiver.NetworkChangeReceiver;
         import com.example.freshguide.util.SessionManager;
         import com.example.freshguide.util.ThemePreferenceManager;
@@ -39,6 +40,7 @@ import androidx.annotation.NonNull;
             private Runnable pendingNavAction;
             private View pendingNavActionView;
             private ProfileSyncRepository profileSyncRepository;
+            private SavedRoomRepository savedRoomRepository;
 
             @Override
             protected void onCreate(Bundle savedInstanceState) {
@@ -100,8 +102,10 @@ import androidx.annotation.NonNull;
                     }
                 } else {
                     profileSyncRepository = new ProfileSyncRepository(this);
+                    savedRoomRepository = new SavedRoomRepository(this);
                     setupCustomNav(navHome, navSchedule, navSettings, navProfile);
                     updateNavSelection(R.id.homeFragment);
+                    savedRoomRepository.syncNow();
                     if (savedInstanceState == null) {
                         String openTab = getIntent() != null ? getIntent().getStringExtra("open_tab") : null;
                         if ("schedule".equalsIgnoreCase(openTab)) {
@@ -543,6 +547,9 @@ import androidx.annotation.NonNull;
 
                 if (!isAdmin && profileSyncRepository != null) {
                     profileSyncRepository.syncNow();
+                }
+                if (!isAdmin && savedRoomRepository != null) {
+                    savedRoomRepository.syncNow();
                 }
             }
 
