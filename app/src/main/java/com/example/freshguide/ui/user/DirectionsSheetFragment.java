@@ -323,16 +323,14 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             activeRouteOriginRoomId = -1;
         } else if (directOriginRoomId != -1 && directRoomId != -1) {
             publishNavigationFocusState(true);
-            contentMode = ContentMode.ROUTE;
-            updateCollapsedSummary();
             hideResultsAndClearFocus();
+            showRouteLoadingState();
             presentStartedRouteSheet();
             activeRouteOriginId = -1;
             activeRouteOriginRoomId = directOriginRoomId;
             activeRouteRoomId = directRoomId;
             reverseCurrentRoute = false;
-            publishLocalRoomRouteOverlay(directOriginRoomId, directRoomId);
-            showRouteEmptyState(true);
+            viewModel.loadRoomRoute(directRoomId, directOriginRoomId);
             return;
         } else if (swappedOriginId != -1 && swappedRoomId != -1) {
             routeOriginId = swappedOriginId;
