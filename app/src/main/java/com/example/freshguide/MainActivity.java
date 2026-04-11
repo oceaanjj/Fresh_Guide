@@ -21,6 +21,7 @@ import androidx.navigation.NavDestination;
 import androidx.navigation.NavOptions;
         import androidx.navigation.fragment.NavHostFragment;
         import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
 
         import com.example.freshguide.repository.ProfileSyncRepository;
         import com.example.freshguide.receiver.NetworkChangeReceiver;
@@ -113,6 +114,7 @@ import androidx.navigation.NavOptions;
 
                 navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                     updateNavSelection(destination.getId());
+                    updateBottomNavVisibility(destination);
                 });
 
                 // Network change receiver (checklist 3.2)
@@ -121,7 +123,7 @@ import androidx.navigation.NavOptions;
 
             private void setupCustomNav(View navHome, View navSchedule, View navSettings, View navProfile) {
                 bindNavItem(navHome, R.id.nav_icon_home, R.id.nav_text_home,
-                        () -> navigateTo(R.id.homeFragment));
+                        this::openHomeTab);
                 bindNavItem(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule,
                         () -> navigateTo(R.id.scheduleFragment));
                 bindNavItem(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings,
@@ -141,7 +143,7 @@ import androidx.navigation.NavOptions;
                         R.drawable.ic_nav_settings, R.string.nav_admin_settings);
 
                 bindNavItem(navHome, R.id.nav_icon_home, R.id.nav_text_home,
-                        () -> navigateTo(R.id.adminDashboardFragment));
+                        this::openAdminDashboardTab);
                 bindNavItem(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule,
                         () -> navigateTo(R.id.adminRoomListFragment));
                 bindNavItem(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings,
@@ -195,6 +197,20 @@ import androidx.navigation.NavOptions;
                     return;
                 }
                 navigateTo(R.id.homeFragment);
+            }
+
+            private void openAdminDashboardTab() {
+                if (navController == null || navController.getCurrentDestination() == null) {
+                    return;
+                }
+                if (navController.getCurrentDestination().getId() == R.id.adminDashboardFragment) {
+                    return;
+                }
+                if (navController.popBackStack(R.id.adminDashboardFragment, false)) {
+                    updateNavSelection(R.id.adminDashboardFragment);
+                    return;
+                }
+                navigateTo(R.id.adminDashboardFragment);
             }
 
             private void applySystemBarInsets(View root, View navHostView, View navContainer) {
@@ -442,6 +458,23 @@ import androidx.navigation.NavOptions;
                 setNavItemSelected(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule, scheduleSelected);
                 setNavItemSelected(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings, settingsSelected);
                 setNavItemSelected(navProfile, R.id.nav_icon_profile, R.id.nav_text_profile, profileSelected);
+            }
+
+            private void updateBottomNavVisibility(@NonNull NavDestination destination) {
+                View navContainer = findViewById(R.id.nav_bar_container);
+                if (navContainer == null) {
+                    return;
+                }
+                navContainer.setVisibility(isDialogDestination(destination.getId()) ? View.GONE : View.VISIBLE);
+            }
+
+            private boolean isDialogDestination(@IdRes int destinationId) {
+                return destinationId == R.id.roomDetailFragment
+                        || destinationId == R.id.adminBuildingFormFragment
+                        || destinationId == R.id.adminFloorFormFragment
+                        || destinationId == R.id.adminRoomFormFragment
+                        || destinationId == R.id.adminRouteFormFragment
+                        || destinationId == R.id.adminCampusAreaFormFragment;
             }
 
             private void setNavItemSelected(View item, int iconId, int textId, boolean selected) {
