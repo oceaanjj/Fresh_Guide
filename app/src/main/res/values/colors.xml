@@ -31,6 +31,10 @@
     <color name="orange_accent">#FF6D00</color>
     <color name="orange_text">#FFA500</color>
     <color name="orange_surface">#FFF3E0</color>
+    <color name="stairs_indicator_surface">#FFF9F1</color>
+    <color name="stairs_indicator_overlay">#0FF4A340</color>
+    <color name="stairs_indicator_stroke">#52F4A340</color>
+    <color name="stairs_indicator_highlight">#7AFFFFFF</color>
     <color name="red_accent">#D94B4B</color>
     <color name="red_surface">#FDECEC</color>
     <color name="red_pressed">#F8D9D9</color>

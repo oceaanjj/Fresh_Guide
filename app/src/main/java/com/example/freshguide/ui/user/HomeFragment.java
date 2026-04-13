@@ -225,6 +225,9 @@ public class HomeFragment extends Fragment {
     private MaterialButton btnRoutePrevFloor;
     private MaterialButton btnRouteNextFloor;
     private MaterialButton btnExitDirectionMode;
+    private View stairsDirectionIndicatorCard;
+    private ImageView stairsDirectionIndicatorIcon;
+    private TextView stairsDirectionIndicatorText;
     private boolean hasDirectionsPrompted;
     private FloatingActionButton fabCompass;
     private FloatingActionButton fabEmergencyExit;
@@ -248,6 +251,9 @@ public class HomeFragment extends Fragment {
     private boolean isDirectionsFocusMode;
     private boolean isDirectionsSheetVisible;
     private int activeDirectionsSheetSessionId;
+    @Nullable
+    private Animator activeStairsDirectionAnimator;
+    private int activeStairsDirectionState;
 
     private static Map<String, Integer> createFloor1RoomSlots() {
         LinkedHashMap<String, Integer> map = new LinkedHashMap<>();
@@ -364,6 +370,9 @@ public class HomeFragment extends Fragment {
         btnRoutePrevFloor = view.findViewById(R.id.btn_route_prev_floor);
         btnRouteNextFloor = view.findViewById(R.id.btn_route_next_floor);
         btnExitDirectionMode = view.findViewById(R.id.btn_exit_direction_mode);
+        stairsDirectionIndicatorCard = view.findViewById(R.id.card_stairs_direction_indicator);
+        stairsDirectionIndicatorIcon = view.findViewById(R.id.iv_stairs_direction_indicator);
+        stairsDirectionIndicatorText = view.findViewById(R.id.tv_stairs_direction_indicator);
 
         NavController nav = Navigation.findNavController(view);
 
@@ -382,6 +391,7 @@ public class HomeFragment extends Fragment {
         observeDirectionsRouteOverlay();
         observeDirectionsSheetVisibility();
         observeDirectionsFocusMode();
+        updateStairsDirectionIndicator();
 
         viewModel.sync();
     }
@@ -1324,10 +1334,12 @@ public class HomeFragment extends Fragment {
         if (floorNumber == null) {
             showOverallMap();
             updateRouteFloorControls();
+            updateStairsDirectionIndicator();
             return;
         }
         showFloorMap(floorNumber);
         updateRouteFloorControls();
+        updateStairsDirectionIndicator();
     }
 
     private void openRoomOnMap(@NonNull RoomEntity room, @NonNull View roomBox, boolean animateCentering) {
@@ -2139,6 +2151,7 @@ public class HomeFragment extends Fragment {
                 renderActiveRouteOverlay();
             }
             updateRouteFloorControls();
+            updateStairsDirectionIndicator();
             updateExitDirectionModeButtonVisibility();
         });
     }
@@ -2703,6 +2716,175 @@ public class HomeFragment extends Fragment {
 
         setRouteFloorButtonState(btnRoutePrevFloor, canGoPrev, "Previous");
         setRouteFloorButtonState(btnRouteNextFloor, canGoNext, "Next");
+    }
+
+    private void updateStairsDirectionIndicator() {
+        if (stairsDirectionIndicatorCard == null
+                || stairsDirectionIndicatorIcon == null
+                || stairsDirectionIndicatorText == null) {
+            return;
+        }
+
+        int directionState = resolveStairsDirectionState();
+        if (directionState == 0) {
+            activeStairsDirectionState = 0;
+            hideStairsDirectionIndicator();
+            return;
+        }
+
+        boolean directionChanged = activeStairsDirectionState != directionState;
+        activeStairsDirectionState = directionState;
+
+        stairsDirectionIndicatorText.setText(directionState > 0
+                ? R.string.directions_go_up_stairs
+                : R.string.directions_go_down_stairs);
+        stairsDirectionIndicatorCard.setContentDescription(stairsDirectionIndicatorText.getText());
+        stairsDirectionIndicatorIcon.setImageResource(directionState > 0
+                ? R.drawable.ic_stairs_direction_up
+                : R.drawable.ic_stairs_direction_down);
+        if (stairsDirectionIndicatorCard.getVisibility() != View.VISIBLE) {
+            showStairsDirectionIndicator();
+        } else if (directionChanged) {
+            pulseStairsDirectionIndicator();
+        }
+        startStairsDirectionIndicatorCue();
+    }
+
+    private int resolveStairsDirectionState() {
+        RouteOverlayState state = activeRouteOverlay;
+        if (state == null || selectedFloor == null || state.useElevator || state.overallOnly) {
+            return 0;
+        }
+
+        if (state.campusTransitionSequence) {
+            if (state.showingCampusLeg || state.currentFloorNumber <= 1) {
+                return 0;
+            }
+            return -1;
+        }
+
+        if (!state.isMultiFloor()) {
+            return 0;
+        }
+
+        if (state.currentFloorNumber == state.destinationFloorNumber) {
+            return 0;
+        }
+
+        return state.destinationFloorNumber > state.currentFloorNumber ? 1 : -1;
+    }
+
+    private void showStairsDirectionIndicator() {
+        if (stairsDirectionIndicatorCard == null) {
+            return;
+        }
+
+        stairsDirectionIndicatorCard.animate().cancel();
+        stairsDirectionIndicatorCard.setVisibility(View.VISIBLE);
+        stairsDirectionIndicatorCard.bringToFront();
+        stairsDirectionIndicatorCard.setAlpha(0f);
+        stairsDirectionIndicatorCard.setScaleX(0.94f);
+        stairsDirectionIndicatorCard.setScaleY(0.94f);
+        stairsDirectionIndicatorCard.setTranslationY(-dpToPx(8));
+        stairsDirectionIndicatorCard.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationY(0f)
+                .setDuration(220L)
+                .start();
+    }
+
+    private void hideStairsDirectionIndicator() {
+        if (stairsDirectionIndicatorCard == null) {
+            return;
+        }
+
+        clearStairsDirectionIndicatorCue();
+        stairsDirectionIndicatorCard.animate().cancel();
+        if (stairsDirectionIndicatorCard.getVisibility() != View.VISIBLE) {
+            stairsDirectionIndicatorCard.setVisibility(View.GONE);
+            stairsDirectionIndicatorCard.setAlpha(1f);
+            stairsDirectionIndicatorCard.setScaleX(1f);
+            stairsDirectionIndicatorCard.setScaleY(1f);
+            stairsDirectionIndicatorCard.setTranslationY(0f);
+            return;
+        }
+
+        stairsDirectionIndicatorCard.animate()
+                .alpha(0f)
+                .scaleX(0.96f)
+                .scaleY(0.96f)
+                .translationY(-dpToPx(6))
+                .setDuration(160L)
+                .withEndAction(() -> {
+                    if (stairsDirectionIndicatorCard == null || activeStairsDirectionState != 0) {
+                        return;
+                    }
+                    stairsDirectionIndicatorCard.setVisibility(View.GONE);
+                    stairsDirectionIndicatorCard.setAlpha(1f);
+                    stairsDirectionIndicatorCard.setScaleX(1f);
+                    stairsDirectionIndicatorCard.setScaleY(1f);
+                    stairsDirectionIndicatorCard.setTranslationY(0f);
+                })
+                .start();
+    }
+
+    private void pulseStairsDirectionIndicator() {
+        if (stairsDirectionIndicatorCard == null) {
+            return;
+        }
+
+        stairsDirectionIndicatorCard.animate().cancel();
+        stairsDirectionIndicatorCard.animate()
+                .scaleX(1.05f)
+                .scaleY(1.05f)
+                .setDuration(110L)
+                .withEndAction(() -> {
+                    if (stairsDirectionIndicatorCard == null || activeStairsDirectionState == 0) {
+                        return;
+                    }
+                    stairsDirectionIndicatorCard.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(140L)
+                            .start();
+                })
+                .start();
+    }
+
+    private void startStairsDirectionIndicatorCue() {
+        if (stairsDirectionIndicatorIcon == null) {
+            return;
+        }
+
+        clearStairsDirectionIndicatorCue();
+        stairsDirectionIndicatorIcon.setAlpha(1f);
+        stairsDirectionIndicatorIcon.setScaleX(1f);
+        stairsDirectionIndicatorIcon.setScaleY(1f);
+
+        ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(
+                stairsDirectionIndicatorIcon,
+                PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.35f, 1f),
+                PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.14f, 1f),
+                PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.14f, 1f)
+        );
+        animator.setDuration(760L);
+        animator.setRepeatCount(ObjectAnimator.INFINITE);
+        activeStairsDirectionAnimator = animator;
+        animator.start();
+    }
+
+    private void clearStairsDirectionIndicatorCue() {
+        if (activeStairsDirectionAnimator != null) {
+            activeStairsDirectionAnimator.cancel();
+            activeStairsDirectionAnimator = null;
+        }
+        if (stairsDirectionIndicatorIcon != null) {
+            stairsDirectionIndicatorIcon.setAlpha(1f);
+            stairsDirectionIndicatorIcon.setScaleX(1f);
+            stairsDirectionIndicatorIcon.setScaleY(1f);
+        }
     }
 
     private void setRouteFloorButtonState(@NonNull MaterialButton button,
@@ -3317,7 +3499,11 @@ public class HomeFragment extends Fragment {
         activeRouteOriginId = -1;
         activeRouteOriginRoomId = -1;
         clearFloorRouteOverlay();
+        clearOverallRouteOverlay();
         updateFloorChipAvailability();
+        updateRouteFloorControls();
+        updateStairsDirectionIndicator();
+        updateExitDirectionModeButtonVisibility();
         if (state != null && highlightedRoomId != null && highlightedRoomId == state.destinationRoomId) {
             clearRoomHighlight();
         }
@@ -3407,6 +3593,7 @@ public class HomeFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         clearActiveRouteOverlay();
+        clearStairsDirectionIndicatorCue();
         setDirectionsFocusMode(false);
         setBottomNavVisible(true);
         setDirectionsFabVisible(true);

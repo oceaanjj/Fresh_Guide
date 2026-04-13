@@ -534,6 +534,56 @@
             app:strokeColor="@color/border_subtle"
             app:strokeWidth="1dp" />
 
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_stairs_direction_indicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="14dp"
+            android:clickable="false"
+            android:focusable="false"
+            android:visibility="gone"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="5dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_stairs_direction_glass"
+                android:minWidth="136dp"
+                android:minHeight="36dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="8dp">
+
+                <ImageView
+                    android:id="@+id/iv_stairs_direction_indicator"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_stairs_direction_up"
+                    app:tint="@color/orange_text" />
+
+                <TextView
+                    android:id="@+id/tv_stairs_direction_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:fontFamily="@font/instrument_regular"
+                    android:text="@string/directions_go_up_stairs"
+                    android:textColor="@color/orange_text"
+                    android:textSize="10sp"
+                    android:letterSpacing="0.04"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
         <LinearLayout
             android:id="@+id/layout_route_floor_controls"
             android:layout_width="wrap_content"

@@ -37,6 +37,10 @@
     <color name="orange_accent">#FF8A3D</color>           <!-- Slightly desaturated -->
     <color name="orange_text">#FFB74D</color>             <!-- Orange text -->
     <color name="orange_surface">#332A170A</color>
+    <color name="stairs_indicator_surface">#1E1710</color>
+    <color name="stairs_indicator_overlay">#12FF8A3D</color>
+    <color name="stairs_indicator_stroke">#55FF8A3D</color>
+    <color name="stairs_indicator_highlight">#22FFFFFF</color>
     <color name="red_accent">#FF8C87</color>
     <color name="red_surface">#3B2121</color>
     <color name="red_pressed">#4A2828</color>
