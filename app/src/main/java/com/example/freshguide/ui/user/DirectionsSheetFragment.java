@@ -52,7 +52,9 @@ import java.util.concurrent.Executors;
 public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private static final float SUMMARY_HALF_EXPANDED_RATIO = 0.52f;
     private static final float ROUTE_STATE_SNAP_THRESHOLD = 0.55f;
+    private static final float SHEET_MAX_DIM_AMOUNT = 0.16f;
     private static final int DIRECTIONS_SHEET_PEEK_DP = 92;
+    private static final int DIRECTIONS_SHEET_COMPACT_WINDOW_DP = 132;
 
     public static final String ARG_PRESELECTED_ROOM_ID = "preselectedRoomId";
     public static final String ARG_PRESELECTED_ROOM_NAME = "preselectedRoomName";
@@ -154,6 +156,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private boolean preserveOverlayOnDismiss;
     private int resultPanelMaxHeightPx;
     private float lastSheetSlideOffset;
+    private int appliedWindowHeight = Integer.MIN_VALUE;
+    private float appliedWindowDimAmount = Float.NaN;
 
     // -----------------------------------------------------------------------
     // FIX: Guard flag that prevents focus-change listeners from re-opening
@@ -216,7 +220,6 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                     @Override
                     public void onSlide(@NonNull View bottomSheet, float slideOffset) {
                         lastSheetSlideOffset = slideOffset;
-                        updateWindowForSheetSlide(slideOffset);
                         updateSheetChromeForSlide(slideOffset);
                         updateResultPanelHeights();
                     }
@@ -1144,25 +1147,33 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             return;
         }
 
+        if (state == BottomSheetBehavior.STATE_DRAGGING
+                || state == BottomSheetBehavior.STATE_SETTLING) {
+            applyWindowBounds(window, 0f, ViewGroup.LayoutParams.MATCH_PARENT);
+            return;
+        }
+
         boolean compactState = state == BottomSheetBehavior.STATE_COLLAPSED
                 || state == BottomSheetBehavior.STATE_HIDDEN;
-        window.setDimAmount(compactState ? 0f : 0.16f);
-        window.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+        applyWindowBounds(
+                window,
+                compactState ? 0f : SHEET_MAX_DIM_AMOUNT,
+                compactState ? dpToPx(DIRECTIONS_SHEET_COMPACT_WINDOW_DP) : ViewGroup.LayoutParams.MATCH_PARENT
         );
     }
 
-    private void updateWindowForSheetSlide(float slideOffset) {
-        if (!(getDialog() instanceof BottomSheetDialog)) {
-            return;
+    private void applyWindowBounds(@NonNull Window window, float dimAmount, int height) {
+        boolean dimChanged = Float.isNaN(appliedWindowDimAmount)
+                || Math.abs(appliedWindowDimAmount - dimAmount) > 0.002f;
+        if (dimChanged) {
+            window.setDimAmount(dimAmount);
+            appliedWindowDimAmount = dimAmount;
         }
-        Window window = ((BottomSheetDialog) getDialog()).getWindow();
-        if (window == null) {
-            return;
+
+        if (appliedWindowHeight != height) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, height);
+            appliedWindowHeight = height;
         }
-        float normalizedOffset = Math.max(0f, Math.min(1f, slideOffset));
-        window.setDimAmount(0.16f * normalizedOffset);
     }
 
     private void bindFieldInteractions(ActiveField fieldType) {
