@@ -16,6 +16,7 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -23,6 +24,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -53,8 +56,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private static final float SUMMARY_HALF_EXPANDED_RATIO = 0.52f;
     private static final float ROUTE_STATE_SNAP_THRESHOLD = 0.55f;
     private static final float SHEET_MAX_DIM_AMOUNT = 0.16f;
+    private static final float SHEET_DRAG_ACTIVATION_THRESHOLD = 0.06f;
     private static final int DIRECTIONS_SHEET_PEEK_DP = 92;
     private static final int DIRECTIONS_SHEET_COMPACT_WINDOW_DP = 132;
+    private static final long START_DIRECTIONS_TRANSITION_DELAY_MS = 140L;
 
     public static final String ARG_PRESELECTED_ROOM_ID = "preselectedRoomId";
     public static final String ARG_PRESELECTED_ROOM_NAME = "preselectedRoomName";
@@ -220,6 +225,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                     @Override
                     public void onSlide(@NonNull View bottomSheet, float slideOffset) {
                         lastSheetSlideOffset = slideOffset;
+                        updateWindowForSheetDrag(slideOffset);
                         updateSheetChromeForSlide(slideOffset);
                         updateResultPanelHeights();
                     }
@@ -300,7 +306,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         applySheetChrome(false);
         view.post(this::updateResultPanelHeights);
 
-        btnStart.setOnClickListener(v -> startDirectionsInPlace(view));
+        btnStart.setOnClickListener(v -> {
+            dismissKeyboardImmediately(v);
+            startDirectionsInPlace(view);
+        });
         btnSwapDirection.setOnClickListener(v -> swapOriginAndDestination());
 
         loadOriginsAndRooms();
@@ -371,19 +380,152 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             return;
         }
 
-        publishNavigationFocusState(true);
-        hideResultsAndClearFocus();
-        activeRouteOriginId = routeOriginId;
-        activeRouteOriginRoomId = -1;
-        activeRouteRoomId = routeRoomId;
-        if (shouldDismissOnStart) {
-            publishOriginRouteOverlay(routeRoomId, routeOriginId);
-            dismissAllowingStateLoss();
+        final int resolvedRouteOriginId = routeOriginId;
+        final int resolvedRouteRoomId = routeRoomId;
+        beginStartDirectionsTransition(() -> {
+            publishNavigationFocusState(true);
+            hideResultsAndClearFocus();
+            activeRouteOriginId = resolvedRouteOriginId;
+            activeRouteOriginRoomId = -1;
+            activeRouteRoomId = resolvedRouteRoomId;
+            if (shouldDismissOnStart) {
+                publishOriginRouteOverlay(resolvedRouteRoomId, resolvedRouteOriginId);
+                dismissAllowingStateLoss();
+                return;
+            }
+            showRouteLoadingState();
+            presentStartedRouteSheet();
+            viewModel.loadRoute(resolvedRouteRoomId, resolvedRouteOriginId);
+        });
+    }
+
+    private void dismissKeyboard() {
+        if (!isAdded()) {
             return;
         }
-        showRouteLoadingState();
-        presentStartedRouteSheet();
-        viewModel.loadRoute(routeRoomId, routeOriginId);
+        clearAllFieldFocus();
+
+        View host = sheetRoot != null ? sheetRoot : getView();
+        if (host == null) {
+            return;
+        }
+
+        host.post(() -> {
+            if (!isAdded()) {
+                return;
+            }
+
+            View decorView = null;
+            if (getDialog() != null && getDialog().getWindow() != null) {
+                decorView = getDialog().getWindow().getDecorView();
+            }
+            if (decorView == null && requireActivity().getWindow() != null) {
+                decorView = requireActivity().getWindow().getDecorView();
+            }
+
+            View controllerHost = decorView != null ? decorView : host;
+            androidx.core.view.WindowInsetsControllerCompat controller =
+                    ViewCompat.getWindowInsetsController(controllerHost);
+            if (controller != null) {
+                controller.hide(WindowInsetsCompat.Type.ime());
+            }
+
+            android.content.Context context = requireContext();
+            InputMethodManager imm = ContextCompat.getSystemService(context, InputMethodManager.class);
+            if (imm == null) {
+                return;
+            }
+
+            View[] candidates = new View[]{
+                    etDestination,
+                    etOrigin,
+                    host,
+                    decorView,
+                    requireActivity().getCurrentFocus()
+            };
+            for (View candidate : candidates) {
+                if (candidate == null || candidate.getWindowToken() == null) {
+                    continue;
+                }
+                imm.hideSoftInputFromWindow(candidate.getWindowToken(), 0);
+            }
+        });
+    }
+
+    private void dismissKeyboardImmediately(@Nullable View triggerView) {
+        if (!isAdded()) {
+            return;
+        }
+
+        clearAllFieldFocus();
+        if (btnStart != null) {
+            btnStart.requestFocus();
+        }
+
+        View controllerHost = triggerView;
+        if (controllerHost == null && sheetRoot != null) {
+            controllerHost = sheetRoot;
+        }
+        if (controllerHost == null) {
+            controllerHost = getView();
+        }
+
+        if (controllerHost != null) {
+            androidx.core.view.WindowInsetsControllerCompat controller =
+                    ViewCompat.getWindowInsetsController(controllerHost);
+            if (controller != null) {
+                controller.hide(WindowInsetsCompat.Type.ime());
+            }
+        }
+
+        android.content.Context context = requireContext();
+        InputMethodManager imm = ContextCompat.getSystemService(context, InputMethodManager.class);
+        if (imm == null) {
+            return;
+        }
+
+        View[] candidates = new View[]{
+                triggerView,
+                btnStart,
+                etDestination,
+                etOrigin,
+                sheetRoot,
+                getView(),
+                requireActivity().getCurrentFocus()
+        };
+        for (View candidate : candidates) {
+            if (candidate == null || candidate.getWindowToken() == null) {
+                continue;
+            }
+            imm.hideSoftInputFromWindow(candidate.getWindowToken(), 0);
+        }
+    }
+
+    private void beginStartDirectionsTransition(@NonNull Runnable action) {
+        dismissKeyboard();
+        if (btnStart != null) {
+            btnStart.setEnabled(false);
+            btnStart.animate().cancel();
+            btnStart.animate()
+                    .alpha(0.88f)
+                    .setDuration(90L)
+                    .start();
+        }
+        View host = sheetRoot != null ? sheetRoot : getView();
+        if (host == null) {
+            action.run();
+            return;
+        }
+        host.postDelayed(() -> {
+            if (!isAdded()) {
+                return;
+            }
+            if (btnStart != null) {
+                btnStart.animate().cancel();
+                btnStart.setAlpha(1f);
+            }
+            action.run();
+        }, START_DIRECTIONS_TRANSITION_DELAY_MS);
     }
 
     private void showRouteLoadingState() {
@@ -527,7 +669,25 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             return;
         }
 
-        float progress = Math.max(0f, Math.min(1f, slideOffset / 0.45f));
+        if (slideOffset <= SHEET_DRAG_ACTIVATION_THRESHOLD) {
+            collapsedSummary.setVisibility(View.VISIBLE);
+            collapsedSummary.setAlpha(1f);
+            collapsedSummary.setTranslationY(0f);
+
+            titleView.setVisibility(View.INVISIBLE);
+            titleView.setAlpha(0f);
+            titleView.setTranslationY(dpToPx(6));
+
+            summaryContent.setVisibility(View.INVISIBLE);
+            summaryContent.setAlpha(0f);
+            summaryContent.setTranslationY(dpToPx(8));
+            return;
+        }
+
+        float progress = Math.max(0f, Math.min(
+                1f,
+                (slideOffset - SHEET_DRAG_ACTIVATION_THRESHOLD) / (0.45f - SHEET_DRAG_ACTIVATION_THRESHOLD)
+        ));
 
         collapsedSummary.setVisibility(View.VISIBLE);
         titleView.setVisibility(View.VISIBLE);
@@ -1149,7 +1309,13 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
         if (state == BottomSheetBehavior.STATE_DRAGGING
                 || state == BottomSheetBehavior.STATE_SETTLING) {
-            applyWindowBounds(window, 0f, ViewGroup.LayoutParams.MATCH_PARENT);
+            boolean keepCompact = sheetDisplayState == SheetDisplayState.SMALL
+                    && lastSheetSlideOffset <= SHEET_DRAG_ACTIVATION_THRESHOLD;
+            applyWindowBounds(
+                    window,
+                    0f,
+                    keepCompact ? dpToPx(DIRECTIONS_SHEET_COMPACT_WINDOW_DP) : ViewGroup.LayoutParams.MATCH_PARENT
+            );
             return;
         }
 
@@ -1159,6 +1325,31 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                 window,
                 compactState ? 0f : SHEET_MAX_DIM_AMOUNT,
                 compactState ? dpToPx(DIRECTIONS_SHEET_COMPACT_WINDOW_DP) : ViewGroup.LayoutParams.MATCH_PARENT
+        );
+    }
+
+    private void updateWindowForSheetDrag(float slideOffset) {
+        if (!(getDialog() instanceof BottomSheetDialog)) {
+            return;
+        }
+        if (bottomSheetBehavior == null) {
+            return;
+        }
+        int state = bottomSheetBehavior.getState();
+        if (state != BottomSheetBehavior.STATE_DRAGGING
+                && state != BottomSheetBehavior.STATE_SETTLING) {
+            return;
+        }
+        Window window = ((BottomSheetDialog) getDialog()).getWindow();
+        if (window == null) {
+            return;
+        }
+        boolean keepCompact = sheetDisplayState == SheetDisplayState.SMALL
+                && slideOffset <= SHEET_DRAG_ACTIVATION_THRESHOLD;
+        applyWindowBounds(
+                window,
+                0f,
+                keepCompact ? dpToPx(DIRECTIONS_SHEET_COMPACT_WINDOW_DP) : ViewGroup.LayoutParams.MATCH_PARENT
         );
     }
 
