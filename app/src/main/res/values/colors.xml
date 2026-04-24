@@ -38,6 +38,15 @@
     <color name="red_accent">#D94B4B</color>
     <color name="red_surface">#FDECEC</color>
     <color name="red_pressed">#F8D9D9</color>
+    <color name="admin_logout_surface">#FFFFFF</color>
+    <color name="admin_logout_surface_pressed">#F6F3F0</color>
+    <color name="admin_logout_stroke">#08D94B4B</color>
+    <color name="profile_logout_glass_fill">#F2FFFFFF</color>
+    <color name="profile_logout_glass_pressed">#EAF7F2F0</color>
+    <color name="profile_logout_glass_stroke">#2ED94B4B</color>
+    <color name="profile_logout_glass_inner_stroke">#A6FFFFFF</color>
+    <color name="profile_logout_glass_highlight_top">#CCFFFFFF</color>
+    <color name="profile_logout_glass_highlight_bottom">#00FFFFFF</color>
     <color name="map_orange">#F4A340</color>
 
     <!-- Border & Divider Colors (Light Mode) -->

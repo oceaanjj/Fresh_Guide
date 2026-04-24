@@ -44,6 +44,15 @@
     <color name="red_accent">#FF8C87</color>
     <color name="red_surface">#3B2121</color>
     <color name="red_pressed">#4A2828</color>
+    <color name="admin_logout_surface">#F7F4EF</color>
+    <color name="admin_logout_surface_pressed">#EFEAE3</color>
+    <color name="admin_logout_stroke">#0FFFFFFF</color>
+    <color name="profile_logout_glass_fill">#D9F7F4EF</color>
+    <color name="profile_logout_glass_pressed">#CFEFEAE3</color>
+    <color name="profile_logout_glass_stroke">#26FFFFFF</color>
+    <color name="profile_logout_glass_inner_stroke">#52FFFFFF</color>
+    <color name="profile_logout_glass_highlight_top">#7AFFFFFF</color>
+    <color name="profile_logout_glass_highlight_bottom">#00FFFFFF</color>
     <color name="map_orange">#7C5827</color>              <!-- Map accent -->
 
     <!-- Border & Divider Colors (Dark Mode) -->
